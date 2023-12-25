@@ -7,8 +7,10 @@
 exports.up = function (knex) {
   return knex.schema.createTable('games', function (table) {
     table.increments('id').primary();
+    table.integer('gameNumber', 20).notNullable();
     table.string('gameType', 20).notNullable();
-    table.jsonb('pickedNumbers').notNullable();
+    table.jsonb('pickedNumbers');
+    table.enu('winner', ['evens', 'heads', 'tails']);
     table.timestamp('time').notNullable();
     table.enu('status', ['playing', 'done', 'error']).defaultTo('playing');
 
