@@ -2,7 +2,12 @@
 
 const Game = require("../models/game");
 const knex = require("knex");
-const gameController = {
+const GameController = {
+  constructor: () => {
+    this.generateRandomNumbers = this.generateRandomNumbers.bind(this);
+    this.createNewGameEntry = this.createNewGameEntry.bind(this);
+  },
+
   getAllGames: async (req, res, next) => {
     try {
       const games = await Game.query();
@@ -121,6 +126,7 @@ const gameController = {
     } catch (error) {
       console.error('Error creating new game entry:', error);
       throw error; // Rethrow the error for handling in the calling function or route
+      return false;
     }
   },
   
@@ -130,7 +136,7 @@ const gameController = {
     try {
       // Retrieve the last played game
       const lastPlayedGame = await Game.query()
-        // .where("status", "done")
+        .where("status", "done")
         .orderBy("time", "desc")
         .first();
 
@@ -149,7 +155,12 @@ const gameController = {
       if (currentGame) {
         openGame = currentGame;
       } else {
-        openGame = await this.createNewGameEntry('keno', 1000)
+        openGame = await Game.query().insert({
+          gameType: 'keno',
+          gameNumber: (lastPlayedGame.gameNumber + 1),
+          // Add other fields as needed based on your table structure
+          // Example: pickedNumbers, winner, time, status, etc.
+        }).returning('*');
       }
       // Retrieve the open game (next game)
 
@@ -183,7 +194,18 @@ const gameController = {
       }
 
       // Assume you have a function to draw the number and update the database
-      const drawnNumber = generateRandomNumbers();
+      const numbers = [];
+
+    while (numbers.length < 20) {
+      const randomNum = Math.floor(Math.random() * 80) + 1;
+
+      // Ensure the number is not already in the array
+      if (!numbers.includes(randomNum)) {
+        numbers.push(randomNum);
+      }
+    }
+      const drawnNumber = numbers;
+      // const drawnNumber = this.generateRandomNumbers();
 
       // Retrieve the previous game
       const previousGame = await Game.query()
@@ -193,7 +215,7 @@ const gameController = {
         .first();
 
       // Update the pickedNumbers field with the drawn number
-      await currentGame.$query().patch({ pickedNumbers: [drawnNumber], status: 'done'});
+      await currentGame.$query().patch({ pickedNumbers: JSON.stringify({'selection' : [drawnNumber]}), status: 'done'});
 
       // Construct the response in the specified format
       const response = {
@@ -212,4 +234,4 @@ const gameController = {
   },
 };
 
-module.exports = gameController;
+module.exports = GameController;
