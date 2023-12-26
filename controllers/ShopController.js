@@ -30,11 +30,11 @@ class ShopController {
   async create(req, res) {
     const shopData = req.body;
 
-    // Validate the status field
-    const validStatusValues = ['active', 'inactive', 'pending'];
-    if (!validStatusValues.includes(shopData.status)) {
-      return res.status(400).json({ error: 'Invalid status value' });
-    }
+    // // Validate the status field
+    // const validStatusValues = ['active', 'inactive', 'pending'];
+    // if (!validStatusValues.includes(shopData.status)) {
+    //   return res.status(400).json({ error: 'Invalid status value' });
+    // }
 
     try {
       const newShop = await Shop.query().insert(shopData);

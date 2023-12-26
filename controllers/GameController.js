@@ -114,22 +114,23 @@ const GameController = {
   createNewGameEntry: async (gameType, gameNumber) => {
     try {
       // Use Knex to insert a new entry into the 'games' table
-      const newGameEntry = await Game.query().insert({
-        gameType: gameType,
-        gameNumber: gameNumber,
-        // Add other fields as needed based on your table structure
-        // Example: pickedNumbers, winner, time, status, etc.
-      }).returning('*'); // Returning the inserted entry
-  
+      const newGameEntry = await Game.query()
+        .insert({
+          gameType: gameType,
+          gameNumber: gameNumber,
+          // Add other fields as needed based on your table structure
+          // Example: pickedNumbers, winner, time, status, etc.
+        })
+        .returning("*"); // Returning the inserted entry
+
       // Return the newly created game entry
       return newGameEntry[0];
     } catch (error) {
-      console.error('Error creating new game entry:', error);
+      console.error("Error creating new game entry:", error);
       throw error; // Rethrow the error for handling in the calling function or route
       return false;
     }
   },
-  
 
   // Controller
   getLastPlayedGame: async (req, res) => {
@@ -146,21 +147,23 @@ const GameController = {
 
       // Update the current game with the drawn number
       const currentGame = await Game.query()
-        .where('status', 'playing')
-        .orderBy('time', 'desc')
+        .where("status", "playing")
+        .orderBy("time", "desc")
         .first();
 
-        let openGame;
+      let openGame;
 
       if (currentGame) {
         openGame = currentGame;
       } else {
-        openGame = await Game.query().insert({
-          gameType: 'keno',
-          gameNumber: (lastPlayedGame.gameNumber + 1),
-          // Add other fields as needed based on your table structure
-          // Example: pickedNumbers, winner, time, status, etc.
-        }).returning('*');
+        openGame = await Game.query()
+          .insert({
+            gameType: "keno",
+            gameNumber: lastPlayedGame.gameNumber + 1,
+            // Add other fields as needed based on your table structure
+            // Example: pickedNumbers, winner, time, status, etc.
+          })
+          .returning("*");
       }
       // Retrieve the open game (next game)
 
@@ -186,8 +189,9 @@ const GameController = {
     const { gameNumber } = req.params;
     try {
       // Update the current game with the drawn number
-      const currentGame = await Game.query().where('gameNumber', gameNumber).first();
-
+      const currentGame = await Game.query()
+        .where("gameNumber", gameNumber)
+        .first();
 
       if (!currentGame) {
         return res.status(404).json({ message: "No active games currently." });
@@ -196,14 +200,14 @@ const GameController = {
       // Assume you have a function to draw the number and update the database
       const numbers = [];
 
-    while (numbers.length < 20) {
-      const randomNum = Math.floor(Math.random() * 80) + 1;
+      while (numbers.length < 20) {
+        const randomNum = Math.floor(Math.random() * 80) + 1;
 
-      // Ensure the number is not already in the array
-      if (!numbers.includes(randomNum)) {
-        numbers.push(randomNum);
+        // Ensure the number is not already in the array
+        if (!numbers.includes(randomNum)) {
+          numbers.push(randomNum);
+        }
       }
-    }
       const drawnNumber = numbers;
       // const drawnNumber = this.generateRandomNumbers();
 
@@ -214,12 +218,38 @@ const GameController = {
         .offset(1)
         .first();
 
+
       // Update the pickedNumbers field with the drawn number
-      await currentGame.$query().patch({ pickedNumbers: JSON.stringify({'selection' : [drawnNumber]}), status: 'done'});
+      await currentGame
+        .$query()
+        .patch({
+          pickedNumbers: JSON.stringify({ selection: [drawnNumber] }),
+          status: "done",
+        });
+
+      
+      // Update the current game with the drawn number
+      const newGame = await Game.query()
+        .where('status', 'playing')
+        .orderBy('time', 'desc')
+        .first();
+
+      let openGame;
+
+      if (newGame) {
+        openGame = newGame;
+      } else {
+        openGame = await Game.query().insert({
+          gameType: 'keno',
+          gameNumber: (currentGame.gameNumber + 1),
+          // Add other fields as needed based on your table structure
+          // Example: pickedNumbers, winner, time, status, etc.
+        }).returning('*');
+      }
 
       // Construct the response in the specified format
       const response = {
-        openGame: { id: currentGame.id, gameNumber: currentGame.gameNumber },
+        openGame: { id: openGame.id, gameNumber: openGame.gameNumber },
         game: { gameNumber: currentGame.gameNumber },
         result: drawnNumber,
         lastGame: previousGame ? previousGame.gameNumber : null,

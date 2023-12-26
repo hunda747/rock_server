@@ -96,7 +96,7 @@ class CashierController {
 
   async login(req, res) {
     const { username, password } = req.body;
-
+    console.log(username, password);
     try {
       const cashier = await Cashier.query().findOne({ username });
 
@@ -113,7 +113,7 @@ class CashierController {
       // For demonstration purposes, we're just attaching it to the response header
       res.header('Refresh-Token', refreshToken);
 
-      res.json({ accessToken, refreshToken });
+      res.json({ accessToken, refreshToken, id: cashier.id });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Internal Server Error' });

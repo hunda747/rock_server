@@ -31,11 +31,11 @@ app.use('/bet', bet);
 app.use('/bettest', bettest);
 // app.get('/user', userRoutes);
 app.use('/admin', adminRoutes);
-app.use('/shop-owners', adminController.verifyAccessToken, shopOwnersRoutes);
-app.use('/shop', adminController.verifyAccessToken, shopRoutes);
-app.use('/cashiers', adminController.verifyAccessToken, cashierRoutes);
+app.use('/shop-owners', shopOwnersRoutes);
+app.use('/shop', shopRoutes);
+app.use('/cashiers', cashierRoutes);
 app.use('/game', gameRoutes);
-app.use('/slip', adminController.verifyAccessToken, slipRoutes);
+app.use('/slip', slipRoutes);
 
 // Start the server
 app.listen(port, () => {
