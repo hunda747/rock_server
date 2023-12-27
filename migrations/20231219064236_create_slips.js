@@ -7,14 +7,16 @@
 exports.up = function (knex) {
   return knex.schema.createTable('slips', function (table) {
     table.increments('id').primary();
-    table.integer('gameId').unsigned().notNullable();
+    table.integer('gameId').unsigned();
     table.foreign('gameId').references('games.id').onDelete('CASCADE');
+    table.string('gameType', 10);
     table.decimal('netStake', 10, 2);
     table.decimal('grossStake', 10, 2);
     table.decimal('netWinning', 10, 2);
     table.decimal('grossWinning', 10, 2);
     table.jsonb('numberPick');
     table.string('slipType', 10);
+    table.string('company', 10);
     // table.integer('specialValue');
     table.enu('status', ['placed', 'win', 'lose', 'redeem']).defaultTo('placed');
 

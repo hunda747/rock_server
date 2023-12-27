@@ -1,6 +1,7 @@
 // controllers/slipController.js
 
 const Slip = require('../models/slip');
+const Game = require('../models/game');
 
 const slipController = {
   getAllSlips: async (req, res, next) => {
@@ -28,10 +29,27 @@ const slipController = {
   },
 
   createSlip: async (req, res, next) => {
-    const { body } = req;
+    const param = req.body;
+
+    // Update the current game with the drawn number
+    const currentGame = await Game.query()
+    .where("status", "playing")
+    .where("gameType", "keno")
+    .orderBy("time", "desc")
+    .first();
+
+    if (!currentGame) {
+      return res.status(404).json({ message: "Game Closed." });
+    }
 
     try {
-      const slip = await Slip.query().insert(body);
+      const slip = await Slip.query().insert({
+        gameId: currentGame.id,
+        gameType: param.gameType,
+        netStake: param.netStake,
+        grossStake: param.netStake,
+        numberPick: JSON.stringify(param.numberPick),
+      });
       res.status(201).json(slip);
     } catch (error) {
       next(error);
