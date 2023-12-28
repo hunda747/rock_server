@@ -1,17 +1,26 @@
 // models/Shop.js
 const { Model } = require('objection');
-const ShopOwner = require('./ShopOwner');
 
 class Shop extends Model {
   static get tableName() {
     return 'shops';
   }
-
+  
   static get relationMappings() {
+    const Cashier = require('./cashier');
+    const ShopOwner = require('./ShopOwner');
     return {
+      cashiers: {
+        modelClass: Cashier,
+        relation: Model.HasManyRelation,
+        join: {
+          from: 'shops.id',
+          to: 'cashiers.shopId',
+        },
+      },
       owner: {
-        relation: Model.BelongsToOneRelation,
         modelClass: ShopOwner,
+        relation: Model.BelongsToOneRelation,
         join: {
           from: 'shops.shopOwnerId',
           to: 'shop_owners.id',

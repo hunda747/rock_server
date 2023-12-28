@@ -49,6 +49,9 @@ const slipController = {
         netStake: param.netStake,
         grossStake: param.netStake,
         numberPick: JSON.stringify(param.numberPick),
+        shopOwnerId: param.shopOwner,
+        shopId: param.shop,
+        cashierId: param.cashier,
       });
       res.status(201).json(slip);
     } catch (error) {

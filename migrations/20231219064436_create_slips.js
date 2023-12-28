@@ -17,6 +17,12 @@ exports.up = function (knex) {
     table.jsonb('numberPick');
     table.string('slipType', 10);
     table.string('company', 10);
+    table.integer('cashierId').unsigned();
+    table.foreign('cashierId').references('cashiers.id').onDelete('CASCADE');
+    table.integer('shopId').unsigned();
+    table.foreign('shopId').references('shops.id').onDelete('CASCADE');
+    table.integer('shopOwnerId').unsigned();
+    table.foreign('shopOwnerId').references('shop_owners.id').onDelete('CASCADE');
     // table.integer('specialValue');
     table.enu('status', ['placed', 'win', 'lose', 'redeem']).defaultTo('placed');
 

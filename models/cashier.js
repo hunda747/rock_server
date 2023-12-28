@@ -1,13 +1,13 @@
 // models/Cashier.js
 const { Model } = require('objection');
-const Shop = require('./shop');
 
 class Cashier extends Model {
   static get tableName() {
     return 'cashiers';
   }
-
+  
   static get relationMappings() {
+    const Shop = require('./shop');
     return {
       shop: {
         relation: Model.BelongsToOneRelation,
@@ -18,6 +18,13 @@ class Cashier extends Model {
         },
       },
     };
+  }
+
+  // Exclude password field from JSON representation
+  $formatJson(json) {
+    json = super.$formatJson(json);
+    delete json.password;
+    return json;
   }
 }
 
