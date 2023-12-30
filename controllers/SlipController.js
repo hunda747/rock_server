@@ -28,6 +28,21 @@ const slipController = {
     }
   },
 
+  getSlipByGamenumber: async (req, res, next) => {
+    const { code } = req.query;
+    console.log('code', code);
+    try {
+      const slip = await Slip.query().where("id", code).first();
+      if (slip) {
+        res.json(slip);
+      } else {
+        res.status(404).json({ error: 'Slip not found yet' });
+      }
+    } catch (error) {
+      next(error);
+    }
+  },
+
   createSlip: async (req, res, next) => {
     const param = req.body;
 

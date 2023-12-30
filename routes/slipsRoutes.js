@@ -7,6 +7,7 @@ const router = express.Router();
 
 // Slips Routes
 router.get('/', slipController.getAllSlips);
+router.get('/getByGameNumber', slipController.getSlipByGamenumber);
 router.get('/:id', slipController.getSlipById);
 router.post('/', slipController.createSlip);
 router.put('/:id', slipController.updateSlip);
