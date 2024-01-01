@@ -79,8 +79,9 @@ const slipController = {
           const modd = oddsEntry[numberOfSelections - 1];
           // Calculate the stake for the current pick based on the odds table
 
+          pick.odd = Object.values(modd)[0];
           // Update minWin and maxWin based on the stake
-          minWin += pick.stake; // Assuming the minimum win is the same as the stake
+          minWin = (pick.stake < minWin || minWin === 0) ? pick.stake : minWin; // Assuming the minimum win is the same as the stake
           maxWin += pick.stake * Object.values(modd)[0]; // Assuming the maximum win is the total stake for the pick
         }
       }
@@ -111,7 +112,23 @@ const slipController = {
       // });
 
       // const fullData = Slip.query().findById(slip.id).withGraphFetched('shop')
-      res.status(201).json(slip);
+      res.status(201).json({
+        "err": "false",
+        "errText": "okay",
+        id: slip.gameId,
+        on: "2023/12/30",
+        gameType: slip.gameType,
+        gameStartsOn: "Keno 2024-08",
+        toWinMax: maxWin,
+        toWinMin: minWin,
+        "company": "chessbet",
+        code: slip.id,
+        totalStake: slip.totalStake,
+        user: JSON.parse(slip.numberPick),
+        showOwnerId: slipController.showOwner,
+        agent: 'agent',
+        by: 'cashier'
+      });
     } catch (error) {
       next(error);
     }
