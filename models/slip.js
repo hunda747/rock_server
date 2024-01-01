@@ -9,7 +9,6 @@ class Slip extends Model {
   }
 
   static get relationMappings() {
-
     return {
       game: {
         relation: Model.BelongsToOneRelation,
