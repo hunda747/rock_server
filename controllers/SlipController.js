@@ -45,17 +45,20 @@ const slipController = {
 
   createSlip: async (req, res, next) => {
     const param = req.body;
+    console.log('param', param);
 
     // Update the current game with the drawn number
     const currentGame = await Game.query()
-    .where("status", "playing")
-    .where("gameType", "keno")
-    .orderBy("time", "desc")
-    .first();
+      .where("status", "playing")
+      .where("gameType", "keno")
+      .orderBy("time", "desc")
+      .first();
 
     if (!currentGame) {
       return res.status(404).json({ message: "Game Closed." });
     }
+
+    console.log('param:', param.numberPick);
 
     try {
       const slip = await Slip.query().insert({
@@ -68,6 +71,19 @@ const slipController = {
         shopId: param.shop,
         cashierId: param.cashier,
       });
+      // param.numberPick.forEach(async (picks) => {
+      //   const slip = await Slip.query().insert({
+      //     gameId: currentGame.id,
+      //     gameType: param.gameType,
+      //     netStake: param.picks.stake,
+      //     grossStake: picks.stake,
+      //     numberPick: JSON.stringify(picks.selection),
+      //     shopOwnerId: param.shopOwner,
+      //     shopId: param.shop,
+      //     cashierId: param.cashier,
+      //   });
+      //   console.log(slip);
+      // });
       res.status(201).json(slip);
     } catch (error) {
       next(error);

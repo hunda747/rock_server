@@ -22,7 +22,7 @@ const adminController = require('./controllers/AdminController');
 app.use(express.json());
 
 // Use cors middleware
-app.use(cors());
+app.use(cors({ origin: '*' }));
 
 app.get('/', async (req, res) => {
   res.json('welcome');

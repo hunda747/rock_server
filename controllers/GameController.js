@@ -190,26 +190,41 @@ const GameController = {
     try {
       // Update the current game with the drawn number
       const currentGame = await Game.query()
-        .where("gameNumber", gameNumber)
+        .where("id", gameNumber)
         .first();
 
       if (!currentGame) {
         return res.status(404).json({ message: "No active games currently." });
       }
+      console.log('result:', currentGame);
+      let drawnNumber;
+      if (!currentGame.pickedNumbers) {
+        // Assume you have a function to draw the number and update the database
+        const numbers = [];
 
-      // Assume you have a function to draw the number and update the database
-      const numbers = [];
+        while (numbers.length < 20) {
+          const randomNum = Math.floor(Math.random() * 80) + 1;
 
-      while (numbers.length < 20) {
-        const randomNum = Math.floor(Math.random() * 80) + 1;
-
-        // Ensure the number is not already in the array
-        if (!numbers.includes(randomNum)) {
-          numbers.push(randomNum);
+          // Ensure the number is not already in the array
+          if (!numbers.includes(randomNum)) {
+            numbers.push(randomNum);
+          }
         }
+        drawnNumber = numbers;
+        // const drawnNumber = this.generateRandomNumbers();
+
+
+        // Update the pickedNumbers field with the drawn number
+        await currentGame
+          .$query()
+          .patch({
+            pickedNumbers: JSON.stringify({ selection: [drawnNumber] }),
+            status: "done",
+          });
+      } else {
+        // console.log('resultPA:', );
+        drawnNumber = JSON.parse(currentGame?.pickedNumbers)?.selection;
       }
-      const drawnNumber = numbers;
-      // const drawnNumber = this.generateRandomNumbers();
 
       // Retrieve the previous game
       const previousGame = await Game.query()
@@ -219,22 +234,12 @@ const GameController = {
         .first();
 
 
-      // Update the pickedNumbers field with the drawn number
-      await currentGame
-        .$query()
-        .patch({
-          pickedNumbers: JSON.stringify({ selection: [drawnNumber] }),
-          status: "done",
-        });
-
-      
+      let openGame;
       // Update the current game with the drawn number
       const newGame = await Game.query()
         .where('status', 'playing')
         .orderBy('time', 'desc')
         .first();
-
-      let openGame;
 
       if (newGame) {
         openGame = newGame;
