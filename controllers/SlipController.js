@@ -97,6 +97,16 @@ const slipController = {
         shopId: param.shop,
         cashierId: param.cashier,
       });
+
+      function convertDateFormat(inputDate) {
+        const date = new Date(inputDate);
+        return date.toISOString().slice(0, 16).replace("T", " ");
+      }
+      function convertDateFormats(inputDate) {
+        return new Date(inputDate).toISOString().slice(0, 10);
+      }
+
+      // const game = Game.query().findById(currentGame.id)
       // param.numberPick.forEach(async (picks) => {
       //   const slip = await Slip.query().insert({
       //     gameId: currentGame.id,
@@ -116,11 +126,11 @@ const slipController = {
         "err": "false",
         "errText": "okay",
         id: slip.gameId,
-        on: "2023/12/30",
+        on: convertDateFormats(currentGame.time),
         gameType: slip.gameType,
-        gameStartsOn: "Keno 2024-08",
-        toWinMax: maxWin,
-        toWinMin: minWin,
+        gameStartsOn: param.gameType + " " + convertDateFormat(currentGame.time) + " #" + currentGame.gameNumber,
+        toWinMax: maxWin.toFixed(2),
+        toWinMin: minWin.toFixed(2),
         "company": "chessbet",
         code: slip.id,
         totalStake: slip.totalStake,

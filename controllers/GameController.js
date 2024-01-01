@@ -187,7 +187,6 @@ const GameController = {
     }
   },
 
-
   // Controller
   getCurrentGameResult: async (req, res) => {
     const { gameNumber } = req.params;
@@ -222,7 +221,7 @@ const GameController = {
         await currentGame
           .$query()
           .patch({
-            pickedNumbers: JSON.stringify({ selection: [drawnNumber] }),
+            pickedNumbers: JSON.stringify({ selection: drawnNumber }),
             status: "done",
           });
       } else {
