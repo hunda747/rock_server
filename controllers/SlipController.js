@@ -19,7 +19,7 @@ const slipController = {
     const { id } = req.params;
 
     try {
-      const slip = await Slip.query().findById(id).withGraphFetched('game');
+      const slip = await Slip.query().findById(id).withGraphFetched("game");
       if (slip) {
         res.json(slip);
       } else {
@@ -34,7 +34,7 @@ const slipController = {
     const { code } = req.query;
     console.log("code", code);
     try {
-      const slip = await Slip.query().where("id", code).first();
+      const slip = await Slip.query().where("id", code).first().withGraphFetched("game");
       if (slip) {
         res.json(slip);
       } else {
@@ -47,7 +47,7 @@ const slipController = {
 
   createSlip: async (req, res, next) => {
     const param = req.body;
-    console.log('param', param);
+    console.log("param", param);
 
     // Update the current game with the drawn number
     const currentGame = await Game.query()
@@ -60,7 +60,7 @@ const slipController = {
       return res.status(404).json({ message: "Game Closed." });
     }
 
-    console.log('param:', param.numberPick);
+    console.log("param:", param.numberPick);
 
     try {
       let totalStake = 0;
@@ -81,7 +81,7 @@ const slipController = {
 
           pick.odd = Object.values(modd)[0];
           // Update minWin and maxWin based on the stake
-          minWin = (pick.stake < minWin || minWin === 0) ? pick.stake : minWin; // Assuming the minimum win is the same as the stake
+          minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin; // Assuming the minimum win is the same as the stake
           maxWin += pick.stake * Object.values(modd)[0]; // Assuming the maximum win is the total stake for the pick
         }
       }
@@ -123,21 +123,26 @@ const slipController = {
 
       // const fullData = Slip.query().findById(slip.id).withGraphFetched('shop')
       res.status(201).json({
-        "err": "false",
-        "errText": "okay",
+        err: "false",
+        errText: "okay",
         id: slip.gameId,
         on: convertDateFormats(currentGame.time),
         gameType: slip.gameType,
-        gameStartsOn: param.gameType + " " + convertDateFormat(currentGame.time) + " #" + currentGame.gameNumber,
+        gameStartsOn:
+          param.gameType +
+          " " +
+          convertDateFormat(currentGame.time) +
+          " #" +
+          currentGame.gameNumber,
         toWinMax: maxWin.toFixed(2),
         toWinMin: minWin.toFixed(2),
-        "company": "chessbet",
+        company: "chessbet",
         code: slip.id,
         totalStake: slip.totalStake,
         user: JSON.parse(slip.numberPick),
         showOwnerId: slipController.showOwner,
-        agent: 'agent',
-        by: 'cashier'
+        agent: "agent",
+        by: "cashier",
       });
     } catch (error) {
       next(error);
@@ -154,6 +159,63 @@ const slipController = {
         res.json(updatedSlip);
       } else {
         res.status(404).json({ error: "Slip not found" });
+      }
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  redeemSlip: async (req, res, next) => {
+    const { id } = req.params;
+
+    try {
+      // const currentGame = await Game.query().where("id", gameNumber).where("status", 'done').first();
+
+      // if (!currentGame) {
+      //   return res.status(404).json({ message: "Game not found." });
+      // }
+
+      const updatedSlip = await Slip.query().findById(id);
+      console.log("slip", updatedSlip);
+      // if (updatedSlip) {
+      if (updatedSlip.status == "placed") {
+        res.status(404).json({err: "false", error: "Game not Done" });
+      } else if (updatedSlip.status == "canceled") {
+        res.status(404).json({err: "false", error: "Ticket is canceled" });
+      } else if (updatedSlip.status == "win" || updatedSlip.status == "lose") {
+        const updateSlip = await Slip.query().patchAndFetchById(id, {
+          status: "redeem",
+        });
+        res.status(200).json({err: "false"});
+      } else {
+        res.status(404).json({ error: "Slip not found" });
+      }
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  },
+
+  cancelSlip: async (req, res, next) => {
+    const { id, gameNumber } = req.params;
+
+    try {
+      const currentGame = await Game.query()
+        .where("id", gameNumber)
+        .where("status", "playing")
+        .first();
+
+      if (!currentGame) {
+        return res.status(404).json({ message: "Game not found." });
+      }
+
+      const updatedSlip = await Slip.query().patchAndFetchById(id, {
+        status: "canceled",
+      });
+      if (updatedSlip) {
+        res.json({err: "false"});
+      } else {
+        res.status(404).json({err: "false", error: "Slip not found" });
       }
     } catch (error) {
       next(error);

@@ -24,7 +24,7 @@ exports.up = function (knex) {
     table.integer('shopOwnerId').unsigned();
     table.foreign('shopOwnerId').references('shop_owners.id').onDelete('CASCADE');
     // table.integer('specialValue');
-    table.enu('status', ['active', 'win', 'lose', 'redeem', 'canceled']).defaultTo('active');
+    table.enu('status', ['active', 'win', 'lose', 'redeemed', 'canceled']).defaultTo('active');
 
     table.timestamps(true, true);
   });
