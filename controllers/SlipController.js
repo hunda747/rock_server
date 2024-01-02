@@ -47,7 +47,7 @@ const slipController = {
 
   createSlip: async (req, res, next) => {
     const param = req.body;
-    console.log(param);
+    console.log('param', param);
 
     // Update the current game with the drawn number
     const currentGame = await Game.query()
@@ -59,6 +59,9 @@ const slipController = {
     if (!currentGame) {
       return res.status(404).json({ message: "Game Closed." });
     }
+
+    console.log('param:', param.numberPick);
+
     try {
       let totalStake = 0;
       let minWin = 0;
@@ -76,8 +79,9 @@ const slipController = {
           const modd = oddsEntry[numberOfSelections - 1];
           // Calculate the stake for the current pick based on the odds table
 
+          pick.odd = Object.values(modd)[0];
           // Update minWin and maxWin based on the stake
-          minWin += pick.stake; // Assuming the minimum win is the same as the stake
+          minWin = (pick.stake < minWin || minWin === 0) ? pick.stake : minWin; // Assuming the minimum win is the same as the stake
           maxWin += pick.stake * Object.values(modd)[0]; // Assuming the maximum win is the total stake for the pick
         }
       }
@@ -94,8 +98,47 @@ const slipController = {
         cashierId: param.cashier,
       });
 
+      function convertDateFormat(inputDate) {
+        const date = new Date(inputDate);
+        return date.toISOString().slice(0, 16).replace("T", " ");
+      }
+      function convertDateFormats(inputDate) {
+        return new Date(inputDate).toISOString().slice(0, 10);
+      }
+
+      // const game = Game.query().findById(currentGame.id)
+      // param.numberPick.forEach(async (picks) => {
+      //   const slip = await Slip.query().insert({
+      //     gameId: currentGame.id,
+      //     gameType: param.gameType,
+      //     netStake: param.picks.stake,
+      //     grossStake: picks.stake,
+      //     numberPick: JSON.stringify(picks.selection),
+      //     shopOwnerId: param.shopOwner,
+      //     shopId: param.shop,
+      //     cashierId: param.cashier,
+      //   });
+      //   console.log(slip);
+      // });
+
       // const fullData = Slip.query().findById(slip.id).withGraphFetched('shop')
-      res.status(201).json(slip);
+      res.status(201).json({
+        "err": "false",
+        "errText": "okay",
+        id: slip.gameId,
+        on: convertDateFormats(currentGame.time),
+        gameType: slip.gameType,
+        gameStartsOn: param.gameType + " " + convertDateFormat(currentGame.time) + " #" + currentGame.gameNumber,
+        toWinMax: maxWin.toFixed(2),
+        toWinMin: minWin.toFixed(2),
+        "company": "chessbet",
+        code: slip.id,
+        totalStake: slip.totalStake,
+        user: JSON.parse(slip.numberPick),
+        showOwnerId: slipController.showOwner,
+        agent: 'agent',
+        by: 'cashier'
+      });
     } catch (error) {
       next(error);
     }

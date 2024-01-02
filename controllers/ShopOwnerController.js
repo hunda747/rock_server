@@ -49,8 +49,27 @@ class ShopOwnerController {
   }
 
   async changePassword(req, res) {
-    req.model = ShopOwner; // Set the model for the AuthController
-    AuthController.changePassword(req, res);
+    const { id, newPassword } = req.body;
+    console.log(id);
+    try {
+      // Fetch the user from the database (either a shop owner or a cashier)
+      const user = await ShopOwner.query().findById(id);
+
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Hash the new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // Update the user's password in the database
+      await ShopOwner.query().patch({ password: hashedPassword }).where('id', id);
+
+      res.json({ message: 'Password changed successfully' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
   }
 
   verifyAccessToken(req, res, next) {

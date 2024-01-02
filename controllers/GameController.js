@@ -1,7 +1,10 @@
 // controllers/gameController.js
 
 const Game = require("../models/game");
+const Ticket = require("../models/slip");
 const knex = require("knex");
+const oddsTable = require('../odd/kiron')
+
 const GameController = {
   constructor: () => {
     this.generateRandomNumbers = this.generateRandomNumbers.bind(this);
@@ -190,26 +193,42 @@ const GameController = {
     try {
       // Update the current game with the drawn number
       const currentGame = await Game.query()
-        .where("gameNumber", gameNumber)
+        .where("id", gameNumber)
         .first();
 
       if (!currentGame) {
         return res.status(404).json({ message: "No active games currently." });
       }
+      console.log('result:', currentGame);
+      let drawnNumber;
+      if (!currentGame.pickedNumbers) {
+        // Assume you have a function to draw the number and update the database
+        const numbers = [];
 
-      // Assume you have a function to draw the number and update the database
-      const numbers = [];
+        while (numbers.length < 20) {
+          const randomNum = Math.floor(Math.random() * 80) + 1;
 
-      while (numbers.length < 20) {
-        const randomNum = Math.floor(Math.random() * 80) + 1;
-
-        // Ensure the number is not already in the array
-        if (!numbers.includes(randomNum)) {
-          numbers.push(randomNum);
+          // Ensure the number is not already in the array
+          if (!numbers.includes(randomNum)) {
+            numbers.push(randomNum);
+          }
         }
+        drawnNumber = numbers;
+        // const drawnNumber = this.generateRandomNumbers();
+
+
+        // Update the pickedNumbers field with the drawn number
+        await currentGame
+          .$query()
+          .patch({
+            pickedNumbers: JSON.stringify({ selection: drawnNumber }),
+            status: "done",
+          });
+      } else {
+        // console.log('resultPA:', );
+        drawnNumber = JSON.parse(currentGame?.pickedNumbers)?.selection;
       }
-      const drawnNumber = numbers;
-      // const drawnNumber = this.generateRandomNumbers();
+      // calculateWiningNumbers(drawnNumber, gameNumber);
 
       // Retrieve the previous game
       const previousGame = await Game.query()
@@ -219,22 +238,12 @@ const GameController = {
         .first();
 
 
-      // Update the pickedNumbers field with the drawn number
-      await currentGame
-        .$query()
-        .patch({
-          pickedNumbers: JSON.stringify({ selection: [drawnNumber] }),
-          status: "done",
-        });
-
-      
+      let openGame;
       // Update the current game with the drawn number
       const newGame = await Game.query()
         .where('status', 'playing')
         .orderBy('time', 'desc')
         .first();
-
-      let openGame;
 
       if (newGame) {
         openGame = newGame;
@@ -262,6 +271,65 @@ const GameController = {
       return res.status(500).json({ message: "Internal server error." });
     }
   },
+
+  calculateWiningNumbers: async (req, res) => {
+    const { gameNumber } = req.params;
+    let winningNumbers = [25, 62, 47, 8, 27, 36, 35, 10];
+    // console.log(nums);
+    const tickets = await Ticket.query().where('gameId', gameNumber);
+
+    if (!tickets) {
+      return res.status(404).json({ message: "No games with that ID." });
+    }
+    // Iterate through each ticket
+    for (const ticket of tickets) {
+      const ticketPicks = JSON.parse(ticket.numberPick);
+
+      // Initialize variables for each ticket
+      let ticketWin = 0;
+      let ticketMinWin = 0;
+      let ticketMaxWin = 0;
+
+      // Iterate through the picks in the ticket
+      for (const pick of ticketPicks) {
+        const numberOfSelections = pick.selection.length;
+        console.log('nums:', pick.selection);
+        // Retrieve the odds table for the specific selection
+        const oddsEntry = oddsTable[numberOfSelections];
+
+        const actualWinnings = countCorrectGuesses(pick.selection, winningNumbers);
+        console.log('wins:', actualWinnings);
+        if (oddsEntry && actualWinnings) {
+          const modd = oddsEntry[actualWinnings - 1];
+          console.log('mod', modd);
+          // Calculate the stake for the current pick based on the odds table
+          console.log('amount', pick.stake * Object.values(modd)[0]);
+          ticketWin += (pick.stake * Object.values(modd)[0]);
+        }
+      }
+
+      const updatedTicket = await Ticket.query().patchAndFetchById(ticket.id, {
+        netWinning: ticketWin, status: 'redemed'
+      });
+
+      console.log('total win:', ticketWin);
+    }
+
+    // Now, compare the ticket's picks with the winning numbers to determine the actual winnings
+
+    // Assuming actualWinnings is the amount won by matching the user's picks with the winning numbers
+    // Update the Slip (ticket) record with the actual winnings
+
+    // You can also do additional processing or logging here if needed
+    res.send(true);
+    // await Ticket.query().findById(ticket.id).patch({ actualWinnings });
+  },
 };
+
+function countCorrectGuesses(userSelection, winningNumbers) {
+  // Implement logic to count the number of correct guesses between userSelection and winningNumbers
+  const correctGuesses = userSelection.filter(num => winningNumbers.includes(num)).length;
+  return correctGuesses;
+}
 
 module.exports = GameController;
