@@ -101,7 +101,7 @@ class CashierController {
       const cashier = await Cashier.query().findOne({ username }).withGraphFetched('shop');
       // console.log(cashier);
       if (!cashier || !(await bcrypt.compare(password, cashier.password))) {
-        return res.status(401).json({ error: 'Invalid credentials' });
+        return res.status(201).json({ error: 'Invalid credentials', status: 'error' });
       }
       // console.log('found', cashier);
 
@@ -113,7 +113,7 @@ class CashierController {
       // For demonstration purposes, we're just attaching it to the response header
       res.header('Refresh-Token', refreshToken);
 
-      res.json({ accessToken, refreshToken, id: cashier.id, cashier: cashier });
+      res.json({ accessToken, refreshToken, id: cashier.id, cashier: cashier, status: 'success' });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Internal Server Error' });
