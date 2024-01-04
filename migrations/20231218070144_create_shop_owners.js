@@ -7,6 +7,7 @@ exports.up = function (knex) {
   return knex.schema.createTable('shop_owners', (table) => {
     table.increments('id').primary();
     table.string('name').notNullable();
+    table.boolean('status').defaultTo(true);
     table.string('username').unique().notNullable();
     table.string('password').notNullable();
     // Add other fields as needed

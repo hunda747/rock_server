@@ -169,13 +169,14 @@ const GameController = {
           .returning("*");
       }
       // Retrieve the open game (next game)
-
+      console.log('json', lastPlayedGame.pickedNumbers);
+      console.log('json', (lastPlayedGame.pickedNumbers.selection));
       // Construct the response in the specified format
       const response = {
         openGame: openGame
           ? { id: openGame.id, gameNumber: openGame.gameNumber }
           : null,
-        result: JSON.parse(lastPlayedGame.pickedNumbers)?.selection,
+        result: (lastPlayedGame.pickedNumbers)?.selection,
         lastGame: lastPlayedGame.gameNumber,
         recent: lastPlayedGame.gameNumber,
       };
@@ -228,7 +229,7 @@ const GameController = {
         calculateWiningNumbers(gameNumber, drawnNumber)
       } else {
         // console.log('resultPA:', );
-        drawnNumber = JSON.parse(currentGame?.pickedNumbers)?.selection;
+        drawnNumber = (currentGame?.pickedNumbers)?.selection;
       }
       // calculateWiningNumbers(drawnNumber, gameNumber);
 
@@ -287,7 +288,7 @@ const calculateWiningNumbers = async (gameNumber, winningNumbers) => {
   }
   // Iterate through each ticket
   for (const ticket of tickets) {
-    const ticketPicks = JSON.parse(ticket.numberPick);
+    const ticketPicks = (ticket.numberPick);
 
     // Initialize variables for each ticket
     let ticketWin = 0;
@@ -313,7 +314,7 @@ const calculateWiningNumbers = async (gameNumber, winningNumbers) => {
     }
 
     const updatedTicket = await Ticket.query().patchAndFetchById(ticket.id, {
-      netWinning: ticketWin, status: ticketWin > 0 ? 'win' : 'lose'
+      netWinning: ticketWin, status: 'redeem'
     });
 
     console.log('total win:', ticketWin);

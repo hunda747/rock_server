@@ -181,13 +181,13 @@ const slipController = {
       const updatedSlip = await Slip.query().findById(id);
       console.log("slip", updatedSlip);
       // if (updatedSlip) {
-      if (updatedSlip.status == "placed") {
+      if (updatedSlip.status == "active") {
         res.status(404).json({ err: "false", error: "Game not Done" });
       } else if (updatedSlip.status == "canceled") {
         res.status(404).json({ err: "false", error: "Ticket is canceled" });
-      } else if (updatedSlip.status == "win" || updatedSlip.status == "lose") {
+      } else if (updatedSlip.status == "redeem") {
         const updateSlip = await Slip.query().patchAndFetchById(id, {
-          status: "redeem",
+          status: "redeemed",
         });
         res.status(200).json({ err: "false" });
       } else {
@@ -258,13 +258,23 @@ const slipController = {
           .count('id as number')
           .first();
       };
+      const getUnclaimedResult = async () => {
+        return await Slip.query().where('cashierId', cashierId)
+          // .andWhere('created_at', '>=', formattedEndDate)
+          // .andWhere('created_at', '<', formattedStartDate)
+          .andWhere('status', 'redeem')
+          .andWhere('netWinning', '>', 0)
+          .sum('totalStake as amount')
+          .count('id as number')
+          .first();
+      };
 
-      const bets = await getQueryResult('placed');
+      const bets = await getQueryResult('active');
       console.log('active', bets);
-      const redeemed = await getQueryResult('redeem');
-      const canceled = await getQueryResult('');
+      const redeemed = await getQueryResult('redeemed');
+      const canceled = await getQueryResult('canceled');
       const deposited = await getDepostiResult(); // Implement logic for deposits
-      const unclaimed = await getQueryResult('win');
+      const unclaimed = await getUnclaimedResult();
 
       return {
         bets,
