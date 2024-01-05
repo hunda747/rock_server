@@ -4,7 +4,7 @@ const Slip = require("../models/slip");
 const Game = require("../models/game");
 const Cashier = require("../models/cashier");
 
-const { subDays, format } = require('date-fns');
+const { subDays, format, startOfDay, endOfDay } = require("date-fns");
 
 const oddsTable = require("../odd/kiron");
 
@@ -37,7 +37,10 @@ const slipController = {
     const { code } = req.query;
     console.log("code", code);
     try {
-      const slip = await Slip.query().where("id", code).first().withGraphFetched("game");
+      const slip = await Slip.query()
+        .where("id", code)
+        .first()
+        .withGraphFetched("game");
       if (slip) {
         res.json(slip);
       } else {
@@ -73,20 +76,38 @@ const slipController = {
       // Iterate through numberPick array
       for (const pick of param.numberPick) {
         const numberOfSelections = pick.selection.length;
-
-        // Retrieve the odds table for the specific selection
-        const oddsEntry = oddsTable[numberOfSelections];
+        
+        console.log(pick.selection);
+        console.log(pick.selection[0]);
+        console.log(typeof pick.selection[0]);
 
         totalStake += pick.stake;
-        if (oddsEntry) {
-          const modd = oddsEntry[numberOfSelections - 1];
-          // Calculate the stake for the current pick based on the odds table
-
-          pick.odd = Object.values(modd)[0];
+        if(typeof pick.selection[0] === "string"){
+          let odd;
+          if(pick.selection[0] === 'tails' || pick.selection[0] === 'heads'){
+            odd = 2;
+          }else{
+            odd = 4
+          }
+          pick.odd = odd;
           // Update minWin and maxWin based on the stake
           minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin; // Assuming the minimum win is the same as the stake
-          maxWin += pick.stake * Object.values(modd)[0]; // Assuming the maximum win is the total stake for the pick
+          maxWin += pick.stake * odd; // Assuming the maximum win is the total stake for the pick
+        }else{
+          // Retrieve the odds table for the specific selection
+          const oddsEntry = oddsTable[numberOfSelections];
+  
+          if (oddsEntry) {
+            const modd = oddsEntry[numberOfSelections - 1];
+            // Calculate the stake for the current pick based on the odds table
+  
+            pick.odd = Object.values(modd)[0];
+            // Update minWin and maxWin based on the stake
+            minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin; // Assuming the minimum win is the same as the stake
+            maxWin += pick.stake * Object.values(modd)[0]; // Assuming the maximum win is the total stake for the pick
+          }
         }
+
       }
 
       const slip = await Slip.query().insert({
@@ -212,6 +233,14 @@ const slipController = {
         return res.status(404).json({ message: "Game not found." });
       }
 
+      const slipCurrent = await Slip.query()
+        .where("id", id)
+        .where("status", "active")
+        .first();
+      if (!slipCurrent) {
+        return res.status(404).json({ message: "Game is closed." });
+      }
+
       const updatedSlip = await Slip.query().patchAndFetchById(id, {
         status: "canceled",
       });
@@ -235,46 +264,72 @@ const slipController = {
     const today = new Date();
     const yesterday = subDays(today, 1);
 
-    const formatDate = (date) => format(date, 'yyyy-MM-dd HH:mm:ss');
+    const formatDate = (date) => format(date, "yyyy-MM-dd HH:mm:ss");
 
     const getReportData = async (date) => {
-      const formattedStartDate = formatDate(date);
-      const formattedEndDate = formatDate(subDays(date, -1));
+      console.log("data", date);
+      // const formattedStartDate = formatDate(date);
+      // const formattedEndDate = formatDate(subDays(date, -1));
+      // Set to the beginning of the day (00:00:00)
+      const formattedStartDate = formatDate(startOfDay(date));
 
+      // Set to the end of the day (23:59:59)
+      const formattedEndDate = formatDate(endOfDay(date));
+      console.log(formattedStartDate);
+      console.log(formattedEndDate);
       const getDepostiResult = async () => {
-        return await Slip.query().where('cashierId', cashierId)
-          // .andWhere('created_at', '>=', formattedEndDate)
-          // .andWhere('created_at', '<', formattedStartDate)
-          .sum('totalStake as amount')
-          .count('id as number')
+        return await Slip.query()
+          .where("cashierId", cashierId)
+          .andWhere("created_at", ">=", formattedStartDate)
+          .andWhere("created_at", "<", formattedEndDate)
+          .select(
+            Slip.raw("COALESCE(SUM(totalStake), 0) as amount"),
+            Slip.raw("COALESCE(COUNT(*), 0) as number")
+          )
+          // .sum('totalStake as amount')
+          // .count('id as number')
           .first();
       };
       const getQueryResult = async (status) => {
-        return await Slip.query().where('cashierId', cashierId)
-          // .andWhere('created_at', '>=', formattedEndDate)
-          // .andWhere('created_at', '<', formattedStartDate)
-          .andWhere('status', status)
-          .sum('totalStake as amount')
-          .count('id as number')
+        return await Slip.query()
+          .where("cashierId", cashierId)
+          .andWhere("created_at", ">=", formattedStartDate)
+          .andWhere("created_at", "<", formattedEndDate)
+          .andWhere("status", status)
+          .select(
+            Slip.raw("COALESCE(SUM(totalStake), 0) as amount"),
+            Slip.raw("COALESCE(COUNT(*), 0) as number")
+          )
+          // .sum('totalStake as amount')
+          // .count('id as number')
           .first();
       };
       const getUnclaimedResult = async () => {
-        return await Slip.query().where('cashierId', cashierId)
-          // .andWhere('created_at', '>=', formattedEndDate)
-          // .andWhere('created_at', '<', formattedStartDate)
-          .andWhere('status', 'redeem')
-          .andWhere('netWinning', '>', 0)
-          .sum('totalStake as amount')
-          .count('id as number')
+        return await Slip.query()
+          .where("cashierId", cashierId)
+          .andWhere("created_at", ">=", formattedStartDate)
+          .andWhere("created_at", "<", formattedEndDate)
+          .andWhere("status", "redeem")
+          .andWhere("netWinning", ">", 0)
+          .select(
+            Slip.raw("COALESCE(SUM(totalStake), 0) as amount"),
+            Slip.raw("COALESCE(COUNT(*), 0) as number")
+          )
+          // .sum('totalStake as amount')
+          // .count('id as number')
           .first();
       };
 
-      const bets = await getQueryResult('active');
-      console.log('active', bets);
-      const redeemed = await getQueryResult('redeemed');
-      const canceled = await getQueryResult('canceled');
+      const bets = await getQueryResult("active");
+      console.log("active", bets);
+      const redeemed = await getQueryResult("redeemed");
+      const canceled = await getQueryResult("canceled");
       const deposited = await getDepostiResult(); // Implement logic for deposits
       const unclaimed = await getUnclaimedResult();
+
+      const daterang = [];
+      daterang.push(formattedStartDate.substring(0, 10));
+      daterang.push(formattedEndDate.substring(0, 10));
 
       return {
         bets,
@@ -282,7 +337,7 @@ const slipController = {
         canceled,
         deposited,
         unclaimed,
-        date: formatDate(date),
+        date: daterang,
       };
     };
 
@@ -290,10 +345,48 @@ const slipController = {
     const yesterdayReport = await getReportData(yesterday);
 
     res.status(200).json({
-      err: 'false',
+      err: "false",
       today: todayReport,
       yesterday: yesterdayReport,
     });
+  },
+
+  recallBetsReport: async (req, res) => {
+    const { cashierId } = req.params;
+    const currentGame = await Cashier.query().findById(cashierId);
+    if (!currentGame) {
+      return res.status(404).json({ message: "Cashier not found." });
+    }
+
+    const date = new Date();
+    // const yesterday = subDays(today, 1);
+
+    const formatDate = (date) => format(date, "yyyy-MM-dd HH:mm:ss");
+    const formattedStartDate = formatDate(startOfDay(date));
+      // Set to the end of the day (23:59:59)
+      const formattedEndDate = formatDate(endOfDay(date));
+      console.log(formattedStartDate);
+      console.log(formattedEndDate);
+
+    const result = await Slip.query()
+      .where("cashierId", cashierId)
+      .andWhere("created_at", ">=", formattedStartDate)
+      .andWhere("created_at", "<", formattedEndDate)
+      .withGraphFetched("game");
+
+    const rebalancedBets = result.map((slip) =>
+      convertToRebalancedFormat(slip)
+    );
+
+    // .andWhere('created_at', '>=', formattedEndDate)
+    // .andWhere('created_at', '<', formattedStartDate)
+    // .andWhere('status', 'redeem')
+    // .andWhere('netWinning', '>', 0)
+    // .sum('totalStake as amount')
+    // .count('id as number')
+    // .first();
+
+    res.status(200).json(rebalancedBets);
   },
 
   deleteSlip: async (req, res, next) => {
@@ -311,5 +404,32 @@ const slipController = {
     }
   },
 };
+
+function convertToRebalancedFormat(slip) {
+  const numberPick = JSON.parse(slip.numberPick);
+  // console.log(slip);
+
+  return {
+    err: "false",
+    game: slip.gameType,
+    errText: "bet placed.",
+    gameStartsOn: `${slip.gameType} # ${slip?.game?.gameNumber}`,
+    id: String(slip?.game?.gameNumber),
+    on: format(new Date(), "yyyy/MM/dd HH:mm:ss"),
+    by: `cashier`,
+    agent: "agent",
+    TotalStake: slip.totalStake,
+    stake: slip.totalStake,
+    toWinMax: slip.toWinMax,
+    toWinMin: slip.toWinMin,
+    code: slip.id, // Generate a unique code or use an existing one
+    company: slip.company || "chessbet", // Use 'chessbet' if company is null
+    user: numberPick.map((selection) => ({
+      odd: selection.odd,
+      stake: selection.stake,
+      selection: selection.selection,
+    })),
+  };
+}
 
 module.exports = slipController;

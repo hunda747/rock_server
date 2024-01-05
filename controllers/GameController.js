@@ -3,7 +3,7 @@
 const Game = require("../models/game");
 const Ticket = require("../models/slip");
 const knex = require("knex");
-const oddsTable = require('../odd/kiron')
+const oddsTable = require("../odd/kiron");
 
 const GameController = {
   constructor: () => {
@@ -169,14 +169,14 @@ const GameController = {
           .returning("*");
       }
       // Retrieve the open game (next game)
-      console.log('json', lastPlayedGame.pickedNumbers);
-      console.log('json', (lastPlayedGame.pickedNumbers.selection));
+      console.log("json", lastPlayedGame.pickedNumbers);
+      console.log("json", lastPlayedGame.pickedNumbers.selection);
       // Construct the response in the specified format
       const response = {
         openGame: openGame
           ? { id: openGame.id, gameNumber: openGame.gameNumber }
           : null,
-        result: (lastPlayedGame.pickedNumbers)?.selection,
+        result: JSON.parse(lastPlayedGame.pickedNumbers)?.selection,
         lastGame: lastPlayedGame.gameNumber,
         recent: lastPlayedGame.gameNumber,
       };
@@ -193,14 +193,12 @@ const GameController = {
     const { gameNumber } = req.params;
     try {
       // Update the current game with the drawn number
-      const currentGame = await Game.query()
-        .where("id", gameNumber)
-        .first();
+      const currentGame = await Game.query().where("id", gameNumber).first();
 
       if (!currentGame) {
         return res.status(404).json({ message: "No active games currently." });
       }
-      console.log('result:', currentGame);
+      console.log("result:", currentGame);
       let drawnNumber;
       if (!currentGame.pickedNumbers) {
         // Assume you have a function to draw the number and update the database
@@ -215,21 +213,38 @@ const GameController = {
           }
         }
         drawnNumber = numbers;
+
+        let headsCount = 0;
+        let tailsCount = 0;
+        let evenCount = 0;
+
+        for (const num of numbers) {
+          if (num % 2 === 0) {
+            evenCount++;
+            // Assuming heads for even numbers, tails for odd numbers
+            headsCount++;
+          } else {
+            tailsCount++;
+          }
+        }
         // const drawnNumber = this.generateRandomNumbers();
-
-
+        const winner =
+          headsCount > tailsCount
+            ? "heads"
+            : tailsCount > headsCount
+            ? "tails"
+            : "evens";
         // Update the pickedNumbers field with the drawn number
-        await currentGame
-          .$query()
-          .patch({
-            pickedNumbers: JSON.stringify({ selection: drawnNumber }),
-            status: "done",
-          });
+        await currentGame.$query().patch({
+          pickedNumbers: JSON.stringify({ selection: drawnNumber }),
+          status: "done",
+          winner: winner,
+        });
 
-        calculateWiningNumbers(gameNumber, drawnNumber)
+        calculateWiningNumbers(gameNumber, drawnNumber, winner);
       } else {
         // console.log('resultPA:', );
-        drawnNumber = (currentGame?.pickedNumbers)?.selection;
+        drawnNumber = JSON.parse(currentGame?.pickedNumbers)?.selection;
       }
       // calculateWiningNumbers(drawnNumber, gameNumber);
 
@@ -240,23 +255,24 @@ const GameController = {
         .offset(1)
         .first();
 
-
       let openGame;
       // Update the current game with the drawn number
       const newGame = await Game.query()
-        .where('status', 'playing')
-        .orderBy('time', 'desc')
+        .where("status", "playing")
+        .orderBy("time", "desc")
         .first();
 
       if (newGame) {
         openGame = newGame;
       } else {
-        openGame = await Game.query().insert({
-          gameType: 'keno',
-          gameNumber: (currentGame.gameNumber + 1),
-          // Add other fields as needed based on your table structure
-          // Example: pickedNumbers, winner, time, status, etc.
-        }).returning('*');
+        openGame = await Game.query()
+          .insert({
+            gameType: "keno",
+            gameNumber: currentGame.gameNumber + 1,
+            // Add other fields as needed based on your table structure
+            // Example: pickedNumbers, winner, time, status, etc.
+          })
+          .returning("*");
       }
 
       // Construct the response in the specified format
@@ -275,50 +291,98 @@ const GameController = {
     }
   },
 
+  getGameRusult: async (req, res) => {
+    const { gameNumber } = req.params;
+    try {
+      // Update the current game with the drawn number
+      const currentGame = await Game.query()
+        .where("gameNumber", gameNumber)
+        .andWhere("status", "done")
+        .first();
+
+      if (!currentGame) {
+        return res.status(404).json({ message: "Game not found." });
+      }
+
+      const drawnNumber = JSON.parse(currentGame?.pickedNumbers)?.selection;
+      if (!drawnNumber || !Array.isArray(drawnNumber)) {
+        return res.status(500).json({ message: "Invalid drawn numbers." });
+      }
+
+      console.log("draw", drawnNumber);
+
+      const resultObject = {
+        err: "false",
+        ...drawnNumber.reduce((acc, number, index) => {
+          acc[index + 1] = number;
+          return acc;
+        }, {}),
+        21: currentGame.gameNumber,
+        22: currentGame.gameNumber, // Assuming gameId is what you want for "21" and "22"
+        0: currentGame.gameType,
+      };
+      res.status(200).send(resultObject);
+    } catch (error) {
+      console.error("Error getting current game result:", error);
+      return res.status(500).json({ message: "Internal server error." });
+    }
+  },
 };
 
-const calculateWiningNumbers = async (gameNumber, winningNumbers) => {
+const calculateWiningNumbers = async (gameNumber, winningNumbers, winner) => {
   // const { gameNumber } = req.params;
   // let winningNumbers = [25, 62, 47, 8, 27, 36, 35, 10, 20, 30];
   // console.log(nums);
-  const tickets = await Ticket.query().where('gameId', gameNumber);
+  const tickets = await Ticket.query().where("gameId", gameNumber);
 
   if (!tickets) {
     return false;
   }
   // Iterate through each ticket
   for (const ticket of tickets) {
-    const ticketPicks = (ticket.numberPick);
+    const ticketPicks = JSON.parse(ticket.numberPick);
 
     // Initialize variables for each ticket
     let ticketWin = 0;
     let ticketMinWin = 0;
     let ticketMaxWin = 0;
 
-    // Iterate through the picks in the ticket
     for (const pick of ticketPicks) {
       const numberOfSelections = pick.selection.length;
-      console.log('nums:', pick.selection);
+      console.log("nums:", pick.selection);
+      console.log("nums:", pick.selection[0]);
       // Retrieve the odds table for the specific selection
-      const oddsEntry = oddsTable[numberOfSelections];
+      if (typeof pick?.selection[0] === "string") {
+        if (winner === "evens" && pick?.selection[0] === winner) {
+          ticketWin += pick.stake * 4;
+        } else if (pick?.selection[0] === winner) {
+          ticketWin += pick.stake * 2;
+        }
+      } else {
+        const oddsEntry = oddsTable[numberOfSelections];
 
-      const actualWinnings = countCorrectGuesses(pick.selection, winningNumbers);
-      console.log('wins:', actualWinnings);
-      if (oddsEntry && actualWinnings) {
-        const modd = oddsEntry[actualWinnings - 1];
-        console.log('mod', modd);
-        // Calculate the stake for the current pick based on the odds table
-        console.log('amount', pick.stake * Object.values(modd)[0]);
-        ticketWin += (pick.stake * Object.values(modd)[0]);
+        const actualWinnings = countCorrectGuesses(
+          pick.selection,
+          winningNumbers
+        );
+        console.log("wins:", actualWinnings);
+        if (oddsEntry && actualWinnings) {
+          const modd = oddsEntry[actualWinnings - 1];
+          console.log("mod", modd);
+          // Calculate the stake for the current pick based on the odds table
+          console.log("amount", pick.stake * Object.values(modd)[0]);
+          ticketWin += pick.stake * Object.values(modd)[0];
+        }
       }
     }
-
     const updatedTicket = await Ticket.query().patchAndFetchById(ticket.id, {
-      netWinning: ticketWin, status: 'redeem'
+      netWinning: ticketWin,
+      status: "redeem",
     });
 
-    console.log('total win:', ticketWin);
+    console.log("total win:", ticketWin);
   }
+  // Iterate through the picks in the ticket
 
   // Now, compare the ticket's picks with the winning numbers to determine the actual winnings
 
@@ -328,11 +392,13 @@ const calculateWiningNumbers = async (gameNumber, winningNumbers) => {
   // You can also do additional processing or logging here if needed
   // res.send(true);
   // await Ticket.query().findById(ticket.id).patch({ actualWinnings });
-}
+};
 
 function countCorrectGuesses(userSelection, winningNumbers) {
   // Implement logic to count the number of correct guesses between userSelection and winningNumbers
-  const correctGuesses = userSelection.filter(num => winningNumbers.includes(num)).length;
+  const correctGuesses = userSelection.filter((num) =>
+    winningNumbers.includes(num)
+  ).length;
   return correctGuesses;
 }
 
