@@ -8,10 +8,10 @@ exports.up = function (knex) {
     table.increments('id').primary();
     table.integer('shopId').unsigned().notNullable();
     table.foreign('shopId').references('shops.id').onDelete('CASCADE');
-    table.string('fname').notNullable();
-    table.string('lname').notNullable();
+    table.string('name').notNullable();
     table.string('username').unique().notNullable();
     table.string('password').notNullable();
+    table.boolean('status').defaultTo(true);
 
     table.timestamps(true, true);
   });

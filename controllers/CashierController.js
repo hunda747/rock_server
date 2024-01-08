@@ -16,7 +16,7 @@ class CashierController {
 
   async getAll(req, res) {
     try {
-      const cashiers = await Cashier.query();
+      const cashiers = await Cashier.query().withGraphFetched('shop');
       res.json(cashiers);
     } catch (error) {
       console.error(error);

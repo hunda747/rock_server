@@ -10,8 +10,8 @@ exports.up = function (knex) {
     table.foreign('shopOwnerId').references('shop_owners.id').onDelete('CASCADE');
     table.string('name').notNullable();
     table.string('location').notNullable();
-    table.integer('minStake').defaultTo(0);
-    table.integer('maxStake').defaultTo(0);
+    table.integer('minStake').defaultTo(10);
+    table.integer('maxStake').defaultTo(1000);
     table.integer('cashierLimit').defaultTo(10000);
     // Use ENUM for the status field
     table.enu('status', ['active', 'inactive', 'pending']).defaultTo('active');
