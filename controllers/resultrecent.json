@@ -1,0 +1,1402 @@
+[
+  {
+    "id": "1bd39657-4ccb-43f9-85a4-efbc32664181",
+    "gameNumber": 20292,
+    "createdAt": "2024-01-10T19:30:00.194Z",
+    "status": "CLOSED",
+    "gameResult": 16
+  },
+  {
+    "id": "30b57112-630f-421c-a249-4c4a68a3aae6",
+    "gameNumber": 20291,
+    "createdAt": "2024-01-10T19:26:00.158Z",
+    "status": "CLOSED",
+    "gameResult": 26
+  },
+  {
+    "id": "e3b82d5f-e42d-421b-a180-de5dc2fcb93f",
+    "gameNumber": 20290,
+    "createdAt": "2024-01-10T19:22:00.184Z",
+    "status": "CLOSED",
+    "gameResult": 7
+  },
+  {
+    "id": "5f0f2c2b-7a22-4c99-81b9-797919b8dbb1",
+    "gameNumber": 20289,
+    "createdAt": "2024-01-10T19:18:00.155Z",
+    "status": "CLOSED",
+    "gameResult": 14
+  },
+  {
+    "id": "a23be73e-6f7f-4286-be0d-5a8eec306658",
+    "gameNumber": 20288,
+    "createdAt": "2024-01-10T19:14:00.173Z",
+    "status": "CLOSED",
+    "gameResult": 11
+  },
+  {
+    "id": "9535dd01-09e1-481b-9d4e-fc4069b4f098",
+    "gameNumber": 20287,
+    "createdAt": "2024-01-10T19:10:00.169Z",
+    "status": "CLOSED",
+    "gameResult": 20
+  },
+  {
+    "id": "21ba2505-ba3d-45e7-b708-68a454bcab3a",
+    "gameNumber": 20286,
+    "createdAt": "2024-01-10T19:06:00.187Z",
+    "status": "CLOSED",
+    "gameResult": 11
+  },
+  {
+    "id": "b672b9f0-72f1-4548-998f-8f00951d946e",
+    "gameNumber": 20285,
+    "createdAt": "2024-01-10T19:02:00.185Z",
+    "status": "CLOSED",
+    "gameResult": 15
+  },
+  {
+    "id": "72b6e698-5bf9-4042-8d1e-05dba06b25d0",
+    "gameNumber": 20284,
+    "createdAt": "2024-01-10T18:58:00.180Z",
+    "status": "CLOSED",
+    "gameResult": 2
+  },
+  {
+    "id": "cf7d6091-d376-4d8d-8cb6-b1fb79c804fa",
+    "gameNumber": 20283,
+    "createdAt": "2024-01-10T18:54:00.160Z",
+    "status": "CLOSED",
+    "gameResult": 2
+  },
+  {
+    "id": "db57da0f-c694-4110-8208-7851f9084be3",
+    "gameNumber": 20282,
+    "createdAt": "2024-01-10T18:50:00.178Z",
+    "status": "CLOSED",
+    "gameResult": 15
+  },
+  {
+    "id": "b509f562-2c7b-4d04-932e-cfc50dcae6fd",
+    "gameNumber": 20281,
+    "createdAt": "2024-01-10T18:46:00.175Z",
+    "status": "CLOSED",
+    "gameResult": 34
+  },
+  {
+    "id": "63fff37c-14e9-4d08-9105-77eb74d4bbc5",
+    "gameNumber": 20280,
+    "createdAt": "2024-01-10T18:42:00.192Z",
+    "status": "CLOSED",
+    "gameResult": 8
+  },
+  {
+    "id": "48771f5f-1fd5-4fc1-89f8-1028695dc9c5",
+    "gameNumber": 20279,
+    "createdAt": "2024-01-10T18:38:00.155Z",
+    "status": "CLOSED",
+    "gameResult": 10
+  },
+  {
+    "id": "7e454b7c-f9df-4fdf-890a-bd70571f6519",
+    "gameNumber": 20278,
+    "createdAt": "2024-01-10T18:34:00.155Z",
+    "status": "CLOSED",
+    "gameResult": 19
+  },
+  {
+    "id": "7edd66e6-f2e1-474e-8077-a55fa127239e",
+    "gameNumber": 20277,
+    "createdAt": "2024-01-10T18:30:00.178Z",
+    "status": "CLOSED",
+    "gameResult": 12
+  },
+  {
+    "id": "f2247ae0-0849-43fb-bcaf-a92b444155b7",
+    "gameNumber": 20276,
+    "createdAt": "2024-01-10T18:26:00.153Z",
+    "status": "CLOSED",
+    "gameResult": 24
+  },
+  {
+    "id": "b0fd09b5-556a-4571-83c6-90231c3fd5b7",
+    "gameNumber": 20275,
+    "createdAt": "2024-01-10T18:22:00.167Z",
+    "status": "CLOSED",
+    "gameResult": 25
+  },
+  {
+    "id": "ca05f4b4-559a-4342-8be3-611976ef232e",
+    "gameNumber": 20274,
+    "createdAt": "2024-01-10T18:18:00.185Z",
+    "status": "CLOSED",
+    "gameResult": 26
+  },
+  {
+    "id": "ad47f66f-ec0b-4a12-be45-3b17f8e7143d",
+    "gameNumber": 20273,
+    "createdAt": "2024-01-10T18:14:00.183Z",
+    "status": "CLOSED",
+    "gameResult": 19
+  },
+  {
+    "id": "8523eb47-ee51-4d51-b407-33d04d0fa23a",
+    "gameNumber": 20272,
+    "createdAt": "2024-01-10T18:10:00.181Z",
+    "status": "CLOSED",
+    "gameResult": 5
+  },
+  {
+    "id": "49537e84-c5ec-48b4-bf0d-e690a90d0b70",
+    "gameNumber": 20271,
+    "createdAt": "2024-01-10T18:06:00.175Z",
+    "status": "CLOSED",
+    "gameResult": 26
+  },
+  {
+    "id": "721c0033-05f7-4d76-9fe7-6d8b713819ab",
+    "gameNumber": 20270,
+    "createdAt": "2024-01-10T18:02:00.157Z",
+    "status": "CLOSED",
+    "gameResult": 10
+  },
+  {
+    "id": "a1080813-2c65-4d32-86ef-93bec7a734b8",
+    "gameNumber": 20269,
+    "createdAt": "2024-01-10T17:58:00.153Z",
+    "status": "CLOSED",
+    "gameResult": 4
+  },
+  {
+    "id": "23baba7f-0634-4c45-94c3-18d5c5a52e64",
+    "gameNumber": 20268,
+    "createdAt": "2024-01-10T17:54:00.149Z",
+    "status": "CLOSED",
+    "gameResult": 4
+  },
+  {
+    "id": "cda86179-bee1-42fe-a513-dee0709b3280",
+    "gameNumber": 20267,
+    "createdAt": "2024-01-10T17:50:00.213Z",
+    "status": "CLOSED",
+    "gameResult": 8
+  },
+  {
+    "id": "68503dc0-198d-4745-a78e-16a69bbf57d8",
+    "gameNumber": 20266,
+    "createdAt": "2024-01-10T17:46:00.177Z",
+    "status": "CLOSED",
+    "gameResult": 24
+  },
+  {
+    "id": "5ae918e5-52cb-4def-8f6e-80e8a1acb932",
+    "gameNumber": 20265,
+    "createdAt": "2024-01-10T17:42:00.149Z",
+    "status": "CLOSED",
+    "gameResult": 17
+  },
+  {
+    "id": "4cbeafd7-7257-44f1-b853-ca412e1c3133",
+    "gameNumber": 20264,
+    "createdAt": "2024-01-10T17:38:00.154Z",
+    "status": "CLOSED",
+    "gameResult": 29
+  },
+  {
+    "id": "c51f8244-a380-4883-8f40-76da4c90378b",
+    "gameNumber": 20263,
+    "createdAt": "2024-01-10T17:34:00.154Z",
+    "status": "CLOSED",
+    "gameResult": 10
+  },
+  {
+    "id": "86ea2110-f6f2-405e-8b27-80e1968d142a",
+    "gameNumber": 20262,
+    "createdAt": "2024-01-10T17:30:00.182Z",
+    "status": "CLOSED",
+    "gameResult": 23
+  },
+  {
+    "id": "9011d2bc-a4cb-4959-9486-0d2c5ae870d8",
+    "gameNumber": 20261,
+    "createdAt": "2024-01-10T17:26:00.161Z",
+    "status": "CLOSED",
+    "gameResult": 21
+  },
+  {
+    "id": "ce72443d-64b6-41b7-ae18-14c54738c070",
+    "gameNumber": 20260,
+    "createdAt": "2024-01-10T17:22:00.181Z",
+    "status": "CLOSED",
+    "gameResult": 34
+  },
+  {
+    "id": "aa54883c-9e0e-4d8e-8978-54a47827bcc5",
+    "gameNumber": 20259,
+    "createdAt": "2024-01-10T17:18:00.180Z",
+    "status": "CLOSED",
+    "gameResult": 6
+  },
+  {
+    "id": "77fe8332-a5ba-455b-a2ea-911a742d86eb",
+    "gameNumber": 20258,
+    "createdAt": "2024-01-10T17:14:00.177Z",
+    "status": "CLOSED",
+    "gameResult": 1
+  },
+  {
+    "id": "bc95099c-8ed0-4745-8110-27e37e70afe6",
+    "gameNumber": 20257,
+    "createdAt": "2024-01-10T17:10:00.182Z",
+    "status": "CLOSED",
+    "gameResult": 18
+  },
+  {
+    "id": "86edaeae-f056-4a87-8fba-b56810aa22fb",
+    "gameNumber": 20256,
+    "createdAt": "2024-01-10T17:06:00.157Z",
+    "status": "CLOSED",
+    "gameResult": 1
+  },
+  {
+    "id": "8f988119-523e-4bba-a266-5e1c3ec096a5",
+    "gameNumber": 20255,
+    "createdAt": "2024-01-10T17:02:00.161Z",
+    "status": "CLOSED",
+    "gameResult": 19
+  },
+  {
+    "id": "cb0045e3-07c6-4329-9cf1-419cecbf1280",
+    "gameNumber": 20254,
+    "createdAt": "2024-01-10T16:58:00.223Z",
+    "status": "CLOSED",
+    "gameResult": 36
+  },
+  {
+    "id": "ee34de4c-bdf3-412a-b01e-57bf981a7d47",
+    "gameNumber": 20253,
+    "createdAt": "2024-01-10T16:54:00.427Z",
+    "status": "CLOSED",
+    "gameResult": 14
+  },
+  {
+    "id": "aa0349dc-56d7-43f7-b8d6-eb0e59a22d63",
+    "gameNumber": 20252,
+    "createdAt": "2024-01-10T16:50:00.178Z",
+    "status": "CLOSED",
+    "gameResult": 29
+  },
+  {
+    "id": "21fe6710-f41f-4dc9-9dcc-91ebbb004893",
+    "gameNumber": 20251,
+    "createdAt": "2024-01-10T16:46:00.180Z",
+    "status": "CLOSED",
+    "gameResult": 12
+  },
+  {
+    "id": "d317b8b7-6a28-41a5-9d81-b9ffe1466459",
+    "gameNumber": 20250,
+    "createdAt": "2024-01-10T16:42:00.161Z",
+    "status": "CLOSED",
+    "gameResult": 2
+  },
+  {
+    "id": "aa55d4e8-4d22-4cad-8217-54e3c85158c2",
+    "gameNumber": 20249,
+    "createdAt": "2024-01-10T16:38:00.145Z",
+    "status": "CLOSED",
+    "gameResult": 36
+  },
+  {
+    "id": "8e9251d6-b265-4db2-a6e2-edea15942de8",
+    "gameNumber": 20248,
+    "createdAt": "2024-01-10T16:34:00.158Z",
+    "status": "CLOSED",
+    "gameResult": 0
+  },
+  {
+    "id": "24d20a32-ecc1-49f3-8a58-9266393c61f8",
+    "gameNumber": 20247,
+    "createdAt": "2024-01-10T16:30:00.159Z",
+    "status": "CLOSED",
+    "gameResult": 24
+  },
+  {
+    "id": "cdc0c819-7075-4e33-8eab-2245256f1977",
+    "gameNumber": 20246,
+    "createdAt": "2024-01-10T16:26:00.182Z",
+    "status": "CLOSED",
+    "gameResult": 7
+  },
+  {
+    "id": "ecbcafde-dfdd-4aea-945d-a9eeb132af1f",
+    "gameNumber": 20245,
+    "createdAt": "2024-01-10T16:22:00.182Z",
+    "status": "CLOSED",
+    "gameResult": 27
+  },
+  {
+    "id": "c8fd4f4c-1efa-4f3a-9888-dd6a25f084c8",
+    "gameNumber": 20244,
+    "createdAt": "2024-01-10T16:18:00.193Z",
+    "status": "CLOSED",
+    "gameResult": 35
+  },
+  {
+    "id": "8da1307f-b31c-4b41-8217-1e57726754aa",
+    "gameNumber": 20243,
+    "createdAt": "2024-01-10T16:14:00.161Z",
+    "status": "CLOSED",
+    "gameResult": 16
+  },
+  {
+    "id": "005d72bb-970e-4f3d-98fd-7aaf7ae7a088",
+    "gameNumber": 20242,
+    "createdAt": "2024-01-10T16:10:00.420Z",
+    "status": "CLOSED",
+    "gameResult": 15
+  },
+  {
+    "id": "16ec50ac-d096-47da-bd46-2fe8d29184d3",
+    "gameNumber": 20241,
+    "createdAt": "2024-01-10T16:06:00.184Z",
+    "status": "CLOSED",
+    "gameResult": 12
+  },
+  {
+    "id": "b6032bb2-90bc-421a-9474-6c177d37fb21",
+    "gameNumber": 20240,
+    "createdAt": "2024-01-10T16:02:00.180Z",
+    "status": "CLOSED",
+    "gameResult": 22
+  },
+  {
+    "id": "b64c4a4e-1ab3-4f6d-bbe5-8264adef995c",
+    "gameNumber": 20239,
+    "createdAt": "2024-01-10T15:58:00.176Z",
+    "status": "CLOSED",
+    "gameResult": 21
+  },
+  {
+    "id": "ef8b4ed2-dac2-483f-b2a5-e83dba111719",
+    "gameNumber": 20238,
+    "createdAt": "2024-01-10T15:54:00.198Z",
+    "status": "CLOSED",
+    "gameResult": 28
+  },
+  {
+    "id": "d12b7e29-496b-440f-a2a9-fad81f19bba2",
+    "gameNumber": 20237,
+    "createdAt": "2024-01-10T15:50:00.215Z",
+    "status": "CLOSED",
+    "gameResult": 10
+  },
+  {
+    "id": "86d37c47-bab8-4abe-9815-8f2ce87098f7",
+    "gameNumber": 20236,
+    "createdAt": "2024-01-10T15:46:00.201Z",
+    "status": "CLOSED",
+    "gameResult": 10
+  },
+  {
+    "id": "0f6751dd-1384-407c-bb6c-858e3e8087c8",
+    "gameNumber": 20235,
+    "createdAt": "2024-01-10T15:42:00.151Z",
+    "status": "CLOSED",
+    "gameResult": 31
+  },
+  {
+    "id": "930c543f-506f-49f5-9dd3-63f29cfe341f",
+    "gameNumber": 20234,
+    "createdAt": "2024-01-10T15:38:00.273Z",
+    "status": "CLOSED",
+    "gameResult": 14
+  },
+  {
+    "id": "7d7e169f-82fb-4b8e-816d-520bfea1faeb",
+    "gameNumber": 20233,
+    "createdAt": "2024-01-10T15:34:00.167Z",
+    "status": "CLOSED",
+    "gameResult": 29
+  },
+  {
+    "id": "ff6d9f63-17a0-45e0-9bc1-0cb45b3687c6",
+    "gameNumber": 20232,
+    "createdAt": "2024-01-10T15:30:00.175Z",
+    "status": "CLOSED",
+    "gameResult": 28
+  },
+  {
+    "id": "4512a734-6ee3-4859-bf2e-6668bbc80264",
+    "gameNumber": 20231,
+    "createdAt": "2024-01-10T15:26:00.200Z",
+    "status": "CLOSED",
+    "gameResult": 9
+  },
+  {
+    "id": "95636ded-8d7e-47eb-a386-2627adeae9fb",
+    "gameNumber": 20230,
+    "createdAt": "2024-01-10T15:22:00.180Z",
+    "status": "CLOSED",
+    "gameResult": 28
+  },
+  {
+    "id": "0c6aff6e-5082-46b0-8595-c84fdf3ab629",
+    "gameNumber": 20229,
+    "createdAt": "2024-01-10T15:18:00.189Z",
+    "status": "CLOSED",
+    "gameResult": 3
+  },
+  {
+    "id": "ba02dcf1-828e-4c3a-8368-96deb8629be9",
+    "gameNumber": 20228,
+    "createdAt": "2024-01-10T15:14:00.167Z",
+    "status": "CLOSED",
+    "gameResult": 17
+  },
+  {
+    "id": "6f0fd5aa-e138-4ddb-a451-292d9a66ef8c",
+    "gameNumber": 20227,
+    "createdAt": "2024-01-10T15:10:00.170Z",
+    "status": "CLOSED",
+    "gameResult": 9
+  },
+  {
+    "id": "61dc1236-ee75-48ef-9b75-c79375dc3931",
+    "gameNumber": 20226,
+    "createdAt": "2024-01-10T15:06:00.163Z",
+    "status": "CLOSED",
+    "gameResult": 13
+  },
+  {
+    "id": "c1980edd-b3e9-49b5-a949-cfff626eebac",
+    "gameNumber": 20225,
+    "createdAt": "2024-01-10T15:02:00.168Z",
+    "status": "CLOSED",
+    "gameResult": 1
+  },
+  {
+    "id": "8da72418-b908-48d3-9b8d-ed79020b4056",
+    "gameNumber": 20224,
+    "createdAt": "2024-01-10T14:58:00.167Z",
+    "status": "CLOSED",
+    "gameResult": 6
+  },
+  {
+    "id": "ea3d1de6-97e0-4e9e-bbaa-fd313a700533",
+    "gameNumber": 20223,
+    "createdAt": "2024-01-10T14:54:00.154Z",
+    "status": "CLOSED",
+    "gameResult": 28
+  },
+  {
+    "id": "c3c33521-dc41-4715-9718-75c29ccf8648",
+    "gameNumber": 20222,
+    "createdAt": "2024-01-10T14:50:00.170Z",
+    "status": "CLOSED",
+    "gameResult": 29
+  },
+  {
+    "id": "042be306-4299-4f81-8f05-3b2c4e4cf388",
+    "gameNumber": 20221,
+    "createdAt": "2024-01-10T14:46:00.180Z",
+    "status": "CLOSED",
+    "gameResult": 29
+  },
+  {
+    "id": "9532d6a4-8372-4219-af5a-02226f507802",
+    "gameNumber": 20220,
+    "createdAt": "2024-01-10T14:42:00.280Z",
+    "status": "CLOSED",
+    "gameResult": 31
+  },
+  {
+    "id": "58ebd10f-48ea-40a1-8c46-265e39236a51",
+    "gameNumber": 20219,
+    "createdAt": "2024-01-10T14:38:00.170Z",
+    "status": "CLOSED",
+    "gameResult": 17
+  },
+  {
+    "id": "5b7b56e1-93d4-41be-873b-afabb7a3d973",
+    "gameNumber": 20218,
+    "createdAt": "2024-01-10T14:34:00.155Z",
+    "status": "CLOSED",
+    "gameResult": 9
+  },
+  {
+    "id": "e79a8a3e-b02c-430d-83ca-2dc5f63aa165",
+    "gameNumber": 20217,
+    "createdAt": "2024-01-10T14:30:00.179Z",
+    "status": "CLOSED",
+    "gameResult": 6
+  },
+  {
+    "id": "0c153807-de55-416d-a57d-e4c2bfe4b114",
+    "gameNumber": 20216,
+    "createdAt": "2024-01-10T14:26:00.225Z",
+    "status": "CLOSED",
+    "gameResult": 24
+  },
+  {
+    "id": "020910e6-d37b-41c9-a574-f438af911f18",
+    "gameNumber": 20215,
+    "createdAt": "2024-01-10T14:22:00.170Z",
+    "status": "CLOSED",
+    "gameResult": 25
+  },
+  {
+    "id": "db928d4e-0cec-4123-9be2-511059373d2d",
+    "gameNumber": 20214,
+    "createdAt": "2024-01-10T14:18:00.201Z",
+    "status": "CLOSED",
+    "gameResult": 5
+  },
+  {
+    "id": "842f8005-cb00-4c9a-9081-aae6b646dac5",
+    "gameNumber": 20213,
+    "createdAt": "2024-01-10T14:14:00.166Z",
+    "status": "CLOSED",
+    "gameResult": 23
+  },
+  {
+    "id": "0821b33d-8290-4413-a792-8d3844737600",
+    "gameNumber": 20212,
+    "createdAt": "2024-01-10T14:10:00.192Z",
+    "status": "CLOSED",
+    "gameResult": 36
+  },
+  {
+    "id": "b82bc754-9f9c-4902-bf48-d23aa1d01829",
+    "gameNumber": 20211,
+    "createdAt": "2024-01-10T14:06:00.157Z",
+    "status": "CLOSED",
+    "gameResult": 31
+  },
+  {
+    "id": "f19218a9-2e20-4d68-905c-6219b30a33d5",
+    "gameNumber": 20210,
+    "createdAt": "2024-01-10T14:02:00.154Z",
+    "status": "CLOSED",
+    "gameResult": 12
+  },
+  {
+    "id": "26b06291-62ab-47d9-9100-6ebbd18b5d11",
+    "gameNumber": 20209,
+    "createdAt": "2024-01-10T13:58:00.238Z",
+    "status": "CLOSED",
+    "gameResult": 4
+  },
+  {
+    "id": "3f31fc46-eab2-4e0d-8bee-671f0bfdae72",
+    "gameNumber": 20208,
+    "createdAt": "2024-01-10T13:54:00.170Z",
+    "status": "CLOSED",
+    "gameResult": 26
+  },
+  {
+    "id": "db2eeade-0542-43e0-91e5-97ba4e0d32ce",
+    "gameNumber": 20207,
+    "createdAt": "2024-01-10T13:50:00.173Z",
+    "status": "CLOSED",
+    "gameResult": 29
+  },
+  {
+    "id": "4230d5bc-938d-4fa8-bc9a-8d19cbf2a9b6",
+    "gameNumber": 20206,
+    "createdAt": "2024-01-10T13:46:00.212Z",
+    "status": "CLOSED",
+    "gameResult": 23
+  },
+  {
+    "id": "ff8956f0-f74b-4d08-b342-b7215d66b384",
+    "gameNumber": 20205,
+    "createdAt": "2024-01-10T13:42:00.170Z",
+    "status": "CLOSED",
+    "gameResult": 2
+  },
+  {
+    "id": "b3868100-7f3d-4079-a71d-ae04404628b4",
+    "gameNumber": 20204,
+    "createdAt": "2024-01-10T13:38:00.184Z",
+    "status": "CLOSED",
+    "gameResult": 0
+  },
+  {
+    "id": "c1e76bed-24e7-41c3-9392-bc4e2e017331",
+    "gameNumber": 20203,
+    "createdAt": "2024-01-10T13:34:00.160Z",
+    "status": "CLOSED",
+    "gameResult": 31
+  },
+  {
+    "id": "996d0fe6-caa9-4d17-8dc0-750321dcd8f6",
+    "gameNumber": 20202,
+    "createdAt": "2024-01-10T13:30:00.178Z",
+    "status": "CLOSED",
+    "gameResult": 26
+  },
+  {
+    "id": "a39fdff1-c14e-4805-bd62-b12244319516",
+    "gameNumber": 20201,
+    "createdAt": "2024-01-10T13:26:00.173Z",
+    "status": "CLOSED",
+    "gameResult": 21
+  },
+  {
+    "id": "0d4b2fc7-5675-4999-b396-d6dffeffcd0c",
+    "gameNumber": 20200,
+    "createdAt": "2024-01-10T13:22:00.226Z",
+    "status": "CLOSED",
+    "gameResult": 27
+  },
+  {
+    "id": "958739d0-cd46-4088-ad8c-24852ddd214a",
+    "gameNumber": 20199,
+    "createdAt": "2024-01-10T13:18:00.171Z",
+    "status": "CLOSED",
+    "gameResult": 25
+  },
+  {
+    "id": "7ead1984-8a3e-4505-a3a7-0ebfe1d44286",
+    "gameNumber": 20198,
+    "createdAt": "2024-01-10T13:14:00.173Z",
+    "status": "CLOSED",
+    "gameResult": 8
+  },
+  {
+    "id": "71ba9d22-b6b3-4eb0-b653-944b25d7a14d",
+    "gameNumber": 20197,
+    "createdAt": "2024-01-10T13:10:00.190Z",
+    "status": "CLOSED",
+    "gameResult": 3
+  },
+  {
+    "id": "29eb00e5-6064-4c4e-b477-acfbfddf8484",
+    "gameNumber": 20196,
+    "createdAt": "2024-01-10T13:06:00.307Z",
+    "status": "CLOSED",
+    "gameResult": 29
+  },
+  {
+    "id": "c144b9f0-b183-4693-a53e-a744c1b01f9d",
+    "gameNumber": 20195,
+    "createdAt": "2024-01-10T13:02:00.289Z",
+    "status": "CLOSED",
+    "gameResult": 25
+  },
+  {
+    "id": "63432a0c-771b-4e64-9654-aa58f0db1277",
+    "gameNumber": 20194,
+    "createdAt": "2024-01-10T12:58:00.165Z",
+    "status": "CLOSED",
+    "gameResult": 20
+  },
+  {
+    "id": "1a4ceab0-7e17-4b0c-a5d1-58f61a642358",
+    "gameNumber": 20193,
+    "createdAt": "2024-01-10T12:54:00.212Z",
+    "status": "CLOSED",
+    "gameResult": 24
+  },
+  {
+    "id": "79fbe7df-4e9b-43b5-9334-0eb1e90fdf47",
+    "gameNumber": 20192,
+    "createdAt": "2024-01-10T12:50:00.202Z",
+    "status": "CLOSED",
+    "gameResult": 22
+  },
+  {
+    "id": "85745c76-28bb-4e07-98cd-7a855edf0ba1",
+    "gameNumber": 20191,
+    "createdAt": "2024-01-10T12:46:00.191Z",
+    "status": "CLOSED",
+    "gameResult": 21
+  },
+  {
+    "id": "6c16250f-7790-4c0e-bc7b-4b9b96393c53",
+    "gameNumber": 20190,
+    "createdAt": "2024-01-10T12:42:00.275Z",
+    "status": "CLOSED",
+    "gameResult": 24
+  },
+  {
+    "id": "cffb3e8f-7aea-41e4-8081-db9f6ad218ad",
+    "gameNumber": 20189,
+    "createdAt": "2024-01-10T12:38:00.173Z",
+    "status": "CLOSED",
+    "gameResult": 26
+  },
+  {
+    "id": "b9ce4fac-eb54-469d-a532-c28220e3a838",
+    "gameNumber": 20188,
+    "createdAt": "2024-01-10T12:34:00.197Z",
+    "status": "CLOSED",
+    "gameResult": 21
+  },
+  {
+    "id": "38aa12b5-505e-4006-b0e8-f27f8a0c5fda",
+    "gameNumber": 20187,
+    "createdAt": "2024-01-10T12:30:00.169Z",
+    "status": "CLOSED",
+    "gameResult": 32
+  },
+  {
+    "id": "5e2bea28-494c-4881-bf9d-99e06f26163b",
+    "gameNumber": 20186,
+    "createdAt": "2024-01-10T12:26:00.197Z",
+    "status": "CLOSED",
+    "gameResult": 29
+  },
+  {
+    "id": "fc4c0e10-d2ed-42dc-a5e9-6950106320c0",
+    "gameNumber": 20185,
+    "createdAt": "2024-01-10T12:22:00.238Z",
+    "status": "CLOSED",
+    "gameResult": 20
+  },
+  {
+    "id": "f087f6e4-9055-4255-98b8-cf381d61eb38",
+    "gameNumber": 20184,
+    "createdAt": "2024-01-10T12:18:00.160Z",
+    "status": "CLOSED",
+    "gameResult": 34
+  },
+  {
+    "id": "50129192-abda-4c85-b632-2bd21aa29cdb",
+    "gameNumber": 20183,
+    "createdAt": "2024-01-10T12:14:00.540Z",
+    "status": "CLOSED",
+    "gameResult": 1
+  },
+  {
+    "id": "7c9a9874-f5b7-4814-96e8-3d22d1faa7f5",
+    "gameNumber": 20182,
+    "createdAt": "2024-01-10T12:10:00.216Z",
+    "status": "CLOSED",
+    "gameResult": 1
+  },
+  {
+    "id": "86fc89ae-a1f1-4c88-a73f-8eeef5dcf42c",
+    "gameNumber": 20181,
+    "createdAt": "2024-01-10T12:06:00.182Z",
+    "status": "CLOSED",
+    "gameResult": 22
+  },
+  {
+    "id": "600c0e5c-48f5-4c3b-a108-efaa1a58fc76",
+    "gameNumber": 20180,
+    "createdAt": "2024-01-10T12:02:00.172Z",
+    "status": "CLOSED",
+    "gameResult": 0
+  },
+  {
+    "id": "0c6fa208-aa38-4135-9c34-996c8e341572",
+    "gameNumber": 20179,
+    "createdAt": "2024-01-10T11:58:00.172Z",
+    "status": "CLOSED",
+    "gameResult": 6
+  },
+  {
+    "id": "67a76baa-7062-44f1-b257-74045bda34e3",
+    "gameNumber": 20178,
+    "createdAt": "2024-01-10T11:54:00.196Z",
+    "status": "CLOSED",
+    "gameResult": 21
+  },
+  {
+    "id": "67c3d5e0-1da7-4750-9502-69d9dd45c08b",
+    "gameNumber": 20177,
+    "createdAt": "2024-01-10T11:50:00.187Z",
+    "status": "CLOSED",
+    "gameResult": 32
+  },
+  {
+    "id": "0c5fb882-570f-4ead-8bd0-76118754c74f",
+    "gameNumber": 20176,
+    "createdAt": "2024-01-10T11:46:00.206Z",
+    "status": "CLOSED",
+    "gameResult": 25
+  },
+  {
+    "id": "eda2f19b-a951-4af3-8d74-c56369602241",
+    "gameNumber": 20175,
+    "createdAt": "2024-01-10T11:42:00.172Z",
+    "status": "CLOSED",
+    "gameResult": 16
+  },
+  {
+    "id": "9dee32d5-aad4-4ba2-b224-d6e752c48850",
+    "gameNumber": 20174,
+    "createdAt": "2024-01-10T11:38:00.169Z",
+    "status": "CLOSED",
+    "gameResult": 34
+  },
+  {
+    "id": "9352c807-34f4-40f7-9e63-25517beb5045",
+    "gameNumber": 20173,
+    "createdAt": "2024-01-10T11:34:00.218Z",
+    "status": "CLOSED",
+    "gameResult": 1
+  },
+  {
+    "id": "0128ab07-f682-4abd-a23a-5e962adeee7e",
+    "gameNumber": 20172,
+    "createdAt": "2024-01-10T11:30:00.282Z",
+    "status": "CLOSED",
+    "gameResult": 25
+  },
+  {
+    "id": "80a4ffac-a676-47fc-845a-b6b52b039f44",
+    "gameNumber": 20171,
+    "createdAt": "2024-01-10T11:26:00.170Z",
+    "status": "CLOSED",
+    "gameResult": 3
+  },
+  {
+    "id": "13126350-902f-4e22-aa81-74eda4a96be2",
+    "gameNumber": 20170,
+    "createdAt": "2024-01-10T11:22:00.194Z",
+    "status": "CLOSED",
+    "gameResult": 30
+  },
+  {
+    "id": "99219616-80a4-4de1-87ba-3dfb76cc2430",
+    "gameNumber": 20169,
+    "createdAt": "2024-01-10T11:18:00.166Z",
+    "status": "CLOSED",
+    "gameResult": 9
+  },
+  {
+    "id": "f41df26c-6e61-484f-a924-4585212b9472",
+    "gameNumber": 20168,
+    "createdAt": "2024-01-10T11:14:00.270Z",
+    "status": "CLOSED",
+    "gameResult": 11
+  },
+  {
+    "id": "d0a141a6-3b91-4679-8913-05a2f5e0cc02",
+    "gameNumber": 20167,
+    "createdAt": "2024-01-10T11:10:00.199Z",
+    "status": "CLOSED",
+    "gameResult": 9
+  },
+  {
+    "id": "9ea69ecb-9b26-43af-9e9b-d9844140c968",
+    "gameNumber": 20166,
+    "createdAt": "2024-01-10T11:06:00.176Z",
+    "status": "CLOSED",
+    "gameResult": 24
+  },
+  {
+    "id": "ed78b591-6390-400b-b770-3f84010f923e",
+    "gameNumber": 20165,
+    "createdAt": "2024-01-10T11:02:00.225Z",
+    "status": "CLOSED",
+    "gameResult": 29
+  },
+  {
+    "id": "0856dbdb-a379-4831-b7d7-95953214596b",
+    "gameNumber": 20164,
+    "createdAt": "2024-01-10T10:58:00.329Z",
+    "status": "CLOSED",
+    "gameResult": 15
+  },
+  {
+    "id": "f69a863c-f5e3-4e34-89bd-6374ed093676",
+    "gameNumber": 20163,
+    "createdAt": "2024-01-10T10:54:00.227Z",
+    "status": "CLOSED",
+    "gameResult": 4
+  },
+  {
+    "id": "102ea28c-5550-4980-b254-094997d32fbb",
+    "gameNumber": 20162,
+    "createdAt": "2024-01-10T10:50:00.194Z",
+    "status": "CLOSED",
+    "gameResult": 22
+  },
+  {
+    "id": "fd7767a7-956d-4945-be54-7f6666d2f3af",
+    "gameNumber": 20161,
+    "createdAt": "2024-01-10T10:46:00.186Z",
+    "status": "CLOSED",
+    "gameResult": 9
+  },
+  {
+    "id": "984b330e-727a-41ee-b0a8-7caab1da6e35",
+    "gameNumber": 20160,
+    "createdAt": "2024-01-10T10:42:00.174Z",
+    "status": "CLOSED",
+    "gameResult": 19
+  },
+  {
+    "id": "e7eff91c-356c-402e-a9b3-85de1f6bba95",
+    "gameNumber": 20159,
+    "createdAt": "2024-01-10T10:38:00.217Z",
+    "status": "CLOSED",
+    "gameResult": 0
+  },
+  {
+    "id": "d45935aa-698b-4276-aff5-df651bd70932",
+    "gameNumber": 20158,
+    "createdAt": "2024-01-10T10:34:00.155Z",
+    "status": "CLOSED",
+    "gameResult": 28
+  },
+  {
+    "id": "379e4a3c-e166-46d0-9776-446b18b6f5e2",
+    "gameNumber": 20157,
+    "createdAt": "2024-01-10T10:30:00.226Z",
+    "status": "CLOSED",
+    "gameResult": 32
+  },
+  {
+    "id": "89a20744-a552-4021-b8db-1c3f415d8239",
+    "gameNumber": 20156,
+    "createdAt": "2024-01-10T10:26:00.191Z",
+    "status": "CLOSED",
+    "gameResult": 24
+  },
+  {
+    "id": "c91a86b4-37ab-44ad-8796-abf70b445852",
+    "gameNumber": 20155,
+    "createdAt": "2024-01-10T10:22:00.222Z",
+    "status": "CLOSED",
+    "gameResult": 5
+  },
+  {
+    "id": "f39dd466-8e68-4f73-809d-88938bc767ec",
+    "gameNumber": 20154,
+    "createdAt": "2024-01-10T10:18:00.162Z",
+    "status": "CLOSED",
+    "gameResult": 31
+  },
+  {
+    "id": "268c03d7-8f50-4220-a6d2-e873524aab21",
+    "gameNumber": 20153,
+    "createdAt": "2024-01-10T10:14:00.187Z",
+    "status": "CLOSED",
+    "gameResult": 19
+  },
+  {
+    "id": "27df7e37-04f7-41cb-9165-6b011a2c33af",
+    "gameNumber": 20152,
+    "createdAt": "2024-01-10T10:10:00.184Z",
+    "status": "CLOSED",
+    "gameResult": 6
+  },
+  {
+    "id": "c5222b27-61e9-4cf8-a4bb-8e8cde0f864e",
+    "gameNumber": 20151,
+    "createdAt": "2024-01-10T10:06:00.176Z",
+    "status": "CLOSED",
+    "gameResult": 17
+  },
+  {
+    "id": "b45d6f58-7da3-4c35-8f8b-29667dc816e7",
+    "gameNumber": 20150,
+    "createdAt": "2024-01-10T10:02:00.174Z",
+    "status": "CLOSED",
+    "gameResult": 20
+  },
+  {
+    "id": "ed37982d-8433-49be-8306-1925b176408f",
+    "gameNumber": 20149,
+    "createdAt": "2024-01-10T09:58:00.164Z",
+    "status": "CLOSED",
+    "gameResult": 32
+  },
+  {
+    "id": "58a75fe5-fe39-4814-bb6d-ab30d9c469e2",
+    "gameNumber": 20148,
+    "createdAt": "2024-01-10T09:54:00.159Z",
+    "status": "CLOSED",
+    "gameResult": 26
+  },
+  {
+    "id": "5826a13b-58a2-4fd1-af28-90a9583d67f5",
+    "gameNumber": 20147,
+    "createdAt": "2024-01-10T09:50:00.202Z",
+    "status": "CLOSED",
+    "gameResult": 16
+  },
+  {
+    "id": "56792544-8481-4d02-b04c-7a06af001bea",
+    "gameNumber": 20146,
+    "createdAt": "2024-01-10T09:46:00.187Z",
+    "status": "CLOSED",
+    "gameResult": 7
+  },
+  {
+    "id": "c70d630e-7bab-4ece-86d9-2b3e8fdcb47a",
+    "gameNumber": 20145,
+    "createdAt": "2024-01-10T09:42:00.170Z",
+    "status": "CLOSED",
+    "gameResult": 1
+  },
+  {
+    "id": "dcec14ee-7b7b-4724-a26c-f4b3e68fadf3",
+    "gameNumber": 20144,
+    "createdAt": "2024-01-10T09:38:00.185Z",
+    "status": "CLOSED",
+    "gameResult": 35
+  },
+  {
+    "id": "cf3721e0-dd96-45a8-84bc-a2aabe3d7ae4",
+    "gameNumber": 20143,
+    "createdAt": "2024-01-10T09:34:00.175Z",
+    "status": "CLOSED",
+    "gameResult": 10
+  },
+  {
+    "id": "4dcd2197-61bd-41ed-9435-6da4aa460986",
+    "gameNumber": 20142,
+    "createdAt": "2024-01-10T09:30:00.175Z",
+    "status": "CLOSED",
+    "gameResult": 8
+  },
+  {
+    "id": "67e83a69-b6d2-40ab-985c-f10ef7abb5e7",
+    "gameNumber": 20141,
+    "createdAt": "2024-01-10T09:26:00.185Z",
+    "status": "CLOSED",
+    "gameResult": 18
+  },
+  {
+    "id": "f5e8de77-866e-4f81-b11d-cbe66607f7d0",
+    "gameNumber": 20140,
+    "createdAt": "2024-01-10T09:22:00.184Z",
+    "status": "CLOSED",
+    "gameResult": 21
+  },
+  {
+    "id": "2d1eda51-a160-41eb-a0b4-78c68f97abda",
+    "gameNumber": 20139,
+    "createdAt": "2024-01-10T09:18:00.180Z",
+    "status": "CLOSED",
+    "gameResult": 32
+  },
+  {
+    "id": "a69bd902-e69b-4a84-b202-ab06a81e1680",
+    "gameNumber": 20138,
+    "createdAt": "2024-01-10T09:14:00.184Z",
+    "status": "CLOSED",
+    "gameResult": 3
+  },
+  {
+    "id": "1b73dbc9-068e-4d5a-ae10-0f608ab1b5d8",
+    "gameNumber": 20137,
+    "createdAt": "2024-01-10T09:10:00.212Z",
+    "status": "CLOSED",
+    "gameResult": 14
+  },
+  {
+    "id": "d008e05e-7b0c-4f13-8e84-9e76e394d1c5",
+    "gameNumber": 20136,
+    "createdAt": "2024-01-10T09:06:00.189Z",
+    "status": "CLOSED",
+    "gameResult": 2
+  },
+  {
+    "id": "8bfe47d9-3c43-4e37-b8da-75feb772f2a8",
+    "gameNumber": 20135,
+    "createdAt": "2024-01-10T09:02:00.182Z",
+    "status": "CLOSED",
+    "gameResult": 9
+  },
+  {
+    "id": "440b4050-379f-4fe5-84fb-84866c58a036",
+    "gameNumber": 20134,
+    "createdAt": "2024-01-10T08:58:00.225Z",
+    "status": "CLOSED",
+    "gameResult": 27
+  },
+  {
+    "id": "11d3d26c-b636-4a44-b51b-729441e1d0c6",
+    "gameNumber": 20133,
+    "createdAt": "2024-01-10T08:54:00.172Z",
+    "status": "CLOSED",
+    "gameResult": 30
+  },
+  {
+    "id": "de8cb39e-2b30-46e2-b95e-012015571c69",
+    "gameNumber": 20132,
+    "createdAt": "2024-01-10T08:50:00.160Z",
+    "status": "CLOSED",
+    "gameResult": 12
+  },
+  {
+    "id": "403f9703-dc5a-44f6-9c12-7a7f6d91846f",
+    "gameNumber": 20131,
+    "createdAt": "2024-01-10T08:46:00.224Z",
+    "status": "CLOSED",
+    "gameResult": 29
+  },
+  {
+    "id": "ab0cfdbc-ab14-4097-bf8d-b437996aac6e",
+    "gameNumber": 20130,
+    "createdAt": "2024-01-10T08:42:00.175Z",
+    "status": "CLOSED",
+    "gameResult": 16
+  },
+  {
+    "id": "f1cd01ee-b7e4-4d39-a705-290e0f92c8a4",
+    "gameNumber": 20129,
+    "createdAt": "2024-01-10T08:38:00.165Z",
+    "status": "CLOSED",
+    "gameResult": 0
+  },
+  {
+    "id": "c45b5b67-08c2-4c59-9455-e435d663e3d0",
+    "gameNumber": 20128,
+    "createdAt": "2024-01-10T08:34:00.215Z",
+    "status": "CLOSED",
+    "gameResult": 15
+  },
+  {
+    "id": "9a9e4ca4-2624-482a-b24c-cd36fcd30458",
+    "gameNumber": 20127,
+    "createdAt": "2024-01-10T08:30:00.164Z",
+    "status": "CLOSED",
+    "gameResult": 27
+  },
+  {
+    "id": "eaeeb590-e256-4fa2-a870-d850c9e716ee",
+    "gameNumber": 20126,
+    "createdAt": "2024-01-10T08:26:00.177Z",
+    "status": "CLOSED",
+    "gameResult": 12
+  },
+  {
+    "id": "df0e43f4-979e-424d-8e97-776d07e95350",
+    "gameNumber": 20125,
+    "createdAt": "2024-01-10T08:22:00.204Z",
+    "status": "CLOSED",
+    "gameResult": 14
+  },
+  {
+    "id": "8d41df2a-5dc1-4bc9-83f0-b616da12a867",
+    "gameNumber": 20124,
+    "createdAt": "2024-01-10T08:18:00.172Z",
+    "status": "CLOSED",
+    "gameResult": 25
+  },
+  {
+    "id": "a2914cb5-771c-4589-ab6e-975f85f0a369",
+    "gameNumber": 20123,
+    "createdAt": "2024-01-10T08:14:00.166Z",
+    "status": "CLOSED",
+    "gameResult": 34
+  },
+  {
+    "id": "1d2e6d49-fdc3-404e-92d5-13c90b707fd4",
+    "gameNumber": 20122,
+    "createdAt": "2024-01-10T08:10:00.184Z",
+    "status": "CLOSED",
+    "gameResult": 0
+  },
+  {
+    "id": "2af48c46-2083-4c83-93c5-3d38e64c15eb",
+    "gameNumber": 20121,
+    "createdAt": "2024-01-10T08:06:00.157Z",
+    "status": "CLOSED",
+    "gameResult": 20
+  },
+  {
+    "id": "03a4b869-c9c1-4bcb-8cd1-a9edf910d6be",
+    "gameNumber": 20120,
+    "createdAt": "2024-01-10T08:02:00.191Z",
+    "status": "CLOSED",
+    "gameResult": 31
+  },
+  {
+    "id": "c4c3cd86-eeda-40be-aa7e-7c8214b96cf7",
+    "gameNumber": 20119,
+    "createdAt": "2024-01-10T07:58:00.166Z",
+    "status": "CLOSED",
+    "gameResult": 12
+  },
+  {
+    "id": "bd5019fc-feff-4d1e-80ff-d4e3cd6ff0f4",
+    "gameNumber": 20118,
+    "createdAt": "2024-01-10T07:54:00.175Z",
+    "status": "CLOSED",
+    "gameResult": 22
+  },
+  {
+    "id": "c233ae31-1e43-4284-9793-306ebda620d9",
+    "gameNumber": 20117,
+    "createdAt": "2024-01-10T07:50:00.220Z",
+    "status": "CLOSED",
+    "gameResult": 22
+  },
+  {
+    "id": "8acb7619-f888-4ec6-b34b-a1f797d62f24",
+    "gameNumber": 20116,
+    "createdAt": "2024-01-10T07:46:00.193Z",
+    "status": "CLOSED",
+    "gameResult": 1
+  },
+  {
+    "id": "08df087c-6409-487d-8399-71e24be74f58",
+    "gameNumber": 20115,
+    "createdAt": "2024-01-10T07:42:00.270Z",
+    "status": "CLOSED",
+    "gameResult": 24
+  },
+  {
+    "id": "3b27a0d1-9bcd-4b50-8109-949fcf0ce863",
+    "gameNumber": 20114,
+    "createdAt": "2024-01-10T07:38:00.164Z",
+    "status": "CLOSED",
+    "gameResult": 12
+  },
+  {
+    "id": "8cbe97c0-53d2-4b86-b0df-df863cb7a3dd",
+    "gameNumber": 20113,
+    "createdAt": "2024-01-10T07:34:00.246Z",
+    "status": "CLOSED",
+    "gameResult": 20
+  },
+  {
+    "id": "3f5976ab-c1a4-4623-a4ef-76b14968fe28",
+    "gameNumber": 20112,
+    "createdAt": "2024-01-10T07:30:00.187Z",
+    "status": "CLOSED",
+    "gameResult": 35
+  },
+  {
+    "id": "b28c0652-3172-45ab-ace8-d09c531fc374",
+    "gameNumber": 20111,
+    "createdAt": "2024-01-10T07:26:00.154Z",
+    "status": "CLOSED",
+    "gameResult": 26
+  },
+  {
+    "id": "7f5025e6-715f-42eb-8582-aa9e25650f32",
+    "gameNumber": 20110,
+    "createdAt": "2024-01-10T07:22:00.182Z",
+    "status": "CLOSED",
+    "gameResult": 2
+  },
+  {
+    "id": "5eaaec77-81f6-44e2-8e15-39666fb5d291",
+    "gameNumber": 20109,
+    "createdAt": "2024-01-10T07:18:00.201Z",
+    "status": "CLOSED",
+    "gameResult": 14
+  },
+  {
+    "id": "1f86016a-7eef-4934-9bde-f28af1b64419",
+    "gameNumber": 20108,
+    "createdAt": "2024-01-10T07:14:00.160Z",
+    "status": "CLOSED",
+    "gameResult": 18
+  },
+  {
+    "id": "10c440da-e594-42d8-a2e1-f090c8a0294c",
+    "gameNumber": 20107,
+    "createdAt": "2024-01-10T07:10:00.205Z",
+    "status": "CLOSED",
+    "gameResult": 7
+  },
+  {
+    "id": "993392ef-f062-4680-8e81-a3ce4524ee95",
+    "gameNumber": 20106,
+    "createdAt": "2024-01-10T07:06:00.140Z",
+    "status": "CLOSED",
+    "gameResult": 18
+  },
+  {
+    "id": "29cad360-5119-4c08-a9ce-db9f71560cd9",
+    "gameNumber": 20105,
+    "createdAt": "2024-01-10T07:02:00.153Z",
+    "status": "CLOSED",
+    "gameResult": 16
+  },
+  {
+    "id": "374a8ffc-3519-429b-bf14-08d4f6217842",
+    "gameNumber": 20104,
+    "createdAt": "2024-01-10T06:58:00.150Z",
+    "status": "CLOSED",
+    "gameResult": 17
+  },
+  {
+    "id": "e0d40b1b-be76-458e-baba-43057b6501e2",
+    "gameNumber": 20103,
+    "createdAt": "2024-01-10T06:54:00.159Z",
+    "status": "CLOSED",
+    "gameResult": 3
+  },
+  {
+    "id": "1fc4574b-8dee-41ff-a106-1c07f10e4aa1",
+    "gameNumber": 20102,
+    "createdAt": "2024-01-10T06:50:00.181Z",
+    "status": "CLOSED",
+    "gameResult": 18
+  },
+  {
+    "id": "f870b729-05e0-4711-ad6f-b9ccc3827ec9",
+    "gameNumber": 20101,
+    "createdAt": "2024-01-10T06:46:00.186Z",
+    "status": "CLOSED",
+    "gameResult": 2
+  },
+  {
+    "id": "3606eebb-4635-4d76-b73e-e71cc28747f8",
+    "gameNumber": 20100,
+    "createdAt": "2024-01-10T06:42:00.198Z",
+    "status": "CLOSED",
+    "gameResult": 14
+  },
+  {
+    "id": "a85f762a-8bef-465c-a9a5-9f213529b047",
+    "gameNumber": 20099,
+    "createdAt": "2024-01-10T06:38:00.153Z",
+    "status": "CLOSED",
+    "gameResult": 8
+  },
+  {
+    "id": "08d45d87-59df-4b08-b0df-e075dedbf909",
+    "gameNumber": 20098,
+    "createdAt": "2024-01-10T06:34:00.137Z",
+    "status": "CLOSED",
+    "gameResult": 15
+  },
+  {
+    "id": "01937189-bb5a-45ef-8045-44d00b687bda",
+    "gameNumber": 20097,
+    "createdAt": "2024-01-10T06:30:00.170Z",
+    "status": "CLOSED",
+    "gameResult": 33
+  },
+  {
+    "id": "8388685c-c2d6-420d-b375-e4e49db726f5",
+    "gameNumber": 20096,
+    "createdAt": "2024-01-10T06:26:00.168Z",
+    "status": "CLOSED",
+    "gameResult": 34
+  },
+  {
+    "id": "a1686af4-6ce3-4409-848d-5d717ad6fe29",
+    "gameNumber": 20095,
+    "createdAt": "2024-01-10T06:22:00.143Z",
+    "status": "CLOSED",
+    "gameResult": 10
+  },
+  {
+    "id": "bb3221f0-2ef3-4f44-9b78-74c2d2e59532",
+    "gameNumber": 20094,
+    "createdAt": "2024-01-10T06:18:00.164Z",
+    "status": "CLOSED",
+    "gameResult": 27
+  },
+  {
+    "id": "62af6f25-7ede-44a4-ad45-a377c7a46b1c",
+    "gameNumber": 20093,
+    "createdAt": "2024-01-10T06:14:00.165Z",
+    "status": "CLOSED",
+    "gameResult": 36
+  }
+]
