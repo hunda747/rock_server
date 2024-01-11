@@ -176,7 +176,7 @@ const GameController = {
         openGame: openGame
           ? { id: openGame.id, gameNumber: openGame.gameNumber }
           : null,
-        result: JSON.parse(lastPlayedGame.pickedNumbers)?.selection,
+        result: JSON.parse(lastPlayedGame.pickedNumbers)?.selection.map((item) => ({ value: item })),
         lastGame: lastPlayedGame ? { id: lastPlayedGame.id, gameNumber: lastPlayedGame.gameNumber } : null,
         recent: await getLast10Games(),
         // recent: lastPlayedGame.gameNumber,
@@ -280,7 +280,7 @@ const GameController = {
       const response = {
         openGame: { id: openGame.id, gameNumber: openGame.gameNumber },
         game: { gameNumber: currentGame.gameNumber },
-        result: drawnNumber,
+        result: drawnNumber.map((item) => ({ value: item })),
         lastGame: previousGame ? previousGame.gameNumber : null,
         recent: await getLast10Games(),
       };
