@@ -177,8 +177,9 @@ const GameController = {
           ? { id: openGame.id, gameNumber: openGame.gameNumber }
           : null,
         result: JSON.parse(lastPlayedGame.pickedNumbers)?.selection,
-        lastGame: lastPlayedGame.gameNumber,
-        recent: lastPlayedGame.gameNumber,
+        lastGame: lastPlayedGame? { id: lastPlayedGame.id ,gameNumber: lastPlayedGame.gameNumber} : null,
+        recent: await getLast10Games(),
+        // recent: lastPlayedGame.gameNumber,
       };
 
       return res.status(200).json(response);
@@ -219,7 +220,7 @@ const GameController = {
         let evenCount = 0;
 
         for (const num of numbers) {
-          if (num % 2 === 0) {
+          if (num <=40) {
             evenCount++;
             // Assuming heads for even numbers, tails for odd numbers
             headsCount++;
@@ -281,7 +282,7 @@ const GameController = {
         game: { gameNumber: currentGame.gameNumber },
         result: drawnNumber,
         lastGame: previousGame ? previousGame.gameNumber : null,
-        recent: [],
+        recent: await getLast10Games(),
       };
       // Respond with the updated game data
       return res.status(200).json(response);
@@ -401,5 +402,27 @@ function countCorrectGuesses(userSelection, winningNumbers) {
   ).length;
   return correctGuesses;
 }
+
+const getLast10Games = async () => {
+  try {
+    const games = await Game.query()
+      .select('id', 'gameNumber', 'status', 'pickedNumbers')
+      .where('status', 'done')
+      .orderBy('time', 'desc')
+      .limit(10);
+
+    const formattedGames = games.map((game) => {
+      const { id, gameNumber, status, pickedNumbers } = game;
+      const results = JSON.parse(pickedNumbers)?.selection.map((item) => ({ value: item }));
+      return { id, gameNumber, status, results };
+    });
+    // console.log(formattedGames);
+
+    return formattedGames
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+};
 
 module.exports = GameController;
