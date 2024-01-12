@@ -141,6 +141,7 @@ const GameController = {
       // Retrieve the last played game
       const lastPlayedGame = await Game.query()
         .where("status", "done")
+        .andWhere("gameType", "keno")
         .orderBy("time", "desc")
         .first();
 
@@ -151,6 +152,7 @@ const GameController = {
       // Update the current game with the drawn number
       const currentGame = await Game.query()
         .where("status", "playing")
+        .andWhere("gameType", "keno")
         .orderBy("time", "desc")
         .first();
 
@@ -252,6 +254,7 @@ const GameController = {
       // Retrieve the previous game
       const previousGame = await Game.query()
         .where("status", "done")
+        .andWhere("gameType", "keno")
         .orderBy("time", "desc")
         .offset(1)
         .first();
@@ -260,6 +263,7 @@ const GameController = {
       // Update the current game with the drawn number
       const newGame = await Game.query()
         .where("status", "playing")
+        .andWhere("gameType", "keno")
         .orderBy("time", "desc")
         .first();
 
@@ -298,6 +302,7 @@ const GameController = {
       // Update the current game with the drawn number
       const currentGame = await Game.query()
         .where("gameNumber", gameNumber)
+        .andWhere("gameType", "keno")
         .andWhere("status", "done")
         .first();
 
@@ -3173,7 +3178,126 @@ const GameController = {
           "gameResult": null
         }
       })
-  }
+  },
+
+  // Controller
+  getLastPlayedGameSpin: async (req, res) => {
+    try {
+      // Retrieve the last played game
+      const lastPlayedGame = await Game.query()
+        .where("status", "done")
+        .andWhere("gameType", "spin")
+        .orderBy("time", "desc")
+        .first();
+
+      if (!lastPlayedGame) {
+        return res.status(404).json({ message: "No games played yet." });
+      }
+
+      // Update the current game with the drawn number
+      const currentGame = await Game.query()
+        .where("status", "playing")
+        .andWhere("gameType", "spin")
+        .orderBy("time", "desc")
+        .first();
+
+      let openGame;
+
+      if (currentGame) {
+        openGame = currentGame;
+      } else {
+        openGame = await Game.query()
+          .insert({
+            gameType: "spin",
+            gameNumber: lastPlayedGame.gameNumber + 1,
+            // Add other fields as needed based on your table structure
+            // Example: pickedNumbers, winner, time, status, etc.
+          })
+          .returning("*");
+      }
+      // Retrieve the open game (next game)
+      // console.log("json", lastPlayedGame.pickedNumbers);
+      // console.log("json", lastPlayedGame.pickedNumbers.selection);
+      // Construct the response in the specified format
+      const response = {
+        openGame: openGame
+          ? { id: openGame.id, gameNumber: openGame.gameNumber }
+          : null,
+        recent: await getLast100Games(),
+        // recent: lastPlayedGame.gameNumber,
+      };
+
+      return res.status(200).json(response);
+    } catch (error) {
+      console.error("Error retrieving last played game:", error);
+      return res.status(500).json({ message: "Internal server error." });
+    }
+  },
+
+  // Controller
+  getCurrentGameResultSpin: async (req, res) => {
+    const { gameNumber } = req.query;
+    try {
+      // Update the current game with the drawn number
+      const currentGame = await Game.query().where("id", gameNumber).first();
+
+      if (!currentGame) {
+        return res.status(404).json({ message: "No active games currently." });
+      }
+      console.log("result:", currentGame);
+      let drawnNumber;
+      if (!currentGame.pickedNumbers) {
+        // Assume you have a function to draw the number and update the database
+        drawnNumber = Math.floor(Math.random() * 36) + 1;
+
+        // Update the pickedNumbers field with the drawn number
+        await currentGame.$query().patch({
+          pickedNumbers: JSON.stringify({ selection: drawnNumber }),
+          status: "done",
+          winner: 'red',
+        });
+
+        // calculateWiningNumbers(gameNumber, drawnNumber, winner);
+      } else {
+        // console.log('resultPA:', );
+        drawnNumber = JSON.parse(currentGame?.pickedNumbers)?.selection;
+      }
+      // calculateWiningNumbers(drawnNumber, gameNumber);
+
+      let openGame;
+      // Update the current game with the drawn number
+      const newGame = await Game.query()
+        .where("status", "playing")
+        .andWhere("gameType", "spin")
+        .orderBy("time", "desc")
+        .first();
+
+      if (newGame) {
+        openGame = newGame;
+      } else {
+        openGame = await Game.query()
+          .insert({
+            gameType: "spin",
+            gameNumber: currentGame.gameNumber + 1,
+            // Add other fields as needed based on your table structure
+            // Example: pickedNumbers, winner, time, status, etc.
+          })
+          .returning("*");
+      }
+
+      // Construct the response in the specified format
+      const response = {
+        openGame: { id: openGame.id, gameNumber: openGame.gameNumber },
+        result: { gameResult: drawnNumber, gameNumber: currentGame.gameNumber, id: currentGame.id},
+        recent: await getLast100Games(),
+      };
+      // Respond with the updated game data
+      return res.status(200).json(response);
+    } catch (error) {
+      console.error("Error getting current game result:", error);
+      return res.status(500).json({ message: "Internal server error." });
+    }
+  },
 };
 
 const calculateWiningNumbers = async (gameNumber, winningNumbers, winner) => {
@@ -3254,6 +3378,7 @@ const getLast10Games = async () => {
     const games = await Game.query()
       .select('id', 'gameNumber', 'status', 'pickedNumbers')
       .where('status', 'done')
+      .andWhere("gameType", "keno")
       .orderBy('time', 'desc')
       .limit(10);
 
@@ -3261,6 +3386,29 @@ const getLast10Games = async () => {
       const { id, gameNumber, status, pickedNumbers } = game;
       const results = JSON.parse(pickedNumbers)?.selection.map((item) => ({ value: item }));
       return { id, gameNumber, status, results };
+    });
+    // console.log(formattedGames);
+
+    return formattedGames
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+};
+
+const getLast100Games = async () => {
+  try {
+    const games = await Game.query()
+      .select('id', 'gameNumber', 'status', 'pickedNumbers')
+      .where('status', 'done')
+      .andWhere("gameType", "spin")
+      .orderBy('time', 'desc')
+      .limit(10);
+
+    const formattedGames = games.map((game) => {
+      const { id, gameNumber, status, pickedNumbers } = game;
+      const results = JSON.parse(pickedNumbers)?.selection;
+      return { id, gameNumber, status, gameResult: results };
     });
     // console.log(formattedGames);
 
