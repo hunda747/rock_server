@@ -3244,7 +3244,7 @@ const GameController = {
       if (!currentGame) {
         return res.status(404).json({ message: "No active games currently." });
       }
-      console.log("result:", currentGame);
+      // console.log("result:", currentGame);
       let drawnNumber;
       if (!currentGame.pickedNumbers) {
         // Assume you have a function to draw the number and update the database
@@ -3257,7 +3257,7 @@ const GameController = {
           winner: 'red',
         });
 
-        // calculateWiningNumbers(gameNumber, drawnNumber, winner);
+        calculateSlipWiningNumbers(gameNumber, drawnNumber, 'EVN');
       } else {
         // console.log('resultPA:', );
         drawnNumber = JSON.parse(currentGame?.pickedNumbers)?.selection;
@@ -3304,7 +3304,7 @@ const calculateWiningNumbers = async (gameNumber, winningNumbers, winner) => {
   // const { gameNumber } = req.params;
   // let winningNumbers = [25, 62, 47, 8, 27, 36, 35, 10, 20, 30];
   // console.log(nums);
-  const tickets = await Ticket.query().where("gameId", gameNumber);
+  const tickets = await Ticket.query().where("gameId", gameNumber).whereNot("status", "canceled");
 
   if (!tickets) {
     return false;
@@ -3343,6 +3343,62 @@ const calculateWiningNumbers = async (gameNumber, winningNumbers, winner) => {
           // Calculate the stake for the current pick based on the odds table
           console.log("amount", pick.stake * Object.values(modd)[0]);
           ticketWin += pick.stake * Object.values(modd)[0];
+        }
+      }
+    }
+    const updatedTicket = await Ticket.query().patchAndFetchById(ticket.id, {
+      netWinning: ticketWin,
+      status: "redeem",
+    });
+
+    console.log("total win:", ticketWin);
+  }
+  // Iterate through the picks in the ticket
+
+  // Now, compare the ticket's picks with the winning numbers to determine the actual winnings
+
+  // Assuming actualWinnings is the amount won by matching the user's picks with the winning numbers
+  // Update the Slip (ticket) record with the actual winnings
+
+  // You can also do additional processing or logging here if needed
+  // res.send(true);
+  // await Ticket.query().findById(ticket.id).patch({ actualWinnings });
+};
+
+const calculateSlipWiningNumbers = async (gameNumber, winningNumbers, winner) => {
+  // const { gameNumber } = req.params;
+  // let winningNumbers = [25, 62, 47, 8, 27, 36, 35, 10, 20, 30];
+  // console.log(nums);
+  const tickets = await Ticket.query().where("gameId", gameNumber).whereNot("status", "canceled");
+
+  if (!tickets) {
+    return false;
+  }
+  // Iterate through each ticket
+  for (const ticket of tickets) {
+    const ticketPicks = JSON.parse(ticket.numberPick);
+
+    // Initialize variables for each ticket
+    let ticketWin = 0;
+    let ticketMinWin = 0;
+    let ticketMaxWin = 0;
+
+    for (const pick of ticketPicks) {
+      const numberOfSelections = pick.val.length;
+      console.log("nums:", pick.val);
+      // console.log("nums:", pick.val[0]);
+      // Retrieve the odds table for the specific selection
+      if (isNaN(pick?.val[0])) {
+        if (winner === "EVN" && pick?.val[0] === winner) {
+          ticketWin += pick.stake * 2;
+        } else if (pick?.val[0] === winner) {
+          ticketWin += pick.stake * 2;
+        }
+      } else {
+        console.log('numbers', winningNumbers);
+        // if(pick.val.includes(winningNumbers)){
+        if(pick.val.map(Number).includes(winningNumbers)){
+          ticketWin += pick.stake * pick.odd;
         }
       }
     }
