@@ -40,7 +40,8 @@ const slipController = {
       const slip = await Slip.query()
         .where("id", code)
         .first()
-        .withGraphFetched("game");
+        .withGraphFetched("game")
+        .withGraphFetched("shop");
       if (slip) {
         res.json(slip);
       } else {
@@ -76,31 +77,31 @@ const slipController = {
       // Iterate through numberPick array
       for (const pick of param.numberPick) {
         const numberOfSelections = pick.selection.length;
-        
+
         console.log(pick.selection);
         console.log(pick.selection[0]);
         console.log(typeof pick.selection[0]);
 
         totalStake += pick.stake;
-        if(typeof pick.selection[0] === "string"){
+        if (typeof pick.selection[0] === "string") {
           let odd;
-          if(pick.selection[0] === 'tails' || pick.selection[0] === 'heads'){
+          if (pick.selection[0] === 'tails' || pick.selection[0] === 'heads') {
             odd = 2;
-          }else{
+          } else {
             odd = 4
           }
           pick.odd = odd;
           // Update minWin and maxWin based on the stake
           minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin; // Assuming the minimum win is the same as the stake
           maxWin += pick.stake * odd; // Assuming the maximum win is the total stake for the pick
-        }else{
+        } else {
           // Retrieve the odds table for the specific selection
           const oddsEntry = oddsTable[numberOfSelections];
-  
+
           if (oddsEntry) {
             const modd = oddsEntry[numberOfSelections - 1];
             // Calculate the stake for the current pick based on the odds table
-  
+
             pick.odd = Object.values(modd)[0];
             // Update minWin and maxWin based on the stake
             minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin; // Assuming the minimum win is the same as the stake
@@ -363,10 +364,10 @@ const slipController = {
 
     const formatDate = (date) => format(date, "yyyy-MM-dd HH:mm:ss");
     const formattedStartDate = formatDate(startOfDay(date));
-      // Set to the end of the day (23:59:59)
-      const formattedEndDate = formatDate(endOfDay(date));
-      console.log(formattedStartDate);
-      console.log(formattedEndDate);
+    // Set to the end of the day (23:59:59)
+    const formattedEndDate = formatDate(endOfDay(date));
+    console.log(formattedStartDate);
+    console.log(formattedEndDate);
 
     const result = await Slip.query()
       .where("cashierId", cashierId)
