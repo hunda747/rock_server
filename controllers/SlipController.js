@@ -73,41 +73,63 @@ const slipController = {
       let minWin = 0;
       let maxWin = 0;
 
-      // Iterate through numberPick array
-      for (const pick of param.numberPick) {
-        const numberOfSelections = pick.selection.length;
-        
-        console.log(pick.selection);
-        console.log(pick.selection[0]);
-        console.log(typeof pick.selection[0]);
-
-        totalStake += pick.stake;
-        if(typeof pick.selection[0] === "string"){
-          let odd;
-          if(pick.selection[0] === 'tails' || pick.selection[0] === 'heads'){
-            odd = 2;
-          }else{
-            odd = 4
-          }
-          pick.odd = odd;
-          // Update minWin and maxWin based on the stake
-          minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin; // Assuming the minimum win is the same as the stake
-          maxWin += pick.stake * odd; // Assuming the maximum win is the total stake for the pick
-        }else{
-          // Retrieve the odds table for the specific selection
-          const oddsEntry = oddsTable[numberOfSelections];
+      if(param.gameType == 'keno'){
+        // Iterate through numberPick array
+        for (const pick of param.numberPick) {
+          const numberOfSelections = pick.selection.length;
+          
+          console.log(pick.selection);
+          console.log(pick.selection[0]);
+          console.log(typeof pick.selection[0]);
   
-          if (oddsEntry) {
-            const modd = oddsEntry[numberOfSelections - 1];
-            // Calculate the stake for the current pick based on the odds table
-  
-            pick.odd = Object.values(modd)[0];
+          totalStake += pick.stake;
+          if(typeof pick.selection[0] === "string"){
+            let odd;
+            if(pick.selection[0] === 'tails' || pick.selection[0] === 'heads'){
+              odd = 2;
+            }else{
+              odd = 4
+            }
+            pick.odd = odd;
             // Update minWin and maxWin based on the stake
             minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin; // Assuming the minimum win is the same as the stake
-            maxWin += pick.stake * Object.values(modd)[0]; // Assuming the maximum win is the total stake for the pick
+            maxWin += pick.stake * odd; // Assuming the maximum win is the total stake for the pick
+          }else{
+            // Retrieve the odds table for the specific selection
+            const oddsEntry = oddsTable[numberOfSelections];
+    
+            if (oddsEntry) {
+              const modd = oddsEntry[numberOfSelections - 1];
+              // Calculate the stake for the current pick based on the odds table
+    
+              pick.odd = Object.values(modd)[0];
+              // Update minWin and maxWin based on the stake
+              minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin; // Assuming the minimum win is the same as the stake
+              maxWin += pick.stake * Object.values(modd)[0]; // Assuming the maximum win is the total stake for the pick
+            }
           }
         }
-
+      } else if(param.gameType == 'spin'){
+        console.log(param.numberPick);
+        // console.log(param);
+        for (const pick of param.numberPick) {
+          const numberOfSelections = pick.val.length;
+          totalStake += pick.stake;
+          if(typeof pick.val[0] === "string"){
+            pick.odd = 2;
+                    // Update minWin and maxWin based on the stake
+            minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin; // Assuming the minimum win is the same as the stake
+            maxWin += pick.stake * 2; 
+          }else{
+            pick.odd = 36/numberOfSelections;
+                    // Update minWin and maxWin based on the stake
+            minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin; // Assuming the minimum win is the same as the stake
+            maxWin += pick.stake * pick.odd; 
+          }
+        }
+        // return res.status(400).json({err: "true"});
+      } else {
+        return res.status(404).json({ message: "Game Type not found.", err: 'true' });
       }
 
       const slip = await Slip.query().insert({
