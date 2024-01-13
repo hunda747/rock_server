@@ -3298,6 +3298,38 @@ const GameController = {
       return res.status(500).json({ message: "Internal server error." });
     }
   },
+
+  searchGame: async (req, res) => {
+    try {
+      const { gameType, date, eventId } = req.query;
+      let result = []
+      if (!gameType) {
+        return res.status(404).json({error: 'Missing game type'});
+      }
+      if (eventId) {
+        result = await Game.query().where('gameNumber', eventId);
+      }else{
+        let query = Game.query().where('gameType', gameType);
+    
+        if (date) {
+          const startOfDay = new Date(date);
+          startOfDay.setHours(0, 0, 0, 0);
+        
+          const endOfDay = new Date(date);
+          endOfDay.setHours(23, 59, 59, 999);
+        
+          query = query.where('time', '>=', startOfDay).where('time', '<=', endOfDay);
+        }
+        
+        result = await query;
+      }
+  
+      res.status(200).json(result);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  },
 };
 
 const calculateWiningNumbers = async (gameNumber, winningNumbers, winner) => {
@@ -3476,3 +3508,5 @@ const getLast100Games = async () => {
 };
 
 module.exports = GameController;
+
+// ticket, stake, payout, unclamed, revoked, ggr, net balance

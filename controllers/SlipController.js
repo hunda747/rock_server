@@ -26,7 +26,7 @@ const slipController = {
       if (slip) {
         res.json(slip);
       } else {
-        res.status(404).json({ error: "Slip not found" });
+        res.status(404).json({ error: "Slip not found 1" });
       }
     } catch (error) {
       next(error);
@@ -204,7 +204,7 @@ const slipController = {
       if (updatedSlip) {
         res.json(updatedSlip);
       } else {
-        res.status(404).json({ error: "Slip not found" });
+        res.status(404).json({ error: "Slip not found 2" });
       }
     } catch (error) {
       next(error);
@@ -234,7 +234,7 @@ const slipController = {
         });
         res.status(200).json({ err: "false" });
       } else {
-        res.status(404).json({ error: "Slip not found" });
+        res.status(404).json({ error: "Slip not found 3" });
       }
     } catch (error) {
       console.log(error);
@@ -269,7 +269,7 @@ const slipController = {
       if (updatedSlip) {
         res.json({ err: "false" });
       } else {
-        res.status(404).json({ err: "false", error: "Slip not found" });
+        res.status(404).json({ err: "false", error: "Slip not found 4" });
       }
     } catch (error) {
       next(error);
@@ -387,6 +387,32 @@ const slipController = {
     });
   },
 
+  generateDetailCashierReport: async (req, res) => {
+    const {cashierId} = req.query;
+    console.log(cashierId);
+    try {
+      const cashierReport =  await Cashier.query()
+      .findById(cashierId)
+      .withGraphFetched('[slips]')
+      .modifyGraph('slips', (builder) => {
+        builder.select(
+          Slip.raw('COUNT(*) as tickets'),
+          Slip.raw('SUM(totalStake) as stake'),
+          Slip.raw('SUM(CASE WHEN status = "redeemed" THEN netWinning ELSE 0 END) as payout'),
+          Slip.raw('SUM(CASE WHEN status = "redeem" THEN netWinning ELSE 0 END) as unclaimed'),
+          Slip.raw('COUNT(CASE WHEN status = "canceled" THEN 1 END) as revoked'),
+          Slip.raw('SUM(netWinning - CASE WHEN status = "redeemed" THEN netWinning ELSE 0 END - CASE WHEN status = "canceled" THEN 0 ELSE CASE WHEN status = "redeem" THEN netWinning ELSE 0 END END) as ggr'),
+          Slip.raw('SUM(netWinning - CASE WHEN status = "redeemed" THEN netWinning ELSE 0 END) as netBalance')
+        );
+      });
+  
+      res.status(200).json(cashierReport)
+    } catch (error) {
+      console.error(error);
+      res.status(400).json({error: true})
+    }
+  },
+
   recallBetsReport: async (req, res) => {
     const { cashierId } = req.params;
     const currentGame = await Cashier.query().findById(cashierId);
@@ -433,7 +459,7 @@ const slipController = {
       if (deletedSlip) {
         res.status(204).send();
       } else {
-        res.status(404).json({ error: "Slip not found" });
+        res.status(404).json({ error: "Slip not found 5" });
       }
     } catch (error) {
       next(error);

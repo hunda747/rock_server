@@ -1,9 +1,9 @@
 // controllers/CashierController.js
-const Cashier = require('../models/cashier');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const { v4: uuidv4 } = require('uuid');
-const AuthController = require('./AuthController');
+const Cashier = require("../models/cashier");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const { v4: uuidv4 } = require("uuid");
+const AuthController = require("./AuthController");
 
 class CashierController {
   constructor() {
@@ -16,26 +16,28 @@ class CashierController {
 
   async getAll(req, res) {
     try {
-      const cashiers = await Cashier.query().withGraphFetched('shop');
+      const cashiers = await Cashier.query().withGraphFetched("shop");
       res.json(cashiers);
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: "Internal Server Error" });
     }
   }
 
   async getById(req, res) {
     const { id } = req.params;
     try {
-      const cashier = await Cashier.query().findById(id).withGraphFetched('shop');
+      const cashier = await Cashier.query()
+        .findById(id)
+        .withGraphFetched("shop");
       if (cashier) {
         res.json(cashier);
       } else {
-        res.status(404).json({ error: 'Cashier not found' });
+        res.status(404).json({ error: "Cashier not found" });
       }
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: "Internal Server Error" });
     }
   }
 
@@ -51,7 +53,7 @@ class CashierController {
       res.json(newCashier);
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: "Internal Server Error" });
     }
   }
 
@@ -59,15 +61,18 @@ class CashierController {
     const { id } = req.params;
     const updatedData = req.body;
     try {
-      const updatedCashier = await Cashier.query().patchAndFetchById(id, updatedData);
+      const updatedCashier = await Cashier.query().patchAndFetchById(
+        id,
+        updatedData
+      );
       if (updatedCashier) {
         res.json(updatedCashier);
       } else {
-        res.status(404).json({ error: 'Cashier not found' });
+        res.status(404).json({ error: "Cashier not found" });
       }
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: "Internal Server Error" });
     }
   }
 
@@ -76,18 +81,20 @@ class CashierController {
     try {
       const deletedCount = await Cashier.query().deleteById(id);
       if (deletedCount > 0) {
-        res.json({ message: 'Cashier deleted successfully' });
+        res.json({ message: "Cashier deleted successfully" });
       } else {
-        res.status(404).json({ error: 'Cashier not found' });
+        res.status(404).json({ error: "Cashier not found" });
       }
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: "Internal Server Error" });
     }
   }
 
   generateAccessToken(cashierId) {
-    return jwt.sign({ cashierId }, 'your_access_secret_key', { expiresIn: '15m' });
+    return jwt.sign({ cashierId }, "your_access_secret_key", {
+      expiresIn: "15m",
+    });
   }
 
   generateRefreshToken() {
@@ -98,10 +105,14 @@ class CashierController {
     const { username, password } = req.body;
     console.log(username, password);
     try {
-      const cashier = await Cashier.query().findOne({ username }).withGraphFetched('shop');
+      const cashier = await Cashier.query()
+        .findOne({ username })
+        .withGraphFetched("shop");
       // console.log(cashier);
       if (!cashier || !(await bcrypt.compare(password, cashier.password))) {
-        return res.status(201).json({ error: 'Invalid credentials', status: 'error' });
+        return res
+          .status(201)
+          .json({ error: "Invalid credentials", status: "error" });
       }
       // console.log('found', cashier);
 
@@ -111,12 +122,18 @@ class CashierController {
 
       // Store the refresh token (you may want to store it securely in a database)
       // For demonstration purposes, we're just attaching it to the response header
-      res.header('Refresh-Token', refreshToken);
+      res.header("Refresh-Token", refreshToken);
 
-      res.json({ accessToken, refreshToken, id: cashier.id, cashier: cashier, status: 'success' });
+      res.json({
+        accessToken,
+        refreshToken,
+        id: cashier.id,
+        cashier: cashier,
+        status: "success",
+      });
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: "Internal Server Error" });
     }
   }
 
@@ -127,15 +144,15 @@ class CashierController {
 
   // Middleware to verify the access token
   verifyAccessToken(req, res, next) {
-    const token = req.headers['authorization']?.split(' ')[1];
+    const token = req.headers["authorization"]?.split(" ")[1];
 
     if (!token) {
-      return res.status(401).json({ error: 'Access token not provided' });
+      return res.status(401).json({ error: "Access token not provided" });
     }
 
-    jwt.verify(token, 'your_access_secret_key', (err, decoded) => {
+    jwt.verify(token, "your_access_secret_key", (err, decoded) => {
       if (err) {
-        return res.status(403).json({ error: 'Invalid access token' });
+        return res.status(403).json({ error: "Invalid access token" });
       }
 
       req.cashierId = decoded.cashierId;
@@ -152,16 +169,18 @@ class CashierController {
       const decodedRefreshToken = this.verifyRefreshToken(refreshToken);
 
       if (!decodedRefreshToken) {
-        return res.status(401).json({ error: 'Invalid refresh token' });
+        return res.status(401).json({ error: "Invalid refresh token" });
       }
 
       // Generate a new access token
-      const newAccessToken = this.generateAccessToken(decodedRefreshToken.cashierId);
+      const newAccessToken = this.generateAccessToken(
+        decodedRefreshToken.cashierId
+      );
 
       res.json({ accessToken: newAccessToken });
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: "Internal Server Error" });
     }
   }
 
@@ -170,11 +189,36 @@ class CashierController {
     try {
       // You may want to store and verify the refresh token securely
       // For demonstration purposes, we're just verifying it using jwt.verify
-      const decoded = jwt.verify(refreshToken, 'your_refresh_secret_key');
+      const decoded = jwt.verify(refreshToken, "your_refresh_secret_key");
       return decoded;
     } catch (error) {
       console.error(error);
       return null;
+    }
+  }
+
+  async extendCashierLimit(req, res) {
+    const { cashId } = req.query;
+
+    if (!cashId) {
+      return res.status(404).json({ error: "Missing cashier id!" });
+    }
+
+    const cashier = await Cashier.query()
+      .findById(cashId)
+      .withGraphFetched("shop");
+    if (!cashier) {
+      return res.status(404).json({ error: "Cashier not found!" });
+    }
+    const newLimit = cashier.cashierLimit + cashier.shop.cashierLimit;
+
+    const updatedCashier = await Cashier.query().patchAndFetchById(cashId, {
+      cashierLimit: newLimit,
+    });
+    if (updatedCashier) {
+      res.json(updatedCashier);
+    } else {
+      res.status(404).json({ error: "Cashier not found" });
     }
   }
 }

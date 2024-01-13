@@ -9,6 +9,7 @@ const router = express.Router();
 router.get('/', gameController.getAllGames);
 router.get('/spinOpen', gameController.getLastPlayedGameSpin);
 router.get('/spinResult', gameController.getCurrentGameResultSpin);
+router.get('/searchGame', gameController.searchGame);
 // router.get('/getSpinRecentResult', gameController.getSpinRecentResult);
 router.get('/:id', gameController.getGameById);
 router.post('/', gameController.createGame);

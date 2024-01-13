@@ -2,6 +2,7 @@
 
 const { Model } = require('objection');
 const Game = require('./game');
+const Cashier = require('./cashier');
 
 class Slip extends Model {
   static get tableName() {
@@ -16,6 +17,14 @@ class Slip extends Model {
         join: {
           from: 'slips.gameId',
           to: 'games.id',
+        },
+      },
+      cashier: {
+        relation: Model.BelongsToOneRelation,
+        modelClass: Cashier,
+        join: {
+          from: 'slips.cashierId',
+          to: 'cashiers.id',
         },
       },
     };
