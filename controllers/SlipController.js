@@ -391,8 +391,9 @@ const slipController = {
     const {cashierId} = req.query;
     console.log(cashierId);
     try {
+      // .findById(cashierId)
       const cashierReport =  await Cashier.query()
-      .findById(cashierId)
+      // .find()
       .withGraphFetched('[slips]')
       .modifyGraph('slips', (builder) => {
         builder.select(
