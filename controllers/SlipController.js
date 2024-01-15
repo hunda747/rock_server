@@ -10,8 +10,36 @@ const oddsTable = require("../odd/kiron");
 
 const slipController = {
   getAllSlips: async (req, res, next) => {
+    const { shopId, gameType, status, startDate, endDate } = req.query;
     try {
-      const slips = await Slip.query();
+      let query = Slip.query();
+
+      if (startDate) {
+        const startOfDayTime = new Date(startDate);
+        startOfDayTime.setHours(0, 0, 0, 0);
+        query = query.where('created_at', '>=', startOfDayTime);
+      }
+
+      if (endDate) {
+        const endOfDayTime = new Date(endDate);
+        endOfDayTime.setHours(23, 59, 59, 999);
+        query = query.where('created_at', '<=', endOfDayTime);
+      }
+
+      if (status) {
+        query = query.where('status', status);
+      }
+
+      if (gameType) {
+        query = query.where('gameType', gameType);
+      }
+
+      if (shopId) {
+        query = query.where('shopId', shopId);
+      }
+
+      const slips = await query.withGraphFetched('shop').withGraphFetched('cashier').withGraphFetched('game');
+
       res.json(slips);
     } catch (error) {
       next(error);
@@ -394,7 +422,7 @@ const slipController = {
     try {
       // .findById(cashierId)
       const cashierReport = await Cashier.query()
-        // .find()
+        .withGraphFetched('shop')
         .withGraphFetched('[slips]')
         .modifyGraph('slips', (builder) => {
           builder.select(

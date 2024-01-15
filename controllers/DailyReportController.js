@@ -78,7 +78,7 @@ const generateDailyReport = async (reportDate, res) => {
             reportDate,
             cashierId: cashier.id,
             shopId: cashier.shopId,
-            shopOwnerId: cashier.shopOwnerId,
+            shopOwnerId: cashier.shop.shopOwnerId,
             totalTickets: tickets,
             totalStake: stake,
             totalPayout: payout,
@@ -99,7 +99,7 @@ const generateDailyReport = async (reportDate, res) => {
             reportDate,
             cashierId: cashier.id,
             shopId: cashier.shopId,
-            shopOwnerId: cashier.shopOwnerId,
+            shopOwnerId: cashier.shop.shopOwnerId,
             totalTickets: tickets,
             totalStake: stake,
             totalPayout: payout,
@@ -156,7 +156,6 @@ const reportForCashier = async (cashier, reportDate) => {
   return cashierReport.slips[0];
 }
 
-
 const getDailyReports = async (req, res) => {
   try {
     const dailyReports = await DailyReport.query();
@@ -184,95 +183,6 @@ const getDailyReportById = async (req, res) => {
   }
 };
 
-const updateDailyReport = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { reportDate } = req.body;
-
-    // const updatedDailyReport = await DailyReport.query().patchAndFetchById(id, updatedFields);
-    const updatedDailyReport = generateDailyReportUpdates(reportDate, res);
-
-    if (updatedDailyReport) {
-      res.status(200).json({ message: updatedDailyReport });
-    } else {
-      res.status(404).json({ error: 'Daily Report not found' });
-    }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-};
-
-
-const generateDailyReportUpdates = async (reportDate, res) => {
-  try {
-    console.log(reportDate);
-    // Fetch all cashiers
-    const cashiers = await DailyReport.query().where('reportDate', reportDate).select('id', 'shopId');
-    const startOfDay = new Date(reportDate);
-    startOfDay.setHours(0, 0, 0, 0);
-
-    const endOfDay = new Date(reportDate);
-    endOfDay.setHours(23, 59, 59, 999);
-
-    // Loop through each cashier and generate a report
-    const dailyReports = await Promise.all(
-      cashiers.map(async (cashier) => {
-        const cashierReport = reportForCashier(cashier, reportDate);
-        console.log('cash', cashierReport);
-        const {
-          tickets = 0,
-          stake = 0,
-          payout = 0,
-          payoutCount = 0,
-          unclaimed = 0,
-          unclaimedCount = 0,
-          revoked = 0,
-          revokedCount = 0,
-        } = cashierReport || {}; // Assuming there is always one slip entry
-
-        // Check if there is an existing record for the cashier on the specified date
-        const existingReport = await DailyReport.query()
-          .where({
-            reportDate,
-            cashierId: cashier.id,
-          })
-          .first();
-
-        if (existingReport) {
-          // console.log('id', existingReport);
-          console.log(tickets);
-          // Create an entry in the 'daily_reports' table
-          const newDailyReport = await DailyReport.query().patchAndFetchById(existingReport.id, {
-            reportDate,
-            cashierId: cashier.id,
-            shopId: cashier.shopId,
-            totalTickets: tickets,
-            totalStake: stake,
-            totalPayout: payout,
-            totalPayoutCount: payoutCount,
-            totalUnclaimed: unclaimed,
-            totalUnclaimedCount: unclaimedCount,
-            totalRevoked: revoked,
-            totalRevokedCount: revokedCount,
-            totalGGR: (parseInt(stake) - parseInt(payout) - parseInt(revoked)),
-            totalNetBalance: (parseInt(stake) - parseInt(payout) - parseInt(unclaimed) - parseInt(revoked)),
-          });
-          console.log(newDailyReport);
-          return newDailyReport;
-        }
-
-        return true;
-      })
-    );
-
-    return dailyReports;
-  } catch (error) {
-    console.error(error);
-    throw error; // Rethrow the error for handling at a higher level
-  }
-};
-
 const deleteDailyReport = async (req, res) => {
   try {
     const { id } = req.params;
@@ -290,10 +200,110 @@ const deleteDailyReport = async (req, res) => {
   }
 };
 
+const generateCashierReport = async (req, res) => {
+
+  const { startDate, endDate, shopId, shopOwnerId } = req.query;
+
+  try {
+    let query = DailyReport.query();
+
+    // Add conditions based on optional parameters
+    if (startDate) {
+      const startOfDayTime = new Date(startDate);
+      startOfDayTime.setHours(0, 0, 0, 0);
+      query = query.where('reportDate', '>=', startOfDayTime);
+    }
+
+    if (endDate) {
+      const endOfDayTime = new Date(endDate);
+      endOfDayTime.setHours(23, 59, 59, 999);
+      query = query.where('reportDate', '<=', endOfDayTime);
+    }
+
+    if (shopId) {
+      // Assuming there is a relationship between DailyReport and Shop
+      query = query.where('shopId', shopId);
+    }
+
+    if (shopOwnerId) {
+      // Assuming there is a relationship between DailyReport, Shop, and ShopOwner
+      query = query.where('shopOwnerId', shopOwnerId);
+    }
+
+    const shopReports = await query
+      .withGraphFetched('cashier')
+      .withGraphFetched('shop')
+      .withGraphFetched('shopOwner');
+
+    return res.status(200).json(shopReports);
+  } catch (error) {
+    console.error(error);
+    throw error; // Rethrow the error for handling at a higher level
+  }
+};
+
+const generateShopReport = async (req, res) => {
+
+  const { startDate, endDate, shopId, shopOwnerId } = req.query;
+
+  try {
+    let query = DailyReport.query()
+      .select(
+        'shopId',
+        'shopOwnerId',
+        DailyReport.raw('SUM(totalTickets) as totalTickets'),
+        DailyReport.raw('SUM(totalStake) as totalStake'),
+        DailyReport.raw('SUM(totalPayout) as totalPayout'),
+        DailyReport.raw('SUM(totalPayoutCount) as totalPayoutCount'),
+        DailyReport.raw('SUM(totalUnclaimed) as totalUnclaimed'),
+        DailyReport.raw('SUM(totalUnclaimedCount) as totalUnclaimedCount'),
+        DailyReport.raw('SUM(totalRevoked) as totalRevoked'),
+        DailyReport.raw('SUM(totalRevokedCount) as totalRevokedCount'),
+        DailyReport.raw('SUM(totalGGR) as totalGGR'),
+        DailyReport.raw('SUM(totalNetBalance) as totalNetBalance')
+      )
+
+
+    // Add conditions based on optional parameters
+    if (startDate) {
+      const startOfDayTime = new Date(startDate);
+      startOfDay.setHours(0, 0, 0, 0);
+      query = query.where('reportDate', '>=', startOfDayTime);
+    }
+
+    if (endDate) {
+      const endOfDayTime = new Date(endDate);
+      endOfDay.setHours(23, 59, 59, 999);
+      query = query.where('reportDate', '<=', endOfDayTime);
+    }
+
+    if (shopId) {
+      // Assuming there is a relationship between DailyReport and Shop
+      query = query.where('shopId', shopId);
+    }
+
+    if (shopOwnerId) {
+      // Assuming there is a relationship between DailyReport, Shop, and ShopOwner
+      query = query.where('shopOwnerId', shopOwnerId);
+    }
+
+    const shopReports = await query.groupBy('shopId')
+      .withGraphFetched('shop')
+      .withGraphFetched('shopOwner');
+
+    return res.status(200).json(shopReports);
+  } catch (error) {
+    console.error(error);
+    throw error; // Rethrow the error for handling at a higher level
+  }
+};
+
+
 module.exports = {
   createDailyReport,
   getDailyReports,
   getDailyReportById,
-  updateDailyReport,
   deleteDailyReport,
+  generateShopReport,
+  generateCashierReport
 };

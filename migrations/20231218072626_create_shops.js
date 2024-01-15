@@ -10,6 +10,8 @@ exports.up = function (knex) {
     table.foreign('shopOwnerId').references('shop_owners.id').onDelete('CASCADE');
     table.string('name').notNullable();
     table.string('location').notNullable();
+    table.integer('rtp').defaultTo(10);
+    table.string('oddType').defaultTo('kiron');
     table.integer('minStake').defaultTo(10);
     table.integer('maxStake').defaultTo(1000);
     table.integer('cashierLimit').defaultTo(10000);

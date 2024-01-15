@@ -15,6 +15,7 @@ class Slip extends Model {
       game: {
         relation: Model.BelongsToOneRelation,
         modelClass: Game,
+        filter: query => query.select('id', 'gameNumber'),
         join: {
           from: 'slips.gameId',
           to: 'games.id',
@@ -23,6 +24,7 @@ class Slip extends Model {
       shop: {
         relation: Model.BelongsToOneRelation,
         modelClass: Shop,
+        filter: query => query.select('id', 'name'),
         join: {
           from: 'slips.shopId',
           to: 'shops.id',
@@ -31,6 +33,7 @@ class Slip extends Model {
       cashier: {
         relation: Model.BelongsToOneRelation,
         modelClass: Cashier,
+        filter: query => query.select('id', 'name'),
         join: {
           from: 'slips.cashierId',
           to: 'cashiers.id',
