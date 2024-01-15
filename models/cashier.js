@@ -8,6 +8,7 @@ class Cashier extends Model {
   
   static get relationMappings() {
     const Shop = require('./shop');
+    const Slip = require('./slip');
     return {
       shop: {
         relation: Model.BelongsToOneRelation,
@@ -15,6 +16,14 @@ class Cashier extends Model {
         join: {
           from: 'cashiers.shopId',
           to: 'shops.id',
+        },
+      },
+      slips: {
+        relation: Model.HasManyRelation,
+        modelClass: Slip,
+        join: {
+          from: 'cashiers.id',
+          to: 'slips.cashierId',
         },
       },
     };

@@ -26,7 +26,7 @@ const slipController = {
       if (slip) {
         res.json(slip);
       } else {
-        res.status(404).json({ error: "Slip not found" });
+        res.status(404).json({ error: "Slip not found 1" });
       }
     } catch (error) {
       next(error);
@@ -67,48 +67,70 @@ const slipController = {
       return res.status(404).json({ message: "Game Closed." });
     }
 
-    console.log("param:", param.numberPick);
+    // console.log("param:", param.numberPick);
 
     try {
       let totalStake = 0;
       let minWin = 0;
       let maxWin = 0;
 
-      // Iterate through numberPick array
-      for (const pick of param.numberPick) {
-        const numberOfSelections = pick.selection.length;
+      if (param.gameType == 'keno') {
+        // Iterate through numberPick array
+        for (const pick of param.numberPick) {
+          const numberOfSelections = pick.selection.length;
 
-        console.log(pick.selection);
-        console.log(pick.selection[0]);
-        console.log(typeof pick.selection[0]);
+          // console.log(pick.selection);
+          // console.log(pick.selection[0]);
+          // console.log(typeof pick.selection[0]);
 
-        totalStake += pick.stake;
-        if (typeof pick.selection[0] === "string") {
-          let odd;
-          if (pick.selection[0] === 'tails' || pick.selection[0] === 'heads') {
-            odd = 2;
-          } else {
-            odd = 4
-          }
-          pick.odd = odd;
-          // Update minWin and maxWin based on the stake
-          minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin; // Assuming the minimum win is the same as the stake
-          maxWin += pick.stake * odd; // Assuming the maximum win is the total stake for the pick
-        } else {
-          // Retrieve the odds table for the specific selection
-          const oddsEntry = oddsTable[numberOfSelections];
-
-          if (oddsEntry) {
-            const modd = oddsEntry[numberOfSelections - 1];
-            // Calculate the stake for the current pick based on the odds table
-
-            pick.odd = Object.values(modd)[0];
+          totalStake += pick.stake;
+          if (typeof pick.selection[0] === "string") {
+            let odd;
+            if (pick.selection[0] === 'tails' || pick.selection[0] === 'heads') {
+              odd = 2;
+            } else {
+              odd = 4
+            }
+            pick.odd = odd;
             // Update minWin and maxWin based on the stake
             minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin; // Assuming the minimum win is the same as the stake
-            maxWin += pick.stake * Object.values(modd)[0]; // Assuming the maximum win is the total stake for the pick
+            maxWin += pick.stake * odd; // Assuming the maximum win is the total stake for the pick
+          } else {
+            // Retrieve the odds table for the specific selection
+            const oddsEntry = oddsTable[numberOfSelections];
+
+            if (oddsEntry) {
+              const modd = oddsEntry[numberOfSelections - 1];
+              // Calculate the stake for the current pick based on the odds table
+
+              pick.odd = Object.values(modd)[0];
+              // Update minWin and maxWin based on the stake
+              minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin; // Assuming the minimum win is the same as the stake
+              maxWin += pick.stake * Object.values(modd)[0]; // Assuming the maximum win is the total stake for the pick
+            }
           }
         }
-
+      } else if (param.gameType == 'spin') {
+        // console.log(param.numberPick);
+        // console.log(param);
+        for (const pick of param.numberPick) {
+          const numberOfSelections = pick.val.length;
+          totalStake += pick.stake;
+          if (isNaN(pick?.val[0])) {
+            pick.odd = 2;
+            // Update minWin and maxWin based on the stake
+            minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin; // Assuming the minimum win is the same as the stake
+            maxWin += pick.stake * 2;
+          } else {
+            pick.odd = 36 / numberOfSelections;
+            // Update minWin and maxWin based on the stake
+            minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin; // Assuming the minimum win is the same as the stake
+            maxWin += pick.stake * pick.odd;
+          }
+        }
+        // return res.status(400).json({err: "true"});
+      } else {
+        return res.status(404).json({ message: "Game Type not found.", err: 'true' });
       }
 
       const slip = await Slip.query().insert({
@@ -183,7 +205,7 @@ const slipController = {
       if (updatedSlip) {
         res.json(updatedSlip);
       } else {
-        res.status(404).json({ error: "Slip not found" });
+        res.status(404).json({ error: "Slip not found 2" });
       }
     } catch (error) {
       next(error);
@@ -213,7 +235,7 @@ const slipController = {
         });
         res.status(200).json({ err: "false" });
       } else {
-        res.status(404).json({ error: "Slip not found" });
+        res.status(404).json({ error: "Slip not found 3" });
       }
     } catch (error) {
       console.log(error);
@@ -248,7 +270,7 @@ const slipController = {
       if (updatedSlip) {
         res.json({ err: "false" });
       } else {
-        res.status(404).json({ err: "false", error: "Slip not found" });
+        res.status(404).json({ err: "false", error: "Slip not found 4" });
       }
     } catch (error) {
       next(error);
@@ -305,6 +327,20 @@ const slipController = {
           // .count('id as number')
           .first();
       };
+      const getQueryRedeemed = async (status) => {
+        return await Slip.query()
+          .where("cashierId", cashierId)
+          .andWhere("created_at", ">=", formattedStartDate)
+          .andWhere("created_at", "<", formattedEndDate)
+          .andWhere("status", status)
+          .select(
+            Slip.raw("COALESCE(SUM(netWinning), 0) as amount"),
+            Slip.raw("COALESCE(COUNT(*), 0) as number")
+          )
+          // .sum('totalStake as amount')
+          // .count('id as number')
+          .first();
+      };
       const getUnclaimedResult = async () => {
         return await Slip.query()
           .where("cashierId", cashierId)
@@ -313,7 +349,7 @@ const slipController = {
           .andWhere("status", "redeem")
           .andWhere("netWinning", ">", 0)
           .select(
-            Slip.raw("COALESCE(SUM(totalStake), 0) as amount"),
+            Slip.raw("COALESCE(SUM(netWinning), 0) as amount"),
             Slip.raw("COALESCE(COUNT(*), 0) as number")
           )
           // .sum('totalStake as amount')
@@ -321,11 +357,11 @@ const slipController = {
           .first();
       };
 
-      const bets = await getQueryResult("active");
+      const bets = await getDepostiResult();
       console.log("active", bets);
-      const redeemed = await getQueryResult("redeemed");
+      const redeemed = await getQueryRedeemed("redeemed");
       const canceled = await getQueryResult("canceled");
-      const deposited = await getDepostiResult(); // Implement logic for deposits
+      const deposited = await getQueryResult("active"); // Implement logic for deposits
       const unclaimed = await getUnclaimedResult();
 
       const daterang = [];
@@ -350,6 +386,33 @@ const slipController = {
       today: todayReport,
       yesterday: yesterdayReport,
     });
+  },
+
+  generateDetailCashierReport: async (req, res) => {
+    const { cashierId } = req.query;
+    console.log(cashierId);
+    try {
+      // .findById(cashierId)
+      const cashierReport = await Cashier.query()
+        // .find()
+        .withGraphFetched('[slips]')
+        .modifyGraph('slips', (builder) => {
+          builder.select(
+            Slip.raw('COUNT(*) as tickets'),
+            Slip.raw('SUM(totalStake) as stake'),
+            Slip.raw('SUM(CASE WHEN status = "redeemed" THEN netWinning ELSE 0 END) as payout'),
+            Slip.raw('SUM(CASE WHEN status = "redeem" THEN netWinning ELSE 0 END) as unclaimed'),
+            Slip.raw('COUNT(CASE WHEN status = "canceled" THEN 1 END) as revoked'),
+            Slip.raw('SUM(netWinning - CASE WHEN status = "redeemed" THEN netWinning ELSE 0 END - CASE WHEN status = "canceled" THEN 0 ELSE CASE WHEN status = "redeem" THEN netWinning ELSE 0 END END) as ggr'),
+            Slip.raw('SUM(netWinning - CASE WHEN status = "redeemed" THEN netWinning ELSE 0 END) as netBalance')
+          );
+        });
+
+      res.status(200).json(cashierReport)
+    } catch (error) {
+      console.error(error);
+      res.status(400).json({ error: true })
+    }
   },
 
   recallBetsReport: async (req, res) => {
@@ -398,7 +461,7 @@ const slipController = {
       if (deletedSlip) {
         res.status(204).send();
       } else {
-        res.status(404).json({ error: "Slip not found" });
+        res.status(404).json({ error: "Slip not found 5" });
       }
     } catch (error) {
       next(error);

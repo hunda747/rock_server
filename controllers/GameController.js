@@ -141,6 +141,7 @@ const GameController = {
       // Retrieve the last played game
       const lastPlayedGame = await Game.query()
         .where("status", "done")
+        .andWhere("gameType", "keno")
         .orderBy("time", "desc")
         .first();
 
@@ -151,6 +152,7 @@ const GameController = {
       // Update the current game with the drawn number
       const currentGame = await Game.query()
         .where("status", "playing")
+        .andWhere("gameType", "keno")
         .orderBy("time", "desc")
         .first();
 
@@ -176,7 +178,7 @@ const GameController = {
         openGame: openGame
           ? { id: openGame.id, gameNumber: openGame.gameNumber }
           : null,
-        result: JSON.parse(lastPlayedGame.pickedNumbers)?.selection,
+        result: JSON.parse(lastPlayedGame.pickedNumbers)?.selection.map((item) => ({ value: item })),
         lastGame: lastPlayedGame ? { id: lastPlayedGame.id, gameNumber: lastPlayedGame.gameNumber } : null,
         recent: await getLast10Games(),
         // recent: lastPlayedGame.gameNumber,
@@ -252,6 +254,7 @@ const GameController = {
       // Retrieve the previous game
       const previousGame = await Game.query()
         .where("status", "done")
+        .andWhere("gameType", "keno")
         .orderBy("time", "desc")
         .offset(1)
         .first();
@@ -260,6 +263,7 @@ const GameController = {
       // Update the current game with the drawn number
       const newGame = await Game.query()
         .where("status", "playing")
+        .andWhere("gameType", "keno")
         .orderBy("time", "desc")
         .first();
 
@@ -280,7 +284,7 @@ const GameController = {
       const response = {
         openGame: { id: openGame.id, gameNumber: openGame.gameNumber },
         game: { gameNumber: currentGame.gameNumber },
-        result: drawnNumber,
+        result: drawnNumber.map((item) => ({ value: item })),
         lastGame: previousGame ? previousGame.gameNumber : null,
         recent: await getLast10Games(),
       };
@@ -298,6 +302,7 @@ const GameController = {
       // Update the current game with the drawn number
       const currentGame = await Game.query()
         .where("gameNumber", gameNumber)
+        .andWhere("gameType", "keno")
         .andWhere("status", "done")
         .first();
 
@@ -3173,14 +3178,165 @@ const GameController = {
           "gameResult": null
         }
       })
-  }
+  },
+
+  // Controller
+  getLastPlayedGameSpin: async (req, res) => {
+    try {
+      // Retrieve the last played game
+      const lastPlayedGame = await Game.query()
+        .where("status", "done")
+        .andWhere("gameType", "spin")
+        .orderBy("time", "desc")
+        .first();
+
+      if (!lastPlayedGame) {
+        return res.status(404).json({ message: "No games played yet." });
+      }
+
+      // Update the current game with the drawn number
+      const currentGame = await Game.query()
+        .where("status", "playing")
+        .andWhere("gameType", "spin")
+        .orderBy("time", "desc")
+        .first();
+
+      let openGame;
+
+      if (currentGame) {
+        openGame = currentGame;
+      } else {
+        openGame = await Game.query()
+          .insert({
+            gameType: "spin",
+            gameNumber: lastPlayedGame.gameNumber + 1,
+            // Add other fields as needed based on your table structure
+            // Example: pickedNumbers, winner, time, status, etc.
+          })
+          .returning("*");
+      }
+      // Retrieve the open game (next game)
+      // console.log("json", lastPlayedGame.pickedNumbers);
+      // console.log("json", lastPlayedGame.pickedNumbers.selection);
+      // Construct the response in the specified format
+      const response = {
+        openGame: openGame
+          ? { id: openGame.id, gameNumber: openGame.gameNumber }
+          : null,
+        recent: await getLast100Games(),
+        // recent: lastPlayedGame.gameNumber,
+      };
+
+      return res.status(200).json(response);
+    } catch (error) {
+      console.error("Error retrieving last played game:", error);
+      return res.status(500).json({ message: "Internal server error." });
+    }
+  },
+
+  // Controller
+  getCurrentGameResultSpin: async (req, res) => {
+    const { gameNumber } = req.query;
+    try {
+      // Update the current game with the drawn number
+      const currentGame = await Game.query().where("id", gameNumber).first();
+
+      if (!currentGame) {
+        return res.status(404).json({ message: "No active games currently." });
+      }
+      // console.log("result:", currentGame);
+      let drawnNumber;
+      if (!currentGame.pickedNumbers) {
+        // Assume you have a function to draw the number and update the database
+        drawnNumber = Math.floor(Math.random() * 36) + 1;
+
+        // Update the pickedNumbers field with the drawn number
+        await currentGame.$query().patch({
+          pickedNumbers: JSON.stringify({ selection: drawnNumber }),
+          status: "done",
+          winner: 'red',
+        });
+
+        calculateSlipWiningNumbers(gameNumber, drawnNumber, 'EVN');
+      } else {
+        // console.log('resultPA:', );
+        drawnNumber = JSON.parse(currentGame?.pickedNumbers)?.selection;
+      }
+      // calculateWiningNumbers(drawnNumber, gameNumber);
+
+      let openGame;
+      // Update the current game with the drawn number
+      const newGame = await Game.query()
+        .where("status", "playing")
+        .andWhere("gameType", "spin")
+        .orderBy("time", "desc")
+        .first();
+
+      if (newGame) {
+        openGame = newGame;
+      } else {
+        openGame = await Game.query()
+          .insert({
+            gameType: "spin",
+            gameNumber: currentGame.gameNumber + 1,
+            // Add other fields as needed based on your table structure
+            // Example: pickedNumbers, winner, time, status, etc.
+          })
+          .returning("*");
+      }
+
+      // Construct the response in the specified format
+      const response = {
+        openGame: { id: openGame.id, gameNumber: openGame.gameNumber },
+        result: { gameResult: drawnNumber, gameNumber: currentGame.gameNumber, id: currentGame.id},
+        recent: await getLast100Games(),
+      };
+      // Respond with the updated game data
+      return res.status(200).json(response);
+    } catch (error) {
+      console.error("Error getting current game result:", error);
+      return res.status(500).json({ message: "Internal server error." });
+    }
+  },
+
+  searchGame: async (req, res) => {
+    try {
+      const { gameType, date, eventId } = req.query;
+      let result = []
+      if (!gameType) {
+        return res.status(404).json({error: 'Missing game type'});
+      }
+      if (eventId) {
+        result = await Game.query().where('gameNumber', eventId);
+      }else{
+        let query = Game.query().where('gameType', gameType);
+    
+        if (date) {
+          const startOfDay = new Date(date);
+          startOfDay.setHours(0, 0, 0, 0);
+        
+          const endOfDay = new Date(date);
+          endOfDay.setHours(23, 59, 59, 999);
+        
+          query = query.where('time', '>=', startOfDay).where('time', '<=', endOfDay);
+        }
+        
+        result = await query;
+      }
+  
+      res.status(200).json(result);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  },
 };
 
 const calculateWiningNumbers = async (gameNumber, winningNumbers, winner) => {
   // const { gameNumber } = req.params;
   // let winningNumbers = [25, 62, 47, 8, 27, 36, 35, 10, 20, 30];
   // console.log(nums);
-  const tickets = await Ticket.query().where("gameId", gameNumber);
+  const tickets = await Ticket.query().where("gameId", gameNumber).whereNot("status", "canceled");
 
   if (!tickets) {
     return false;
@@ -3241,6 +3397,62 @@ const calculateWiningNumbers = async (gameNumber, winningNumbers, winner) => {
   // await Ticket.query().findById(ticket.id).patch({ actualWinnings });
 };
 
+const calculateSlipWiningNumbers = async (gameNumber, winningNumbers, winner) => {
+  // const { gameNumber } = req.params;
+  // let winningNumbers = [25, 62, 47, 8, 27, 36, 35, 10, 20, 30];
+  // console.log(nums);
+  const tickets = await Ticket.query().where("gameId", gameNumber).whereNot("status", "canceled");
+
+  if (!tickets) {
+    return false;
+  }
+  // Iterate through each ticket
+  for (const ticket of tickets) {
+    const ticketPicks = JSON.parse(ticket.numberPick);
+
+    // Initialize variables for each ticket
+    let ticketWin = 0;
+    let ticketMinWin = 0;
+    let ticketMaxWin = 0;
+
+    for (const pick of ticketPicks) {
+      const numberOfSelections = pick.val.length;
+      console.log("nums:", pick.val);
+      // console.log("nums:", pick.val[0]);
+      // Retrieve the odds table for the specific selection
+      if (isNaN(pick?.val[0])) {
+        if (winner === "EVN" && pick?.val[0] === winner) {
+          ticketWin += pick.stake * 2;
+        } else if (pick?.val[0] === winner) {
+          ticketWin += pick.stake * 2;
+        }
+      } else {
+        console.log('numbers', winningNumbers);
+        // if(pick.val.includes(winningNumbers)){
+        if(pick.val.map(Number).includes(winningNumbers)){
+          ticketWin += pick.stake * pick.odd;
+        }
+      }
+    }
+    const updatedTicket = await Ticket.query().patchAndFetchById(ticket.id, {
+      netWinning: ticketWin,
+      status: "redeem",
+    });
+
+    console.log("total win:", ticketWin);
+  }
+  // Iterate through the picks in the ticket
+
+  // Now, compare the ticket's picks with the winning numbers to determine the actual winnings
+
+  // Assuming actualWinnings is the amount won by matching the user's picks with the winning numbers
+  // Update the Slip (ticket) record with the actual winnings
+
+  // You can also do additional processing or logging here if needed
+  // res.send(true);
+  // await Ticket.query().findById(ticket.id).patch({ actualWinnings });
+};
+
 function countCorrectGuesses(userSelection, winningNumbers) {
   // Implement logic to count the number of correct guesses between userSelection and winningNumbers
   const correctGuesses = userSelection.filter((num) =>
@@ -3254,6 +3466,7 @@ const getLast10Games = async () => {
     const games = await Game.query()
       .select('id', 'gameNumber', 'status', 'pickedNumbers')
       .where('status', 'done')
+      .andWhere("gameType", "keno")
       .orderBy('time', 'desc')
       .limit(10);
 
@@ -3271,4 +3484,29 @@ const getLast10Games = async () => {
   }
 };
 
+const getLast100Games = async () => {
+  try {
+    const games = await Game.query()
+      .select('id', 'gameNumber', 'status', 'pickedNumbers')
+      .where('status', 'done')
+      .andWhere("gameType", "spin")
+      .orderBy('time', 'desc')
+      .limit(10);
+
+    const formattedGames = games.map((game) => {
+      const { id, gameNumber, status, pickedNumbers } = game;
+      const results = JSON.parse(pickedNumbers)?.selection;
+      return { id, gameNumber, status, gameResult: results };
+    });
+    // console.log(formattedGames);
+
+    return formattedGames
+  } catch (error) {
+    console.error(error);
+    return [];
+  }
+};
+
 module.exports = GameController;
+
+// ticket, stake, payout, unclamed, revoked, ggr, net balance
