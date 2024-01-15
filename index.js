@@ -16,6 +16,7 @@ const cashierRoutes = require('./routes/cashierRoutes');
 const shopRoutes = require('./routes/shopRoutes');
 const gameRoutes = require('./routes/gameRoutes');
 const slipRoutes = require('./routes/slipsRoutes');
+const dailyReportRoutes = require('./routes/dailyReportRoutes');
 const adminController = require('./controllers/AdminController');
 
 // Middleware to parse JSON requests
@@ -36,6 +37,7 @@ app.use('/shop', shopRoutes);
 app.use('/cashiers', cashierRoutes);
 app.use('/game', gameRoutes);
 app.use('/slip', slipRoutes);
+app.use('/dailyReport', dailyReportRoutes);
 
 // Start the server
 app.listen(port, () => {
