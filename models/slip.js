@@ -15,7 +15,6 @@ class Slip extends Model {
       game: {
         relation: Model.BelongsToOneRelation,
         modelClass: Game,
-        filter: query => query.select('id', 'gameNumber'),
         join: {
           from: 'slips.gameId',
           to: 'games.id',
