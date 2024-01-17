@@ -265,13 +265,13 @@ const generateShopReport = async (req, res) => {
     // Add conditions based on optional parameters
     if (startDate) {
       const startOfDayTime = new Date(startDate);
-      startOfDay.setHours(0, 0, 0, 0);
+      startOfDayTime.setHours(0, 0, 0, 0);
       query = query.where('reportDate', '>=', startOfDayTime);
     }
 
     if (endDate) {
       const endOfDayTime = new Date(endDate);
-      endOfDay.setHours(23, 59, 59, 999);
+      endOfDayTime.setHours(23, 59, 59, 999);
       query = query.where('reportDate', '<=', endOfDayTime);
     }
 

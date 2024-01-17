@@ -9,8 +9,8 @@ const { createDailyReport,
 
 const router = express.Router();
 
-router.get('/generateShopReport', generateShopReport);
-router.get('/generateCashierReport', generateCashierReport);
+router.post('/generateShopReport', generateShopReport);
+router.post('/generateCashierReport', generateCashierReport);
 router.get('/', getDailyReports);
 router.get('/:id', getDailyReportById);
 router.post('/', createDailyReport);
