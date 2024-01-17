@@ -202,7 +202,7 @@ const deleteDailyReport = async (req, res) => {
 
 const generateCashierReport = async (req, res) => {
 
-  const { startDate, endDate, shopId, shopOwnerId } = req.query;
+  const { startDate, endDate, shopId, shopOwnerId } = req.body;
 
   try {
     let query = DailyReport.query();
@@ -220,14 +220,12 @@ const generateCashierReport = async (req, res) => {
       query = query.where('reportDate', '<=', endOfDayTime);
     }
 
-    if (shopId) {
-      // Assuming there is a relationship between DailyReport and Shop
-      query = query.where('shopId', shopId);
+    if (shopId && shopId.length) {
+      query = query.whereIn('shopId', shopId);
     }
 
-    if (shopOwnerId) {
-      // Assuming there is a relationship between DailyReport, Shop, and ShopOwner
-      query = query.where('shopOwnerId', shopOwnerId);
+    if (shopOwnerId && shopOwnerId.length) {
+      query = query.whereIn('shopOwnerId', shopOwnerId);
     }
 
     const shopReports = await query
@@ -244,7 +242,7 @@ const generateCashierReport = async (req, res) => {
 
 const generateShopReport = async (req, res) => {
 
-  const { startDate, endDate, shopId, shopOwnerId } = req.query;
+  const { startDate, endDate, shopId, shopOwnerId } = req.body;
 
   try {
     let query = DailyReport.query()
@@ -277,14 +275,14 @@ const generateShopReport = async (req, res) => {
       query = query.where('reportDate', '<=', endOfDayTime);
     }
 
-    if (shopId) {
+    if (shopId && shopId.length) {
       // Assuming there is a relationship between DailyReport and Shop
-      query = query.where('shopId', shopId);
+      query = query.whereIn('shopId', shopId);
     }
 
-    if (shopOwnerId) {
+    if (shopOwnerId && shopOwnerId.length) {
       // Assuming there is a relationship between DailyReport, Shop, and ShopOwner
-      query = query.where('shopOwnerId', shopOwnerId);
+      query = query.whereIn('shopOwnerId', shopOwnerId);
     }
 
     const shopReports = await query.groupBy('shopId')

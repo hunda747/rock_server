@@ -10,7 +10,7 @@ const oddsTable = require("../odd/kiron");
 
 const slipController = {
   getAllSlips: async (req, res, next) => {
-    const { shopId, gameType, status, startDate, endDate } = req.query;
+    const { shopId, gameType, status, startDate, endDate } = req.body;
     try {
       let query = Slip.query();
 
@@ -26,12 +26,12 @@ const slipController = {
         query = query.where('created_at', '<=', endOfDayTime);
       }
 
-      if (status) {
-        query = query.where('status', status);
+      if (status && status.length > 0) {
+        query = query.whereIn('status', status);
       }
 
-      if (gameType) {
-        query = query.where('gameType', gameType);
+      if (gameType && gameType.length > 0) {
+        query = query.whereIn('gameType', gameType);
       }
 
       if (shopId) {
@@ -418,7 +418,7 @@ const slipController = {
 
   generateDetailCashierReport: async (req, res) => {
     const { cashierId } = req.query;
-    console.log(cashierId);
+    // console.log(cashierId);
     try {
       // .findById(cashierId)
       const cashierReport = await Cashier.query()
