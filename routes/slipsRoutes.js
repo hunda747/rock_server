@@ -6,7 +6,7 @@ const slipController = require('../controllers/SlipController');
 const router = express.Router();
 
 // Slips Routes
-router.post('/', slipController.getAllSlips);
+router.post('/getSlip', slipController.getAllSlips);
 router.get('/generateDetailCashierReport', slipController.generateDetailCashierReport);
 router.get('/getByGameNumber', slipController.getSlipByGamenumber);
 router.get('/:id', slipController.getSlipById);
