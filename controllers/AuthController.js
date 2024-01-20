@@ -8,7 +8,8 @@ class AuthController {
 
   // Function to change password
   async changePassword(req, res) {
-    const { id, oldPassword, newPassword } = req.body;
+    const {id} = req.params;
+    const { oldPassword, newPassword } = req.body;
 
     try {
       // Fetch the user from the database (either a shop owner or a cashier)

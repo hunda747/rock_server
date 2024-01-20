@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
 const AuthController = require("./AuthController");
+const ShopOwner = require("../models/ShopOwner");
 
 class CashierController {
   constructor() {
@@ -111,9 +112,27 @@ class CashierController {
       // console.log(cashier);
       if (!cashier || !(await bcrypt.compare(password, cashier.password))) {
         return res
-          .status(201)
-          .json({ error: "Invalid credentials", status: "error" });
+          .status(400)
+          .json({ error: "Incorrect Password", status: "error" });
       }
+
+      if (!cashier.status) {
+        return res
+          .status(403)
+          .json({ error: "Account is Blocked", status: "error" });
+      }
+      if (cashier.shop.status === "inactive") {
+        return res
+        .status(403)
+        .json({ error: "Shop is Blocked", status: "error" });
+      }
+      const shopowner = await ShopOwner.query().findById(cashier.shop.shopOwnerId).select('status');
+      if (!shopowner.status) {
+        return res
+        .status(403)
+        .json({ error: "Shop owner is Blocked", status: "error" });
+      }
+      
       // console.log('found', cashier);
 
       // Generate tokens upon successful login

@@ -128,6 +128,7 @@ const slipController = {
             const oddsEntry = oddsTable[numberOfSelections];
 
             if (oddsEntry) {
+              console.log(oddsEntry);
               const modd = oddsEntry[numberOfSelections - 1];
               // Calculate the stake for the current pick based on the odds table
 
