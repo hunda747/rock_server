@@ -205,7 +205,22 @@ const generateCashierReport = async (req, res) => {
   const { startDate, endDate, shopId, shopOwnerId } = req.body;
 
   try {
-    let query = DailyReport.query();
+    // let query = DailyReport.query();
+    let query = DailyReport.query()
+      .select(
+        'shopId',
+        'shopOwnerId',
+        DailyReport.raw('SUM(totalTickets) as totalTickets'),
+        DailyReport.raw('SUM(totalStake) as totalStake'),
+        DailyReport.raw('SUM(totalPayout) as totalPayout'),
+        DailyReport.raw('SUM(totalPayoutCount) as totalPayoutCount'),
+        DailyReport.raw('SUM(totalUnclaimed) as totalUnclaimed'),
+        DailyReport.raw('SUM(totalUnclaimedCount) as totalUnclaimedCount'),
+        DailyReport.raw('SUM(totalRevoked) as totalRevoked'),
+        DailyReport.raw('SUM(totalRevokedCount) as totalRevokedCount'),
+        DailyReport.raw('SUM(totalGGR) as totalGGR'),
+        DailyReport.raw('SUM(totalNetBalance) as totalNetBalance')
+      )
 
     // Add conditions based on optional parameters
     if (startDate) {
@@ -228,7 +243,7 @@ const generateCashierReport = async (req, res) => {
       query = query.whereIn('shopOwnerId', shopOwnerId);
     }
 
-    const shopReports = await query
+    const shopReports = await query.groupBy('cashierId')
       .withGraphFetched('cashier')
       .withGraphFetched('shop')
       .withGraphFetched('shopOwner');
