@@ -200,9 +200,23 @@ const deleteDailyReport = async (req, res) => {
   }
 };
 
-const generateCashierReport = async (req, res) => {
+function getCurrentDate() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
 
+const generateCashierReport = async (req, res) => {
   const { startDate, endDate, shopId, shopOwnerId } = req.body;
+  // Check if the current date should be included
+  const currentDate = new Date();
+  const currentDayIncluded = startDate && endDate && (currentDate >= new Date(startDate).setHours(0,0,0,0) && currentDate <= new Date(endDate).setHours(23, 59, 59, 999));
+  console.log('uinc: ', currentDayIncluded);
+  // If the current date should be included, generate the daily report for today
+  if (currentDayIncluded) {
+    const todayData = await generateDailyReport(getCurrentDate());
+    // console.log('included', todayData);
+    // query = query.union(todayData);
+  }
 
   try {
     // let query = DailyReport.query();
@@ -256,8 +270,17 @@ const generateCashierReport = async (req, res) => {
 };
 
 const generateShopReport = async (req, res) => {
-
   const { startDate, endDate, shopId, shopOwnerId } = req.body;
+  // Check if the current date should be included
+  const currentDate = new Date();
+  const currentDayIncluded = startDate && endDate && (currentDate >= new Date(startDate).setHours(0,0,0,0) && currentDate <= new Date(endDate).setHours(23, 59, 59, 999));
+  console.log('uinc: ', currentDayIncluded);
+  // If the current date should be included, generate the daily report for today
+  if (currentDayIncluded) {
+    const todayData = await generateDailyReport(getCurrentDate());
+    // console.log('included', todayData);
+    // query = query.union(todayData);
+  }
 
   try {
     let query = DailyReport.query()
@@ -318,5 +341,7 @@ module.exports = {
   getDailyReportById,
   deleteDailyReport,
   generateShopReport,
-  generateCashierReport
+  generateCashierReport,
+  generateDailyReport,
+  getCurrentDate
 };

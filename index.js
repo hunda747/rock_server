@@ -19,11 +19,22 @@ const slipRoutes = require('./routes/slipsRoutes');
 const dailyReportRoutes = require('./routes/dailyReportRoutes');
 const adminController = require('./controllers/AdminController');
 
+var schedule = require('node-schedule');  
+const { generateDailyReport, getCurrentDate } = require('./controllers/DailyReportController');
+
 // Middleware to parse JSON requests
 app.use(express.json());
 
 // Use cors middleware
 app.use(cors({ origin: '*' }));
+
+// schedule.scheduleJob('0 44 23 * * * ', async function (){
+schedule.scheduleJob('0 50 16 * * * ', async function (){
+  console.log('The answer to life, the universe, and everything!');
+  const todayData = await generateDailyReport(getCurrentDate());
+  console.log('Today report is generated!');
+
+});
 
 app.get('/', async (req, res) => {
   res.json('welcome');
