@@ -58,6 +58,47 @@ class CashierController {
     }
   }
 
+  async addCashier(req, res) {
+    const cashierData = req.body;
+
+    // Find the last cashier for the selected shop
+    const lastCashier = await Cashier.query()
+      .where('shopId', cashierData.shopId)
+      .orderBy('id', 'desc')
+      .first();
+
+    let nextCashierNumber = 1; // Default if no previous cashiers found
+
+    if (lastCashier) {
+      // Extract the cashier number from the last cashier's username
+      const lastCashierNumber = parseInt(lastCashier.username.split('.c')[1], 10);
+      nextCashierNumber = lastCashierNumber + 1;
+    }
+
+    try {
+      const hashedCashPassword = await bcrypt.hash("123456", 10);
+      for (let index = 0; index < cashierData.cashNo; index++) {
+        try {
+          const newCashier = await Cashier.query().insert({
+            shopId: cashierData.shopId,
+            name: `${cashierData.username}.c${(nextCashierNumber)}`,
+            username: `${cashierData.username}.c${(nextCashierNumber)}`,
+            password: hashedCashPassword,
+          });
+          nextCashierNumber++;
+          // res.json(newCashier);
+        } catch (error) {
+          console.error(error);
+          res.status(500).json({ error: "Internal Server Error" });
+        }
+      }
+      res.json({message: 'Added the cashiers'});
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  }
+
   async update(req, res) {
     const { id } = req.params;
     const updatedData = req.body;
@@ -157,8 +198,28 @@ class CashierController {
   }
 
   async changePassword(req, res) {
-    req.model = Cashier; // Set the model for the AuthController
-    AuthController.changePassword(req, res);
+    const {id} = req.params;
+    const { newPassword } = req.body;
+
+    try {
+      // Fetch the user from the database (either a shop owner or a cashier)
+      const user = await Cashier.query().findById(id);
+
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      // Hash the new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+      // Update the user's password in the database
+      await Cashier.query().patch({ password: hashedPassword }).where('id', id);
+
+      res.json({ message: 'Password changed successfully' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
   }
 
   // Middleware to verify the access token

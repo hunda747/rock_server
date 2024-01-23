@@ -38,7 +38,7 @@ const slipController = {
         query = query.where('shopId', shopId);
       }
 
-      const slips = await query.withGraphFetched('shop').withGraphFetched('cashier').withGraphFetched('game');
+      const slips = await query.withGraphFetched('shop').withGraphFetched('cashier').withGraphFetched('game').limit(50);
 
       res.json(slips);
     } catch (error) {

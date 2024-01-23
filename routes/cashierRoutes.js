@@ -7,6 +7,7 @@ const router = express.Router();
 router.get('/', cashierController.getAll);
 router.get('/:id', cashierController.getById);
 router.post('/', cashierController.create);
+router.post('/addCashier', cashierController.addCashier);
 router.post('/extendCashierLimit', cashierController.extendCashierLimit);
 router.put('/:id', cashierController.update);
 router.delete('/:id', cashierController.delete);

@@ -8,7 +8,9 @@ exports.up = function (knex) {
     table.increments('id').primary();
     table.integer('shopOwnerId').unsigned().notNullable();
     table.foreign('shopOwnerId').references('shop_owners.id').onDelete('CASCADE');
-    table.string('name').notNullable();
+    table.string('name').unique().notNullable();
+    table.string('username').unique().notNullable();
+    table.string('password');
     table.string('location').notNullable();
     table.integer('rtp').defaultTo(10);
     table.string('oddType').defaultTo('kiron');

@@ -18,6 +18,7 @@ const gameRoutes = require('./routes/gameRoutes');
 const slipRoutes = require('./routes/slipsRoutes');
 const dailyReportRoutes = require('./routes/dailyReportRoutes');
 const adminController = require('./controllers/AdminController');
+const errorHandler = require('./middleware/errorHandlerMiddleware');
 
 var schedule = require('node-schedule');  
 const { generateDailyReport, getCurrentDate } = require('./controllers/DailyReportController');
@@ -49,6 +50,9 @@ app.use('/cashiers', cashierRoutes);
 app.use('/game', gameRoutes);
 app.use('/slip', slipRoutes);
 app.use('/dailyReport', dailyReportRoutes);
+
+
+app.use(errorHandler)
 
 // Start the server
 app.listen(port, () => {
