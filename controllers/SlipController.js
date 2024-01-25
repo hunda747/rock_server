@@ -38,7 +38,8 @@ const slipController = {
         query = query.where('shopId', shopId);
       }
 
-      const slips = await query.withGraphFetched('shop').withGraphFetched('cashier').withGraphFetched('game').limit(50);
+      const slips = await query.withGraphFetched('shop').withGraphFetched('cashier').withGraphFetched('game')
+        .orderBy('created_at', 'desc').limit(100);
 
       res.json(slips);
     } catch (error) {
