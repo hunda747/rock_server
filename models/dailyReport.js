@@ -24,7 +24,7 @@ class Daily_reports extends Model {
       },
       shop: {
         relation: Model.BelongsToOneRelation,
-        filter: query => query.select('id', 'name'),
+        filter: query => query.select('id', 'name', 'cashierLimit'),
         modelClass: Shop,
         join: {
           from: 'daily_reports.shopId',
@@ -33,7 +33,7 @@ class Daily_reports extends Model {
       },
       cashier: {
         relation: Model.BelongsToOneRelation,
-        filter: query => query.select('id', 'name'),
+        filter: query => query.select('id', 'name', 'cashierLimit'),
         modelClass: Cashier,
         join: {
           from: 'daily_reports.cashierId',

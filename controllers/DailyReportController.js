@@ -3,6 +3,8 @@ const Cashier = require("../models/cashier");
 const Slip = require("../models/slip");
 const Shop = require("../models/shop");
 
+const moment = require("moment");
+
 const createDailyReport = async (req, res) => {
   try {
     const { reportDate } = req.body;
@@ -247,20 +249,34 @@ function getCurrentDate() {
 
 const generateShopCount = async (req, res) => {
   const currentDate = new Date();
-  const shops = await Shop.query().count("id as count");
+  const shops = await Shop.query().count("id as count").first();
 
-  const startOfDayTime = new Date(currentDate).setHours(0, 0, 0, 0);
-  const endOfDayTime = new Date(currentDate).setHours(23, 59, 59, 999);
-
+  const startOfDayTime = moment(currentDate).startOf("day").toDate();
+  const endOfDayTime = moment(currentDate).endOf("day").toDate();
+  console.log(startOfDayTime.toLocaleString());
+  console.log(endOfDayTime.toLocaleString());
   const activeshops = await Slip.query()
-    // .where("created_at", ">=", startOfDayTime)
-    // .andWhere("created_at", "<", endOfDayTime)
-    .distinct("shopId")
-    .count("shopId as count")
+    .where("created_at", ">=", startOfDayTime)
+    .andWhere("created_at", "<", endOfDayTime)
+    // .groupBy("shopId") // Group by shopId to get distinct counts
+    .countDistinct("shopId as count")
+    // .count("shopId as count")
     .first();
 
-  return res.status(200).json({ totalShop: shops, activeshops: activeshops });
+  return res.status(200).json({ totalShop: shops.count, activeshops: activeshops.count });
 };
+
+function formatDate(date) {
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const day = date.getDate().toString().padStart(2, "0");
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  const seconds = date.getSeconds().toString().padStart(2, "0");
+  const milliseconds = date.getMilliseconds().toString().padStart(3, "0");
+
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${milliseconds}`;
+}
 
 const generateCashierReport = async (req, res) => {
   const { startDate, endDate, shopId, shopOwnerId } = req.body;

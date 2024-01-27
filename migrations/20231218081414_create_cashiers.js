@@ -10,6 +10,7 @@ exports.up = function (knex) {
     table.foreign('shopId').references('shops.id').onDelete('CASCADE');
     table.string('name').notNullable();
     table.integer('cashierLimit');
+    table.integer('netWinning');
     table.string('username').unique().notNullable();
     table.string('password').notNullable();
     table.boolean('status').defaultTo(true);

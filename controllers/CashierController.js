@@ -160,18 +160,23 @@ class CashierController {
       if (!cashier.status) {
         return res
           .status(403)
-          .json({ error: "Account is Blocked", status: "error" });
+          .json({ error: "Account is Inactive", status: "error" });
+      }
+      if (cashier.cashierLimit < cashier.netWinning) {
+        return res
+          .status(403)
+          .json({ error: "Cashier limit reached. Please contact the admin.", status: "error" });
       }
       if (cashier.shop.status === "inactive") {
         return res
         .status(403)
-        .json({ error: "Shop is Blocked", status: "error" });
+        .json({ error: "Shop is Inactive", status: "error" });
       }
       const shopowner = await ShopOwner.query().findById(cashier.shop.shopOwnerId).select('status');
       if (!shopowner.status) {
         return res
         .status(403)
-        .json({ error: "Shop owner is Blocked", status: "error" });
+        .json({ error: "Shop owner is Inactive", status: "error" });
       }
       
       // console.log('found', cashier);
