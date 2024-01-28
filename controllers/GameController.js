@@ -307,7 +307,6 @@ const GameController = {
       // Update the current game with the drawn number
       const currentGame = await Game.query()
         .where("gameNumber", gameNumber)
-        .andWhere("gameType", "keno")
         .andWhere("status", "done")
         .first();
 
