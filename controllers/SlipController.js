@@ -466,7 +466,7 @@ const slipController = {
       .where("cashierId", cashierId)
       .andWhere("created_at", ">=", formattedStartDate)
       .andWhere("created_at", "<", formattedEndDate)
-      .withGraphFetched("game");
+      .withGraphFetched("game").orderBy('created_at', 'desc').limit(50);
 
     const rebalancedBets = result.map((slip) =>
       convertToRebalancedFormat(slip)
@@ -509,7 +509,7 @@ function convertToRebalancedFormat(slip) {
     errText: "bet placed.",
     gameStartsOn: `${slip.gameType} # ${slip?.game?.gameNumber}`,
     id: String(slip?.game?.gameNumber),
-    on: format(new Date(), "yyyy/MM/dd HH:mm:ss"),
+    on: format(new Date(slip.created_at), "yyyy/MM/dd HH:mm:ss"),
     by: `cashier`,
     agent: "agent",
     TotalStake: slip.totalStake,
