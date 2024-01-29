@@ -165,7 +165,7 @@ class CashierController {
         if(cashier.firstLogin){
         return res
           .status(403)
-          .json({ error: "Change password", status: "new" });
+          .json({ error: "Change password", status: "new", id: cashier.id });
       }
 
       if (cashier.cashierLimit < cashier.netWinning) {
