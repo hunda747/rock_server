@@ -309,12 +309,15 @@ const slipController = {
 
   generateCashierReport: async (req, res) => {
     const { cashierId } = req.params;
+    const { date } = req.query;
     const currentGame = await Cashier.query().findById(cashierId);
+
     if (!currentGame) {
       return res.status(404).json({ message: "Cashier not found." });
     }
 
-    const today = new Date();
+
+    const today = date ? new Date(date) : new Date();
     const yesterday = subDays(today, 1);
 
     const formatDate = (date) => format(date, "yyyy-MM-dd HH:mm:ss");

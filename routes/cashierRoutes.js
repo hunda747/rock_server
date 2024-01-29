@@ -13,6 +13,7 @@ router.put('/:id', cashierController.update);
 router.delete('/:id', cashierController.delete);
 router.post('/login', cashierController.login);
 router.post('/changePassword/:id', cashierController.changePassword);
+router.post('/changeOwnPassword/:id', cashierController.changeOwnPassword);
 router.post('/refresh', cashierController.refreshToken);
 
 module.exports = router;

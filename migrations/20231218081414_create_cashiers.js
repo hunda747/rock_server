@@ -11,6 +11,7 @@ exports.up = function (knex) {
     table.string('name').notNullable();
     table.integer('cashierLimit');
     table.integer('netWinning');
+    table.boolean('firstLogin').defaultTo(true);
     table.string('username').unique().notNullable();
     table.string('password').notNullable();
     table.boolean('status').defaultTo(true);
