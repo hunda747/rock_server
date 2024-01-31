@@ -368,6 +368,16 @@ class CashierController {
       res.status(404).json({ error: "Cashier not found" });
     }
   }
+
+  async resetCashierLimit() {
+    const cashiers = await Cashier.query().withGraphFetched("shop");
+    cashiers.map(async (cashier) => {
+      await Cashier.query().patchAndFetchById(cashier.id, {
+        netWinning: 0,
+        cashierLimit: cashier.shop.cashierLimit
+      })
+    })
+  }
 }
 
 const generateReport = async (id) => {

@@ -18,6 +18,7 @@ const gameRoutes = require('./routes/gameRoutes');
 const slipRoutes = require('./routes/slipsRoutes');
 const dailyReportRoutes = require('./routes/dailyReportRoutes');
 const adminController = require('./controllers/AdminController');
+const CashierController = require('./controllers/CashierController');
 const errorHandler = require('./middleware/errorHandlerMiddleware');
 
 var schedule = require('node-schedule');  
@@ -34,7 +35,7 @@ schedule.scheduleJob('0 50 16 * * * ', async function (){
   console.log('The answer to life, the universe, and everything!');
   const todayData = await generateDailyReport(getCurrentDate());
   console.log('Today report is generated!');
-
+  const resetAll = await CashierController.resetCashierLimit()
 });
 
 app.get('/', async (req, res) => {
