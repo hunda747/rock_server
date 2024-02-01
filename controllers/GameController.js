@@ -210,16 +210,17 @@ const GameController = {
       let drawnNumber;
       if (!currentGame.pickedNumbers) {
         // Assume you have a function to draw the number and update the database
-        const numbers = [];
+        // const numbers = [];
+        const numbers = generateRandomNumbersWithNoConsq();
 
-        while (numbers.length < 20) {
-          const randomNum = Math.floor(Math.random() * 80) + 1;
+        // while (numbers.length < 20) {
+        //   const randomNum = Math.floor(Math.random() * 80) + 1;
 
-          // Ensure the number is not already in the array
-          if (!numbers.includes(randomNum)) {
-            numbers.push(randomNum);
-          }
-        }
+        //   // Ensure the number is not already in the array
+        //   if (!numbers.includes(randomNum)) {
+        //     numbers.push(randomNum);
+        //   }
+        // }
         drawnNumber = numbers;
 
         let headsCount = 0;
@@ -240,8 +241,8 @@ const GameController = {
           headsCount > tailsCount
             ? "heads"
             : tailsCount > headsCount
-            ? "tails"
-            : "evens";
+              ? "tails"
+              : "evens";
         // Update the pickedNumbers field with the drawn number
         await currentGame.$query().patch({
           pickedNumbers: JSON.stringify({ selection: drawnNumber }),
@@ -300,6 +301,7 @@ const GameController = {
       return res.status(500).json({ message: "Internal server error." });
     }
   },
+
 
   getGameRusult: async (req, res) => {
     const { gameNumber } = req.params;
@@ -3339,6 +3341,35 @@ const GameController = {
     }
   },
 };
+
+const generateRandomNumbersWithNoConsq = () => {
+  const numbers = [];
+
+  const isConsecutive = (arr) => {
+    for (let i = 0; i < arr.length - 1; i++) {
+      if (arr[i] + 1 === arr[i + 1]) {
+        return true; // Found consecutive numbers
+      }
+    }
+    return false; // No consecutive numbers found
+  };
+
+  while (numbers.length < 20 || isConsecutive(numbers)) {
+    numbers.length = 0; // Reset the array if consecutive numbers are found
+
+    while (numbers.length < 20) {
+      const randomNum = Math.floor(Math.random() * 80) + 1;
+
+      // Ensure the number is not already in the array
+      if (!numbers.includes(randomNum)) {
+        numbers.push(randomNum);
+      }
+    }
+  }
+
+  return numbers;
+};
+
 
 const calculateCashierWinnings = async (gameNumber, tickets) => {
   // Collect unique cashier IDs
