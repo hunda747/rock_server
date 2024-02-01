@@ -102,7 +102,7 @@ const slipController = {
 
     const cashier = await Cashier.query().findById(param.cashier);
     if (cashier.cashierLimit < cashier.netWinning) {
-      return res.status(403).json({
+      return res.status(200).json({
         error: "Cashier limit reached. Please contact the admin.",
         status: "error",
         err: "true"
