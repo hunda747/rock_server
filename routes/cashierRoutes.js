@@ -15,5 +15,6 @@ router.post('/login', cashierController.login);
 router.post('/changePassword/:id', cashierController.changePassword);
 router.post('/changeOwnPassword/:id', cashierController.changeOwnPassword);
 router.post('/refresh', cashierController.refreshToken);
+router.post('/resetCashierLimit', cashierController.resetCashierLimit);
 
 module.exports = router;

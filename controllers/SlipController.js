@@ -17,29 +17,33 @@ const slipController = {
       if (startDate) {
         const startOfDayTime = new Date(startDate);
         startOfDayTime.setHours(0, 0, 0, 0);
-        query = query.where('created_at', '>=', startOfDayTime);
+        query = query.where("created_at", ">=", startOfDayTime);
       }
 
       if (endDate) {
         const endOfDayTime = new Date(endDate);
         endOfDayTime.setHours(23, 59, 59, 999);
-        query = query.where('created_at', '<=', endOfDayTime);
+        query = query.where("created_at", "<=", endOfDayTime);
       }
 
       if (status && status.length > 0) {
-        query = query.whereIn('status', status);
+        query = query.whereIn("status", status);
       }
 
       if (gameType && gameType.length > 0) {
-        query = query.whereIn('gameType', gameType);
+        query = query.whereIn("gameType", gameType);
       }
 
       if (shopId) {
-        query = query.where('shopId', shopId);
+        query = query.where("shopId", shopId);
       }
 
-      const slips = await query.withGraphFetched('shop').withGraphFetched('cashier').withGraphFetched('game')
-        .orderBy('created_at', 'desc').limit(100);
+      const slips = await query
+        .withGraphFetched("shop")
+        .withGraphFetched("cashier")
+        .withGraphFetched("game")
+        .orderBy("created_at", "desc")
+        .limit(100);
 
       res.json(slips);
     } catch (error) {
@@ -96,6 +100,15 @@ const slipController = {
       return res.status(404).json({ message: "Game Closed." });
     }
 
+    const cashier = await Cashier.query().findById(param.cashier);
+    if (cashier.cashierLimit < cashier.netWinning) {
+      return res.status(403).json({
+        error: "Cashier limit reached. Please contact the admin.",
+        status: "error",
+        err: "true"
+      });
+    }
+
     // console.log("param:", param.numberPick);
 
     try {
@@ -103,7 +116,7 @@ const slipController = {
       let minWin = 0;
       let maxWin = 0;
 
-      if (param.gameType == 'keno') {
+      if (param.gameType == "keno") {
         // Iterate through numberPick array
         for (const pick of param.numberPick) {
           const numberOfSelections = pick.selection.length;
@@ -115,10 +128,13 @@ const slipController = {
           totalStake += pick.stake;
           if (typeof pick.selection[0] === "string") {
             let odd;
-            if (pick.selection[0] === 'tails' || pick.selection[0] === 'heads') {
+            if (
+              pick.selection[0] === "tails" ||
+              pick.selection[0] === "heads"
+            ) {
               odd = 2;
             } else {
-              odd = 4
+              odd = 4;
             }
             pick.odd = odd;
             // Update minWin and maxWin based on the stake
@@ -135,12 +151,13 @@ const slipController = {
 
               pick.odd = Object.values(modd)[0];
               // Update minWin and maxWin based on the stake
-              minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin; // Assuming the minimum win is the same as the stake
+              minWin =
+                pick.stake < minWin || minWin === 0 ? pick.stake : minWin; // Assuming the minimum win is the same as the stake
               maxWin += pick.stake * Object.values(modd)[0]; // Assuming the maximum win is the total stake for the pick
             }
           }
         }
-      } else if (param.gameType == 'spin') {
+      } else if (param.gameType == "spin") {
         // console.log(param.numberPick);
         // console.log(param);
         for (const pick of param.numberPick) {
@@ -160,7 +177,9 @@ const slipController = {
         }
         // return res.status(400).json({err: "true"});
       } else {
-        return res.status(404).json({ message: "Game Type not found.", err: 'true' });
+        return res
+          .status(404)
+          .json({ message: "Game Type not found.", err: "true" });
       }
 
       const slip = await Slip.query().insert({
@@ -316,7 +335,6 @@ const slipController = {
       return res.status(404).json({ message: "Cashier not found." });
     }
 
-
     const today = date ? new Date(date) : new Date();
     const yesterday = subDays(today, 1);
 
@@ -427,24 +445,34 @@ const slipController = {
     try {
       // .findById(cashierId)
       const cashierReport = await Cashier.query()
-        .withGraphFetched('shop')
-        .withGraphFetched('[slips]')
-        .modifyGraph('slips', (builder) => {
+        .withGraphFetched("shop")
+        .withGraphFetched("[slips]")
+        .modifyGraph("slips", (builder) => {
           builder.select(
-            Slip.raw('COUNT(*) as tickets'),
-            Slip.raw('SUM(totalStake) as stake'),
-            Slip.raw('SUM(CASE WHEN status = "redeemed" THEN netWinning ELSE 0 END) as payout'),
-            Slip.raw('SUM(CASE WHEN status = "redeem" THEN netWinning ELSE 0 END) as unclaimed'),
-            Slip.raw('COUNT(CASE WHEN status = "canceled" THEN 1 END) as revoked'),
-            Slip.raw('SUM(netWinning - CASE WHEN status = "redeemed" THEN netWinning ELSE 0 END - CASE WHEN status = "canceled" THEN 0 ELSE CASE WHEN status = "redeem" THEN netWinning ELSE 0 END END) as ggr'),
-            Slip.raw('SUM(netWinning - CASE WHEN status = "redeemed" THEN netWinning ELSE 0 END) as netBalance')
+            Slip.raw("COUNT(*) as tickets"),
+            Slip.raw("SUM(totalStake) as stake"),
+            Slip.raw(
+              'SUM(CASE WHEN status = "redeemed" THEN netWinning ELSE 0 END) as payout'
+            ),
+            Slip.raw(
+              'SUM(CASE WHEN status = "redeem" THEN netWinning ELSE 0 END) as unclaimed'
+            ),
+            Slip.raw(
+              'COUNT(CASE WHEN status = "canceled" THEN 1 END) as revoked'
+            ),
+            Slip.raw(
+              'SUM(netWinning - CASE WHEN status = "redeemed" THEN netWinning ELSE 0 END - CASE WHEN status = "canceled" THEN 0 ELSE CASE WHEN status = "redeem" THEN netWinning ELSE 0 END END) as ggr'
+            ),
+            Slip.raw(
+              'SUM(netWinning - CASE WHEN status = "redeemed" THEN netWinning ELSE 0 END) as netBalance'
+            )
           );
         });
 
-      res.status(200).json(cashierReport)
+      res.status(200).json(cashierReport);
     } catch (error) {
       console.error(error);
-      res.status(400).json({ error: true })
+      res.status(400).json({ error: true });
     }
   },
 
@@ -469,7 +497,9 @@ const slipController = {
       .where("cashierId", cashierId)
       .andWhere("created_at", ">=", formattedStartDate)
       .andWhere("created_at", "<", formattedEndDate)
-      .withGraphFetched("game").orderBy('created_at', 'desc').limit(50);
+      .withGraphFetched("game")
+      .orderBy("created_at", "desc")
+      .limit(50);
 
     const rebalancedBets = result.map((slip) =>
       convertToRebalancedFormat(slip)

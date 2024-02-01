@@ -5,6 +5,9 @@ const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
 const AuthController = require("./AuthController");
 const ShopOwner = require("../models/ShopOwner");
+const Slip = require("../models/slip");
+
+const moment = require("moment");
 
 class CashierController {
   constructor() {
@@ -63,15 +66,18 @@ class CashierController {
 
     // Find the last cashier for the selected shop
     const lastCashier = await Cashier.query()
-      .where('shopId', cashierData.shopId)
-      .orderBy('id', 'desc')
+      .where("shopId", cashierData.shopId)
+      .orderBy("id", "desc")
       .first();
 
     let nextCashierNumber = 1; // Default if no previous cashiers found
 
     if (lastCashier) {
       // Extract the cashier number from the last cashier's username
-      const lastCashierNumber = parseInt(lastCashier.username.split('.c')[1], 10);
+      const lastCashierNumber = parseInt(
+        lastCashier.username.split(".c")[1],
+        10
+      );
       nextCashierNumber = lastCashierNumber + 1;
     }
 
@@ -81,8 +87,8 @@ class CashierController {
         try {
           const newCashier = await Cashier.query().insert({
             shopId: cashierData.shopId,
-            name: `${cashierData.username}.c${(nextCashierNumber)}`,
-            username: `${cashierData.username}.c${(nextCashierNumber)}`,
+            name: `${cashierData.username}.c${nextCashierNumber}`,
+            username: `${cashierData.username}.c${nextCashierNumber}`,
             password: hashedCashPassword,
           });
           nextCashierNumber++;
@@ -92,7 +98,7 @@ class CashierController {
           res.status(500).json({ error: "Internal Server Error" });
         }
       }
-      res.json({message: 'Added the cashiers'});
+      res.json({ message: "Added the cashiers" });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: "Internal Server Error" });
@@ -161,30 +167,37 @@ class CashierController {
         return res
           .status(403)
           .json({ error: "Account is Inactive", status: "error" });
-        }
-        if(cashier.firstLogin){
+      }
+      if (cashier.firstLogin) {
         return res
           .status(403)
           .json({ error: "Change password", status: "new", id: cashier.id });
       }
 
+      if (cashier.shop.status === "inactive") {
+        return res
+          .status(403)
+          .json({ error: "Shop is Inactive", status: "error" });
+      }
+      const shopowner = await ShopOwner.query()
+        .findById(cashier.shop.shopOwnerId)
+        .select("status");
+      if (!shopowner.status) {
+        return res
+          .status(403)
+          .json({ error: "Shop owner is Inactive", status: "error" });
+      }
+      
+      // if (cashier.cashierLimit < await (generateReport(cashier.id))) {
       if (cashier.cashierLimit < cashier.netWinning) {
         return res
           .status(403)
-          .json({ error: "Cashier limit reached. Please contact the admin.", status: "error" });
+          .json({
+            error: "Cashier limit reached. Please contact the admin.",
+            status: "error",
+          });
       }
-      if (cashier.shop.status === "inactive") {
-        return res
-        .status(403)
-        .json({ error: "Shop is Inactive", status: "error" });
-      }
-      const shopowner = await ShopOwner.query().findById(cashier.shop.shopOwnerId).select('status');
-      if (!shopowner.status) {
-        return res
-        .status(403)
-        .json({ error: "Shop owner is Inactive", status: "error" });
-      }
-      
+
       // console.log('found', cashier);
 
       // Generate tokens upon successful login
@@ -209,7 +222,7 @@ class CashierController {
   }
 
   async changePassword(req, res) {
-    const {id} = req.params;
+    const { id } = req.params;
     const { newPassword } = req.body;
 
     try {
@@ -217,55 +230,62 @@ class CashierController {
       const user = await Cashier.query().findById(id);
 
       if (!user) {
-        return res.status(404).json({ error: 'User not found' });
+        return res.status(404).json({ error: "User not found" });
       }
 
       // Hash the new password
       const hashedPassword = await bcrypt.hash(newPassword, 10);
 
       // Update the user's password in the database
-      await Cashier.query().patch({ password: hashedPassword }).where('id', id);
+      await Cashier.query().patch({ password: hashedPassword }).where("id", id);
 
-      res.json({ message: 'Password changed successfully' });
+      res.json({ message: "Password changed successfully" });
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: "Internal Server Error" });
     }
   }
 
   async changeOwnPassword(req, res) {
-    const {id} = req.params;
+    const { id } = req.params;
     const { newPassword, oldPassword } = req.body;
 
     try {
-      if(!newPassword || !oldPassword){
-        return res.status(404).json({ error: 'Please provide full information.' });
-      }  
-      
+      if (!newPassword || !oldPassword) {
+        return res
+          .status(404)
+          .json({ error: "Please provide full information." });
+      }
+
       // Fetch the user from the database (either a shop owner or a cashier)
       const user = await Cashier.query().findById(id);
 
       if (!user) {
-        return res.status(404).json({ error: 'User not found' });
+        return res.status(404).json({ error: "User not found" });
       }
-      
+
       // Check the old password
-      const isOldPasswordValid = await bcrypt.compare(oldPassword, user.password);
+      const isOldPasswordValid = await bcrypt.compare(
+        oldPassword,
+        user.password
+      );
 
       if (!isOldPasswordValid) {
-        return res.status(401).json({ error: 'Invalid old password' });
+        return res.status(401).json({ error: "Invalid old password" });
       }
 
       // Hash the new password
       const hashedPassword = await bcrypt.hash(newPassword, 10);
 
       // Update the user's password in the database
-      await Cashier.query().patch({ password: hashedPassword, firstLogin: false }).where('id', id);
+      await Cashier.query()
+        .patch({ password: hashedPassword, firstLogin: false })
+        .where("id", id);
 
-      res.json({ message: 'Password changed successfully' });
+      res.json({ message: "Password changed successfully" });
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: "Internal Server Error" });
     }
   }
 
@@ -348,6 +368,59 @@ class CashierController {
       res.status(404).json({ error: "Cashier not found" });
     }
   }
+
+  async resetCashierLimit() {
+    const cashiers = await Cashier.query().withGraphFetched("shop");
+    cashiers.map(async (cashier) => {
+      await Cashier.query().patchAndFetchById(cashier.id, {
+        netWinning: 0,
+        cashierLimit: cashier.shop.cashierLimit
+      })
+    })
+  }
 }
+
+const generateReport = async (id) => {
+  const currentDate = moment.utc();
+  console.log(currentDate);
+  const startOfDay = moment(currentDate).startOf("day").toDate();
+  const endOfDay = moment(currentDate).endOf("day").toDate();
+  // const startOfDay = new Date(currentDate);
+  //   startOfDay.setHours(0, 0, 0, 0);
+  //   // console.log(cashiers);
+  //   const endOfDay = new Date(currentDate);
+  //   endOfDay.setHours(23, 59, 59, 999);
+  console.log(startOfDay);
+  console.log(endOfDay);
+  const cashierReport = await Cashier.query()
+    .findById(id)
+    .withGraphFetched("[slips]")
+    .modifyGraph("slips", (builder) => {
+      builder.where("created_at", ">=", startOfDay);
+      builder.where("created_at", "<=", endOfDay);
+      builder.select(
+        Slip.raw("SUM(totalStake) as stake"),
+        Slip.raw(
+          'SUM(CASE WHEN status = "redeemed" THEN netWinning ELSE 0 END) as payout'
+        ),
+        Slip.raw(
+          'SUM(CASE WHEN status = "redeem" THEN netWinning ELSE 0 END) as unclaimed'
+        ),
+        Slip.raw(
+          'SUM(CASE WHEN status = "canceled" THEN totalStake ELSE 0 END) as revoked'
+        )
+      );
+    });
+    // console.log(cashierReport);
+    const {
+      stake = 0,
+      payout = 0,
+      unclaimed = 0,
+      revoked = 0,
+    } = cashierReport.slips[0] || {}; 
+    const net = parseInt(stake) - parseInt(payout) - parseInt(unclaimed) - parseInt(revoked)
+    console.log('id', net);
+  return net;
+};
 
 module.exports = new CashierController();
