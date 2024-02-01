@@ -8,6 +8,7 @@ const ShopOwner = require("../models/ShopOwner");
 const Slip = require("../models/slip");
 
 const moment = require("moment");
+const Shop = require("../models/shop");
 
 class CashierController {
   constructor() {
@@ -51,6 +52,8 @@ class CashierController {
     // Hash the password before storing it
     const hashedPassword = await bcrypt.hash(cashierData.password, 10);
     cashierData.password = hashedPassword;
+    const shopLimit = await Shop.query().findById(cashierData.shopId);
+    cashierData.cashierLimit = shopLimit.cashierLimit;
 
     try {
       const newCashier = await Cashier.query().insert(cashierData);
@@ -187,7 +190,7 @@ class CashierController {
           .status(403)
           .json({ error: "Shop owner is Inactive", status: "error" });
       }
-      
+
       // if (cashier.cashierLimit < await (generateReport(cashier.id))) {
       if (cashier.cashierLimit < cashier.netWinning) {
         return res
@@ -411,15 +414,15 @@ const generateReport = async (id) => {
         )
       );
     });
-    // console.log(cashierReport);
-    const {
-      stake = 0,
-      payout = 0,
-      unclaimed = 0,
-      revoked = 0,
-    } = cashierReport.slips[0] || {}; 
-    const net = parseInt(stake) - parseInt(payout) - parseInt(unclaimed) - parseInt(revoked)
-    console.log('id', net);
+  // console.log(cashierReport);
+  const {
+    stake = 0,
+    payout = 0,
+    unclaimed = 0,
+    revoked = 0,
+  } = cashierReport.slips[0] || {};
+  const net = parseInt(stake) - parseInt(payout) - parseInt(unclaimed) - parseInt(revoked)
+  console.log('id', net);
   return net;
 };
 

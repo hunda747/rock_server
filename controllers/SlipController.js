@@ -237,6 +237,7 @@ const slipController = {
         totalStake: slip.totalStake,
         user: JSON.parse(slip.numberPick),
         showOwnerId: slipController.showOwner,
+        ...(((cashier.cashierLimit - 500) < cashier.netWinning) && { limitwarning: 'Almost reach cashier limit!' }),
         agent: "agent",
         by: "cashier",
       });
