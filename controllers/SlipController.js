@@ -6,7 +6,7 @@ const Cashier = require("../models/cashier");
 
 const { subDays, format, startOfDay, endOfDay } = require("date-fns");
 
-const oddsTable = require("../odd/kiron");
+const oddsTable = require("../odd/rock1");
 
 const slipController = {
   getAllSlips: async (req, res, next) => {
