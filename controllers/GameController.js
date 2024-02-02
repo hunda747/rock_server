@@ -210,17 +210,17 @@ const GameController = {
       let drawnNumber;
       if (!currentGame.pickedNumbers) {
         // Assume you have a function to draw the number and update the database
-        // const numbers = [];
-        const numbers = generateRandomNumbersWithNoConsq();
+        const numbers = [];
+        // const numbers = generateRandomNumbersWithNoConsq();
 
-        // while (numbers.length < 20) {
-        //   const randomNum = Math.floor(Math.random() * 80) + 1;
+        while (numbers.length < 20) {
+          const randomNum = Math.floor(Math.random() * 80) + 1;
 
-        //   // Ensure the number is not already in the array
-        //   if (!numbers.includes(randomNum)) {
-        //     numbers.push(randomNum);
-        //   }
-        // }
+          // Ensure the number is not already in the array
+          if (!numbers.includes(randomNum)) {
+            numbers.push(randomNum);
+          }
+        }
         drawnNumber = numbers;
 
         let headsCount = 0;
