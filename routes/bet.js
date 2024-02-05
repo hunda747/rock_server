@@ -102,3 +102,127 @@ router.get('/', (req, res) => {
 });
 
 module.exports = router;
+
+// Example players with various selections and stakes
+const players = [
+  { selectedNumbers: [4, 5], coinsPlaced: 10 },
+  { selectedNumbers: [3], coinsPlaced: 20 },
+  { selectedNumbers: [1, 3, 5], coinsPlaced: 100 },
+  { selectedNumbers: [3], coinsPlaced: 20 },
+  { selectedNumbers: [4, 2], coinsPlaced: 10 },
+  { selectedNumbers: [3], coinsPlaced: 20 },
+  { selectedNumbers: [6, 5], coinsPlaced: 10 },
+  { selectedNumbers: [1], coinsPlaced: 20 },
+  // ... other players
+];
+
+function drawTwoUniqueNumbers(weights, num) {
+  const drawnNumbers = new Set();
+  console.log('weight', weights)
+  while (drawnNumbers.size < num) {
+    const candidateNumber = weightedRandom(weights);
+    if (!drawnNumbers.has(candidateNumber)) {
+      drawnNumbers.add(candidateNumber);
+    }
+  }
+  return Array.from(drawnNumbers).sort(); // Ensure sorted order
+}
+
+function weightedRandom(weights) {
+  const totalWeight = weights.reduce((sum, weight) => sum + weight.weight, 0);
+  const randomValue = Math.random() * totalWeight;
+
+  let cumulativeWeight = 0;
+  for (let i = 0; i < weights.length; i++) {
+    cumulativeWeight += weights[i].weight;
+    if (randomValue <= cumulativeWeight) {
+      return weights[i].value; // Return the selected number
+    }
+  }
+}
+
+function calculateWeights(players) {
+  // Create an array to store all possible numbers
+  const allNumbers = Array.from({ length: 6 }, (_, i) => i + 1); // [1, 2, 3, 4, 5, 6]
+
+  // Initialize empty object to store total coins placed
+  const coinsSum = {};
+
+  // Iterate through players and count their bets
+  players.forEach(player => {
+    player.selectedNumbers.forEach(number => {
+      coinsSum[number] = (coinsSum[number] || 0) + player.coinsPlaced / player.selectedNumbers.length;
+    });
+  });
+
+  // Calculate total coins placed
+  const totalCoinsPlaced = Object.values(coinsSum).reduce((sum, value) => sum + value, 0);
+
+  // Calculate base weight (average coins placed per number)
+  const baseWeight = totalCoinsPlaced / allNumbers.length;
+
+  // Return weights for all numbers
+  return allNumbers.map(number => ({
+    value: number,
+    weight: coinsSum[number] ? baseWeight / coinsSum[number] : baseWeight, // Lower weight for selected numbers
+  }));
+}
+
+function simulateGame(players, numDrawnNumbers = 2) {
+  const weights = calculateWeights(players);
+
+  // Draw the specified number of unique numbers
+  const drawnNumbers = drawTwoUniqueNumbers(weights, numDrawnNumbers);
+
+  let totalCoinsPlaced = 0;
+  let totalWinnings = 0;
+
+  // Calculate winnings for each player
+  players.forEach(player => {
+    // Check for matching numbers using a counter
+    let matchingNumbers = 0;
+    for (const drawnNumber of drawnNumbers) {
+      if (player.selectedNumbers.includes(drawnNumber)) {
+        matchingNumbers++;
+      }
+    }
+
+    // Calculate winning odd based on number of matches
+    const odd = {
+      1: [{ 1: 2 }],
+      2: [{ 1: 0 }, { 2: 2 }],
+      3: [{ 1: 0 }, { 2: 1 }, { 3: 4 }],
+    };
+    // console.log('ppu', odd[numDrawnNumbers][matchingNumbers - 1])
+
+    const nestedArray = odd[player.selectedNumbers.length];
+    const nestedObject = nestedArray && nestedArray[matchingNumbers - 1];
+
+    // Check if the object exists and has the desired key
+    const value = nestedObject && nestedObject[matchingNumbers];
+    const winningOdd = value !== undefined ? value : 0;
+
+    // const winningOdd = odd[numDrawnNumbers]?.[matchingNumbers - 1]?.[1] || 0;
+    // Use default of 0 for missing entries
+    // console.log('odd', winningOdd)
+    // Assign winnings based on winning odd
+    player.winnings = player.coinsPlaced * winningOdd;
+
+    totalWinnings += player.winnings;
+    totalCoinsPlaced += player.coinsPlaced;
+  });
+
+  return { drawnNumbers, totalCoinsPlaced, totalWinnings };
+}
+
+// Simulate the game and get the result
+const gameResult = simulateGame(players, 3);
+
+// Display the result and player details
+console.log(`Drawn Numbers: ${gameResult.drawnNumbers.join(', ')}`);
+console.log(`Total Coins Placed: ${gameResult.totalCoinsPlaced}`);
+console.log(`Total Winnings: ${gameResult.totalWinnings}`);
+console.log(`Total Net: ${gameResult.totalCoinsPlaced - gameResult.totalWinnings}`);
+players.forEach((player, index) => {
+  console.log(`Player ${index + 1}: Selected ${player.selectedNumbers}, Placed Bet ${player.coinsPlaced}, Winnings ${player.winnings}, Net ${player.winnings - player.coinsPlaced}`);
+});

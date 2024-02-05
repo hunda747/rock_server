@@ -6,7 +6,7 @@ const Cashier = require("../models/cashier");
 
 const { subDays, format, startOfDay, endOfDay } = require("date-fns");
 
-const oddsTable = require("../odd/rock1");
+const oddsTable = require("../odd/kiron");
 
 const slipController = {
   getAllSlips: async (req, res, next) => {
@@ -142,7 +142,7 @@ const slipController = {
             maxWin += pick.stake * odd; // Assuming the maximum win is the total stake for the pick
           } else {
             // Retrieve the odds table for the specific selection
-            const oddsEntry = oddsTable[numberOfSelections];
+            const oddsEntry = oddsTable[param.oddType][numberOfSelections];
 
             if (oddsEntry) {
               console.log(oddsEntry);
