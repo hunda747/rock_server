@@ -3389,7 +3389,10 @@ function calculateWeights(players) {
   const allNumbers = Array.from({ length: 80 }, (_, i) => i + 1); // [1, 2, 3, 4, 5, 6]
 
   if (!players) {
-    return allNumbers;
+    return allNumbers.map(number => ({
+      value: number,
+      weight: 0.1, // Lower weight for selected numbers
+    }));
   }
   // Initialize empty object to store total coins placed
   const coinsSum = {};
