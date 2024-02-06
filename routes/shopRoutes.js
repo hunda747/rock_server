@@ -5,7 +5,7 @@ const shopController = require('../controllers/ShopController');
 const router = express.Router();
 
 router.get('/', shopController.getAll);
-router.get('/getByShopowner', shopController.getByShopowner);
+router.get('/getByShopowner/:id', shopController.getByShopowner);
 router.get('/:id', shopController.getById);
 router.post('/', shopController.create);
 router.put('/:id', shopController.update);

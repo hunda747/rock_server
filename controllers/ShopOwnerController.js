@@ -41,7 +41,7 @@ class ShopOwnerController {
       // For demonstration purposes, we're just attaching it to the response header
       res.header('Refresh-Token', refreshToken);
 
-      res.json({ accessToken, refreshToken });
+      res.json({ accessToken, refreshToken, id: shopOwner.id, shopOwner });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Internal Server Error' });
