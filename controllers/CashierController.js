@@ -50,9 +50,8 @@ class CashierController {
     const { id } = req.params;
     try {
       const cashier = await Cashier.query()
-        .joinRelation('shop')
+        .withGraphFetched("shop")
         .where('shop.shopOwnerId', id)
-        .withGraphFetched("shop");
 
       if (cashier) {
         res.json(cashier);
