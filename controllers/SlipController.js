@@ -10,7 +10,7 @@ const oddsTable = require("../odd/kiron");
 
 const slipController = {
   getAllSlips: async (req, res, next) => {
-    const { shopId, gameType, status, startDate, endDate } = req.body;
+    const { shopId, shopOwnerId, gameType, status, startDate, endDate } = req.body;
     try {
       let query = Slip.query();
 
@@ -36,6 +36,10 @@ const slipController = {
 
       if (shopId) {
         query = query.where("shopId", shopId);
+      }
+
+      if (shopOwnerId) {
+        query = query.where("shopOwnerId", shopOwnerId);
       }
 
       const slips = await query
@@ -188,6 +192,7 @@ const slipController = {
         totalStake: totalStake,
         toWinMax: maxWin,
         toWinMin: minWin,
+        oddType: param.oddType,
         numberPick: JSON.stringify(param.numberPick),
         shopOwnerId: param.shopOwner,
         shopId: param.shop,

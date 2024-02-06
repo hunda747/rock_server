@@ -5,6 +5,7 @@ const cashierController = require('../controllers/CashierController');
 const router = express.Router();
 
 router.get('/', cashierController.getAll);
+router.get('/getByShopowner', cashierController.getByShopowner);
 router.get('/:id', cashierController.getById);
 router.post('/', cashierController.create);
 router.post('/addCashier', cashierController.addCashier);

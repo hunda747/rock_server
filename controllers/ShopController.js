@@ -29,6 +29,21 @@ class ShopController {
     }
   }
 
+  async getByShopowner(req, res) {
+    const { id } = req.params;
+    try {
+      const shop = await Shop.query().where({ shopOwnerId: id }).withGraphFetched("owner");
+      if (shop) {
+        res.json(shop);
+      } else {
+        res.status(404).json({ error: "Shop not found" });
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  }
+
   async create(req, res, next) {
     const shopData = req.body;
 

@@ -46,6 +46,25 @@ class CashierController {
     }
   }
 
+  async getByShopowner(req, res) {
+    const { id } = req.params;
+    try {
+      const cashier = await Cashier.query()
+        .joinRelation('shop')
+        .where('shop.shopOwnerId', id)
+        .withGraphFetched("shop");
+
+      if (cashier) {
+        res.json(cashier);
+      } else {
+        res.status(404).json({ error: "Cashier not found" });
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  }
+
   async create(req, res) {
     const cashierData = req.body;
 
@@ -216,6 +235,7 @@ class CashierController {
         refreshToken,
         id: cashier.id,
         cashier: cashier,
+        oddType: cashier.shop.oddType,
         status: "success",
       });
     } catch (error) {

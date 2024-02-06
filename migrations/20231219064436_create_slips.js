@@ -17,6 +17,7 @@ exports.up = function (knex) {
     table.jsonb('numberPick');
     table.string('slipType', 10);
     table.string('company', 10);
+    table.string('oddType', 10);
     table.integer('cashierId').unsigned();
     table.foreign('cashierId').references('cashiers.id').onDelete('CASCADE');
     table.integer('shopId').unsigned();
