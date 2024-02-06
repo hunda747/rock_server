@@ -3326,13 +3326,13 @@ const generateRandomNumbers = async (gameNumber) => {
 
   const picks = [];
 
-  if (!tickets) {
-    return false;
-  }
+  // if (!tickets) {
+  //   return false;
+  // }
   // Iterate through each ticket
   for (const ticket of tickets) {
     const ticketPicks = JSON.parse(ticket.numberPick);
-    
+
     for (const pick of ticketPicks) {
       let newpick = {};
       newpick.coinsPlaced = pick.stake;
@@ -3340,10 +3340,10 @@ const generateRandomNumbers = async (gameNumber) => {
       picks.push(newpick);
     }
   }
-  console.log('picks',picks);
+  console.log('picks', picks);
   const weight = calculateWeights(picks);
   const drawnnumber = drawTwoUniqueNumbers(weight, 20);
-  console.log('ወኢግህት',drawnnumber);
+  console.log('ወኢግህት', drawnnumber);
 
   // const numbers = [];
 
@@ -3388,6 +3388,9 @@ function calculateWeights(players) {
   // Create an array to store all possible numbers
   const allNumbers = Array.from({ length: 80 }, (_, i) => i + 1); // [1, 2, 3, 4, 5, 6]
 
+  if (!players) {
+    return allNumbers;
+  }
   // Initialize empty object to store total coins placed
   const coinsSum = {};
 
@@ -3445,9 +3448,9 @@ const calculateCashierWinnings = async (gameNumber, tickets) => {
   const uniqueCashierIds = [
     ...new Set(tickets.map((ticket) => ticket.cashierId)),
   ];
-  
+
   for (const cashierId of uniqueCashierIds) {
-    
+
     const tickets = await Ticket.query()
       .where("cashierId", cashierId)
       .where("gameId", gameNumber)
@@ -3457,7 +3460,7 @@ const calculateCashierWinnings = async (gameNumber, tickets) => {
     let totalStakeWin = 0;
 
     for (const ticket of tickets) {
-    
+
       totalCashierWin += parseInt(ticket.netWinning);
       totalStakeWin += parseInt(ticket.totalStake);
     }
