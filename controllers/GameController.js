@@ -3514,7 +3514,7 @@ const calculateWiningNumbers = async (gameNumber, winningNumbers, winner) => {
           ticketWin += pick.stake * 2;
         }
       } else {
-        const oddsEntry = oddsTable[numberOfSelections];
+        const oddsEntry = oddsTable[ticket.oddType][numberOfSelections];
 
         const actualWinnings = countCorrectGuesses(
           pick.selection,
