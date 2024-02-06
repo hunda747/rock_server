@@ -100,20 +100,6 @@ const GameController = {
     }
   },
 
-  generateRandomNumbers: () => {
-    const numbers = [];
-
-    while (numbers.length < 20) {
-      const randomNum = Math.floor(Math.random() * 80) + 1;
-
-      // Ensure the number is not already in the array
-      if (!numbers.includes(randomNum)) {
-        numbers.push(randomNum);
-      }
-    }
-
-    return numbers;
-  },
 
   createNewGameEntry: async (gameType, gameNumber) => {
     try {
@@ -210,17 +196,7 @@ const GameController = {
       let drawnNumber;
       if (!currentGame.pickedNumbers) {
         // Assume you have a function to draw the number and update the database
-        const numbers = [];
-        // const numbers = generateRandomNumbersWithNoConsq();
-
-        while (numbers.length < 20) {
-          const randomNum = Math.floor(Math.random() * 80) + 1;
-
-          // Ensure the number is not already in the array
-          if (!numbers.includes(randomNum)) {
-            numbers.push(randomNum);
-          }
-        }
+        const numbers = await generateRandomNumbers(gameNumber);
         drawnNumber = numbers;
 
         let headsCount = 0;
@@ -3342,6 +3318,99 @@ const GameController = {
   },
 };
 
+
+const generateRandomNumbers = async (gameNumber) => {
+  const tickets = await Ticket.query()
+    .where("gameId", gameNumber)
+    .whereNot("status", "canceled");
+
+  const picks = [];
+
+  if (!tickets) {
+    return false;
+  }
+  // Iterate through each ticket
+  for (const ticket of tickets) {
+    const ticketPicks = JSON.parse(ticket.numberPick);
+    
+    for (const pick of ticketPicks) {
+      let newpick = {};
+      newpick.coinsPlaced = pick.stake;
+      newpick.selectedNumbers = pick.selection;
+      picks.push(newpick);
+    }
+  }
+  console.log('picks',picks);
+  const weight = calculateWeights(picks);
+  const drawnnumber = drawTwoUniqueNumbers(weight, 20);
+  console.log('ወኢግህት',drawnnumber);
+
+  // const numbers = [];
+
+  // while (numbers.length < 20) {
+  //   const randomNum = Math.floor(Math.random() * 80) + 1;
+
+  //   // Ensure the number is not already in the array
+  //   if (!numbers.includes(randomNum)) {
+  //     numbers.push(randomNum);
+  //   }
+  // }
+
+  return drawnnumber;
+};
+
+function drawTwoUniqueNumbers(weights, num = 20) {
+  const drawnNumbers = new Set();
+  // console.log('weight', weights)
+  while (drawnNumbers.size < num) {
+    const candidateNumber = weightedRandom(weights);
+    if (!drawnNumbers.has(candidateNumber)) {
+      drawnNumbers.add(candidateNumber);
+    }
+  }
+  return Array.from(drawnNumbers).sort(); // Ensure sorted order
+}
+
+function weightedRandom(weights) {
+  const totalWeight = weights.reduce((sum, weight) => sum + weight.weight, 0);
+  const randomValue = Math.random() * totalWeight;
+
+  let cumulativeWeight = 0;
+  for (let i = 0; i < weights.length; i++) {
+    cumulativeWeight += weights[i].weight;
+    if (randomValue <= cumulativeWeight) {
+      return weights[i].value; // Return the selected number
+    }
+  }
+}
+
+function calculateWeights(players) {
+  // Create an array to store all possible numbers
+  const allNumbers = Array.from({ length: 80 }, (_, i) => i + 1); // [1, 2, 3, 4, 5, 6]
+
+  // Initialize empty object to store total coins placed
+  const coinsSum = {};
+
+  // Iterate through players and count their bets
+  players.forEach(player => {
+    player.selectedNumbers.forEach(number => {
+      coinsSum[number] = (coinsSum[number] || 0) + player.coinsPlaced / player.selectedNumbers.length;
+    });
+  });
+
+  // Calculate total coins placed
+  const totalCoinsPlaced = Object.values(coinsSum).reduce((sum, value) => sum + value, 0);
+
+  // Calculate base weight (average coins placed per number)
+  const baseWeight = totalCoinsPlaced / allNumbers.length;
+
+  // Return weights for all numbers
+  return allNumbers.map(number => ({
+    value: number,
+    weight: coinsSum[number] ? baseWeight / coinsSum[number] : baseWeight, // Lower weight for selected numbers
+  }));
+}
+
 const generateRandomNumbersWithNoConsq = () => {
   const numbers = [];
 
@@ -3376,9 +3445,9 @@ const calculateCashierWinnings = async (gameNumber, tickets) => {
   const uniqueCashierIds = [
     ...new Set(tickets.map((ticket) => ticket.cashierId)),
   ];
-  console.log("unique", uniqueCashierIds);
+  
   for (const cashierId of uniqueCashierIds) {
-    console.log("cashieid: ", cashierId);
+    
     const tickets = await Ticket.query()
       .where("cashierId", cashierId)
       .where("gameId", gameNumber)
@@ -3388,12 +3457,10 @@ const calculateCashierWinnings = async (gameNumber, tickets) => {
     let totalStakeWin = 0;
 
     for (const ticket of tickets) {
-      console.log(ticket);
+    
       totalCashierWin += parseInt(ticket.netWinning);
       totalStakeWin += parseInt(ticket.totalStake);
     }
-    console.log("stake", totalStakeWin);
-    console.log("win", totalCashierWin);
 
     const existingNetWinning = (
       await Cashier.query().select("netWinning").where("id", cashierId)
