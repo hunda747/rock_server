@@ -3364,11 +3364,13 @@ function drawTwoUniqueNumbers(weights, num = 20) {
   // console.log('weight', weights)
   while (drawnNumbers.size < num) {
     const candidateNumber = weightedRandom(weights);
+    
+  console.log('weight', candidateNumber);
     if (!drawnNumbers.has(candidateNumber)) {
       drawnNumbers.add(candidateNumber);
     }
   }
-  return Array.from(drawnNumbers).sort(); // Ensure sorted order
+  return Array.from(drawnNumbers); // Ensure sorted order
 }
 
 function weightedRandom(weights) {
@@ -3387,8 +3389,8 @@ function weightedRandom(weights) {
 function calculateWeights(players) {
   // Create an array to store all possible numbers
   const allNumbers = Array.from({ length: 80 }, (_, i) => i + 1); // [1, 2, 3, 4, 5, 6]
-
-  if (!players) {
+ 
+  if (!players.length) {
     return allNumbers.map(number => ({
       value: number,
       weight: 0.1, // Lower weight for selected numbers
