@@ -7,6 +7,7 @@ const subAgentShopController = require('../controllers/SubAgentShopController');
 router.post('/', subAgentShopController.createSubAgentShop);
 router.get('/', subAgentShopController.getAllSubAgentShops);
 router.get('/:id', subAgentShopController.getSubAgentShopById);
+router.get('/getShop/:subAgentId', subAgentShopController.getShopsBySubAgentId);
 router.put('/:id', subAgentShopController.updateSubAgentShopById);
 router.delete('/:id', subAgentShopController.deleteSubAgentShopById);
 

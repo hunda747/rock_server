@@ -38,6 +38,26 @@ const getSubAgentShopById = async (req, res) => {
   }
 };
 
+const getShopsBySubAgentId = async (req, res) => {
+  const { subAgentId } = req.params;
+  try {
+    const subAgentShops = await SubAgentShop.query()
+      .where('subAgentId', subAgentId)
+      .withGraphFetched('shop'); // Assuming 'shop' is the relationship name
+
+    if (subAgentShops.length > 0) {
+      // console.log(subAgentShops);
+      const shops = subAgentShops.map((subAgentShop) => subAgentShop.shop);
+      res.json(shops);
+    } else {
+      res.status(404).json({ error: "No shops found for the specified sub-agent ID" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
+
 // Update a record by ID
 const updateSubAgentShopById = async (req, res) => {
   const { id } = req.params;
@@ -72,6 +92,7 @@ module.exports = {
   createSubAgentShop,
   getAllSubAgentShops,
   getSubAgentShopById,
+  getShopsBySubAgentId,
   updateSubAgentShopById,
   deleteSubAgentShopById,
 };
