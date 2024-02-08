@@ -263,7 +263,9 @@ const generateShopCount = async (req, res) => {
     // .count("shopId as count")
     .first();
 
-  return res.status(200).json({ totalShop: shops.count, activeshops: activeshops.count });
+  return res
+    .status(200)
+    .json({ totalShop: shops.count, activeshops: activeshops.count });
 };
 
 function formatDate(date) {
@@ -414,14 +416,86 @@ const generateShopReport = async (req, res) => {
   }
 };
 
+const generateShopAgentReport = async (req, res) => {
+  const { startDate, endDate, shopId, subAgentId } = req.body;
+  // Check if the current date should be included
+  const currentDate = new Date();
+  const currentDayIncluded =
+    startDate &&
+    endDate &&
+    currentDate >= new Date(startDate).setHours(0, 0, 0, 0) &&
+    currentDate <= new Date(endDate).setHours(23, 59, 59, 999);
+  console.log("uinc: ", currentDayIncluded);
+  // If the current date should be included, generate the daily report for today
+  if (currentDayIncluded) {
+    const todayData = await generateDailyReport(getCurrentDate());
+    // console.log('included', todayData);
+    // query = query.union(todayData);
+  }
+
+  try {
+    let query = DailyReport.query()
+      .join(
+        "sub_agent_shops",
+        "daily_reports.shopId",
+        "=",
+        "sub_agent_shops.shopId"
+      )
+      .where("sub_agent_shops.subAgentId", subAgentId)
+      .select(
+        "daily_reports.shopId",
+        "daily_reports.shopOwnerId",
+        DailyReport.raw("SUM(totalTickets) as totalTickets"),
+        DailyReport.raw("SUM(totalStake) as totalStake"),
+        DailyReport.raw("SUM(totalPayout) as totalPayout"),
+        DailyReport.raw("SUM(totalPayoutCount) as totalPayoutCount"),
+        DailyReport.raw("SUM(totalUnclaimed) as totalUnclaimed"),
+        DailyReport.raw("SUM(totalUnclaimedCount) as totalUnclaimedCount"),
+        DailyReport.raw("SUM(totalRevoked) as totalRevoked"),
+        DailyReport.raw("SUM(totalRevokedCount) as totalRevokedCount"),
+        DailyReport.raw("SUM(totalGGR) as totalGGR"),
+        DailyReport.raw("SUM(totalNetBalance) as totalNetBalance")
+      );
+
+    // Add conditions based on optional parameters
+    if (startDate) {
+      const startOfDayTime = new Date(startDate);
+      startOfDayTime.setHours(0, 0, 0, 0);
+      query = query.where("reportDate", ">=", startOfDayTime);
+    }
+
+    if (endDate) {
+      const endOfDayTime = new Date(endDate);
+      endOfDayTime.setHours(23, 59, 59, 999);
+      query = query.where("reportDate", "<=", endOfDayTime);
+    }
+
+    if (shopId && shopId.length) {
+      // Assuming there is a relationship between DailyReport and Shop
+      query = query.whereIn("daily_reports.shopId", shopId);
+    }
+
+    const shopReports = await query
+      .groupBy("shopId")
+      .withGraphFetched("shop")
+      .withGraphFetched("shopOwner");
+
+    return res.status(200).json(shopReports);
+  } catch (error) {
+    console.error(error);
+    throw error; // Rethrow the error for handling at a higher level
+  }
+};
+
 module.exports = {
-  createDailyReport,
-  getDailyReports,
-  getDailyReportById,
   deleteDailyReport,
   generateShopCount,
-  generateShopReport,
-  generateCashierReport,
-  generateDailyReport,
   getCurrentDate,
+  getDailyReports,
+  createDailyReport,
+  getDailyReportById,
+  generateShopReport,
+  generateDailyReport,
+  generateCashierReport,
+  generateShopAgentReport,
 };

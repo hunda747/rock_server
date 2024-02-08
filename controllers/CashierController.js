@@ -50,8 +50,8 @@ class CashierController {
     const { id } = req.params;
     try {
       const cashier = await Cashier.query()
-        .withGraphFetched("shop")
-        .where('shop.shopOwnerId', id)
+      .joinRelated('shop')
+      .where('shop.shopOwnerId', id);
 
       if (cashier) {
         res.json(cashier);
@@ -89,8 +89,8 @@ class CashierController {
     const lastCashier = await Cashier.query()
       .where("shopId", cashierData.shopId)
       .orderBy("id", "desc")
+      .withGraphFetched('shop')
       .first();
-
     let nextCashierNumber = 1; // Default if no previous cashiers found
 
     if (lastCashier) {
@@ -111,6 +111,7 @@ class CashierController {
             name: `${cashierData.username}.c${nextCashierNumber}`,
             username: `${cashierData.username}.c${nextCashierNumber}`,
             password: hashedCashPassword,
+            cashierLimit: lastCashier.shop.cashierLimit
           });
           nextCashierNumber++;
           // res.json(newCashier);

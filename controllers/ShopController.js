@@ -59,6 +59,7 @@ class ShopController {
         name: shopData.name,
         username: shopData.username,
         location: shopData.location,
+        cashierLimit: 10000
         // shopOwnerId shopData
       });
 
@@ -70,6 +71,7 @@ class ShopController {
             name: `${newShop.username}.c${(index + 1)}`,
             username: `${newShop.username}.c${(index + 1)}`,
             password: hashedCashPassword,
+            cashierLimit: 10000
           });
           // res.json(newCashier);
         } catch (error) {

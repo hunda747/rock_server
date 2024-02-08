@@ -5,6 +5,7 @@ const { createDailyReport,
   getDailyReportById,
   generateShopReport,
   generateCashierReport,
+  generateShopAgentReport,
   generateShopCount,
   deleteDailyReport, } = require('../controllers/DailyReportController');
 
@@ -12,6 +13,7 @@ const router = express.Router();
 
 router.post('/generateShopReport', generateShopReport);
 router.post('/generateCashierReport', generateCashierReport);
+router.post('/generateShopAgentReport', generateShopAgentReport);
 router.get('/generateShopCount', generateShopCount);
 router.get('/', getDailyReports);
 router.get('/:id', getDailyReportById);

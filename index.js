@@ -14,6 +14,8 @@ const adminRoutes = require('./routes/adminRoutes');
 const shopOwnersRoutes = require('./routes/shopOwnerRoutes');
 const cashierRoutes = require('./routes/cashierRoutes');
 const shopRoutes = require('./routes/shopRoutes');
+const subAgentRoutes = require('./routes/subAgentRoutes');
+const subAgentShopRoutes = require('./routes/subAgentShopRoutes');
 const gameRoutes = require('./routes/gameRoutes');
 const slipRoutes = require('./routes/slipsRoutes');
 const dailyReportRoutes = require('./routes/dailyReportRoutes');
@@ -30,8 +32,8 @@ app.use(express.json());
 // Use cors middleware
 app.use(cors({ origin: '*' }));
 
-// schedule.scheduleJob('0 44 23 * * * ', async function (){
-schedule.scheduleJob('0 50 16 * * * ', async function (){
+// schedule.scheduleJob('0 50 16 * * * ', async function (){
+schedule.scheduleJob('0 44 23 * * * ', async function (){
   console.log('The answer to life, the universe, and everything!');
   const todayData = await generateDailyReport(getCurrentDate());
   console.log('Today report is generated!');
@@ -46,6 +48,8 @@ app.use('/bettest', bettest);
 // app.get('/user', userRoutes);
 app.use('/admin', adminRoutes);
 app.use('/shop-owners', shopOwnersRoutes);
+app.use('/sub-agents', subAgentRoutes);
+app.use('/sub-agent-shops', subAgentShopRoutes);
 app.use('/shop', shopRoutes);
 app.use('/cashiers', cashierRoutes);
 app.use('/game', gameRoutes);
