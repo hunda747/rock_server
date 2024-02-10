@@ -6,7 +6,7 @@ const subAgentController = require('../controllers/SubAgentController');
 // Routes for sub-agents
 router.post('/', subAgentController.createSubAgent);
 router.post('/login', subAgentController.login);
-router.post('/changePassword', subAgentController.changePassword);
+router.post('/changePassword/:id', subAgentController.changePassword);
 router.post('/changeOwnPassword', subAgentController.changeOwnPassword);
 router.get('/', subAgentController.getAllSubAgents);
 router.get('/:id', subAgentController.getSubAgentById);
