@@ -37,7 +37,7 @@ const createSubAgent = async (req, res) => {
 // Get all sub-agents
 const getAllSubAgents = async (req, res) => {
   try {
-    const subAgents = await SubAgent.query().withGraphFetched('sub_agent_shops').withGraphFetched('sub_agent_shops.[shop]');
+    const subAgents = await SubAgent.query().withGraphFetched('sub_agent_shops').withGraphFetched('sub_agent_shops.[shop]').withGraphFetched('owner');
 
     res.json(subAgents);
   } catch (error) {
@@ -50,7 +50,7 @@ const getAllSubAgents = async (req, res) => {
 const getSubAgentById = async (req, res) => {
   const { id } = req.params;
   try {
-    const subAgent = await SubAgent.query().findById(id);
+    const subAgent = await SubAgent.query().findById(id).withGraphFetched('sub_agent_shops').withGraphFetched('sub_agent_shops.[shop]').withGraphFetched('owner');
     if (!subAgent) {
       return res.status(404).json({ error: 'Sub-agent not found' });
     }
@@ -65,7 +65,7 @@ const getSubAgentById = async (req, res) => {
 const getSubAgentByShopOwner = async (req, res) => {
   const { id } = req.params;
   try {
-    const subAgent = await SubAgent.query().where({ shopOwnerId: id });
+    const subAgent = await SubAgent.query().where({ shopOwnerId: id }).withGraphFetched('sub_agent_shops').withGraphFetched('sub_agent_shops.[shop]').withGraphFetched('owner');
     if (!subAgent) {
       return res.status(404).json({ error: 'Sub-agent not found' });
     }
@@ -101,7 +101,7 @@ const getCashiersBySubAgentId = async (req, res) => {
 // Update a sub-agent by ID
 const updateSubAgentById = async (req, res) => {
   const { id } = req.params;
-  const { name, username, shops } = req.body;
+  const { name, username, shops, status } = req.body;
   console.log(shops);
   console.log(shops.length);
   console.log(shops && shops.length);
@@ -112,7 +112,8 @@ const updateSubAgentById = async (req, res) => {
       console.log('fetch', item);
       const subAgentShop = await SubAgentShop.query().insert({
         "shopId": item,
-        "subAgentId": subAgent.id
+        "subAgentId": subAgent.id,
+        status: status
       })
     })
 
@@ -140,7 +141,6 @@ const deleteSubAgentById = async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 };
-
 
 function generateAccessToken(adminId) {
   return jwt.sign({ adminId }, 'your_access_secret_key', { expiresIn: '15m' });
@@ -175,9 +175,34 @@ const login = async (req, res) => {
   }
 }
 
-const changePassword = (req, res) => {
+const changeOwnPassword = (req, res) => {
   req.model = SubAgent; // Set the model for the AuthController
   AuthController.changePassword(req, res);
+}
+
+const changePassword = async (req, res) => {
+  const { id } = req.params;
+  const { newPassword } = req.body;
+
+  try {
+    // Fetch the user from the database (either a shop owner or a cashier)
+    const user = await SubAgent.query().findById(id);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update the user's password in the database
+    await SubAgent.query().patch({ password: hashedPassword }).where("id", id);
+
+    res.json({ message: "Password changed successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 }
 
 const verifyAccessToken = (req, res, next) => {
@@ -218,5 +243,6 @@ module.exports = {
   deleteSubAgentById,
   getCashiersBySubAgentId,
   changePassword,
+  changeOwnPassword,
   login
 };
