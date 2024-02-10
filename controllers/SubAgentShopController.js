@@ -15,7 +15,7 @@ const createSubAgentShop = async (req, res) => {
 // Get all records connecting sub-agents with shops
 const getAllSubAgentShops = async (req, res) => {
   try {
-    const subAgentShops = await SubAgentShop.query();
+    const subAgentShops = await SubAgentShop.query().withGraphFetched('shop').withGraphFetched('subAgent');
     res.json(subAgentShops);
   } catch (error) {
     console.error(error);

@@ -1,5 +1,6 @@
 // subAgentController.js
 const SubAgent = require('../models/subAgent'); // Import your SubAgent model
+const SubAgentShop = require('../models/subAgentShop'); // Import your SubAgent model
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
@@ -13,7 +14,19 @@ const createSubAgent = async (req, res) => {
     const hashedPassword = await bcrypt.hash(adminData.password, 10);
     adminData.password = hashedPassword;
 
+    const shops = adminData?.shops || [];
+    delete adminData.shops;
+
     const subAgent = await SubAgent.query().insert(adminData);
+    shops.map(async (item) => {
+      console.log(item);
+      console.log('fetch', item);
+      const subAgentShop = await SubAgentShop.query().insert({
+        "shopId": item,
+        "subAgentId": subAgent.id
+      })
+    })
+
     res.status(201).json(subAgent);
   } catch (error) {
     console.error(error);
@@ -24,7 +37,8 @@ const createSubAgent = async (req, res) => {
 // Get all sub-agents
 const getAllSubAgents = async (req, res) => {
   try {
-    const subAgents = await SubAgent.query();
+    const subAgents = await SubAgent.query().withGraphFetched('sub_agent_shops').withGraphFetched('sub_agent_shops.[shop]');
+
     res.json(subAgents);
   } catch (error) {
     console.error(error);
@@ -87,8 +101,21 @@ const getCashiersBySubAgentId = async (req, res) => {
 // Update a sub-agent by ID
 const updateSubAgentById = async (req, res) => {
   const { id } = req.params;
+  const { name, username, shops } = req.body;
+  console.log(shops);
+  console.log(shops.length);
+  console.log(shops && shops.length);
   try {
-    const subAgent = await SubAgent.query().patchAndFetchById(id, req.body);
+    const subAgent = await SubAgent.query().patchAndFetchById(id, { name: name, username: username });
+    shops.map(async (item) => {
+      console.log(item);
+      console.log('fetch', item);
+      const subAgentShop = await SubAgentShop.query().insert({
+        "shopId": item,
+        "subAgentId": subAgent.id
+      })
+    })
+
     if (!subAgent) {
       return res.status(404).json({ error: 'Sub-agent not found' });
     }
