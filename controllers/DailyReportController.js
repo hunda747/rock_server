@@ -101,6 +101,7 @@ const generateDailyReport = async (reportDate, res) => {
               shopId: cashier.shopId,
               shopOwnerId: cashier.shop.shopOwnerId,
               totalTickets: tickets,
+              active: parseInt(tickets) > 0,
               totalStake: stake,
               totalPayout: payout,
               totalPayoutCount: payoutCount,
@@ -127,6 +128,7 @@ const generateDailyReport = async (reportDate, res) => {
             shopId: cashier.shopId,
             shopOwnerId: cashier.shop.shopOwnerId,
             totalTickets: tickets,
+            active: parseInt(tickets) > 0,
             totalStake: stake,
             totalPayout: payout,
             totalPayoutCount: payoutCount,
@@ -302,6 +304,7 @@ const generateCashierReport = async (req, res) => {
     let query = DailyReport.query().select(
       "shopId",
       "shopOwnerId",
+      "active",
       DailyReport.raw("SUM(totalTickets) as totalTickets"),
       DailyReport.raw("SUM(totalStake) as totalStake"),
       DailyReport.raw("SUM(totalPayout) as totalPayout"),
@@ -376,6 +379,7 @@ const generateSubAgentCashierReport = async (req, res) => {
       .where("sub_agent_shops.subAgentId", subAgentId).select(
         "daily_reports.shopId",
         "daily_reports.shopOwnerId",
+        "active",
         DailyReport.raw("SUM(totalTickets) as totalTickets"),
         DailyReport.raw("SUM(totalStake) as totalStake"),
         DailyReport.raw("SUM(totalPayout) as totalPayout"),
@@ -441,6 +445,7 @@ const generateShopReport = async (req, res) => {
       "shopOwnerId",
       DailyReport.raw("SUM(totalTickets) as totalTickets"),
       DailyReport.raw("SUM(totalStake) as totalStake"),
+      DailyReport.raw("COUNT(DISTINCT CASE WHEN active THEN cashierId END) as activeShops"),
       DailyReport.raw("SUM(totalPayout) as totalPayout"),
       DailyReport.raw("SUM(totalPayoutCount) as totalPayoutCount"),
       DailyReport.raw("SUM(totalUnclaimed) as totalUnclaimed"),
@@ -515,6 +520,7 @@ const generateShopAgentReport = async (req, res) => {
       .select(
         "daily_reports.shopId",
         "daily_reports.shopOwnerId",
+        "active",
         DailyReport.raw("SUM(totalTickets) as totalTickets"),
         DailyReport.raw("SUM(totalStake) as totalStake"),
         DailyReport.raw("SUM(totalPayout) as totalPayout"),

@@ -10,7 +10,8 @@ const oddsTable = require("../odd/kiron");
 
 const slipController = {
   getAllSlips: async (req, res, next) => {
-    const { shopId, shopOwnerId, gameType, status, startDate, endDate } = req.body;
+    const { shopId, shopOwnerId, gameType, status, startDate, endDate } =
+      req.body;
     try {
       let query = Slip.query();
 
@@ -91,7 +92,7 @@ const slipController = {
 
   createSlip: async (req, res, next) => {
     const param = req.body;
-    console.log("param", param);
+    // console.log("param", param);
 
     // Update the current game with the drawn number
     const currentGame = await Game.query()
@@ -104,13 +105,27 @@ const slipController = {
       return res.status(404).json({ message: "Game Closed." });
     }
 
-    const cashier = await Cashier.query().findById(param.cashier);
+    const cashier = await Cashier.query()
+      .findById(param.cashier)
+      .withGraphFetched("shop");
+    
     if (cashier.cashierLimit < cashier.netWinning) {
       return res.status(200).json({
         error: "Cashier limit reached. Please contact the admin.",
         status: "error",
-        err: "true"
+        err: "true",
       });
+    }
+
+    if (!cashier.status || cashier.shop?.status === "inactive") {
+      return res
+        .status(200)
+        .json({
+          error: "Account is blocked",
+          status: "error",
+          err: "true",
+          errText: "logout",
+        });
     }
 
     // console.log("param:", param.numberPick);
@@ -149,7 +164,6 @@ const slipController = {
             const oddsEntry = oddsTable[param.oddType][numberOfSelections];
 
             if (oddsEntry) {
-              console.log(oddsEntry);
               const modd = oddsEntry[numberOfSelections - 1];
               // Calculate the stake for the current pick based on the odds table
 
@@ -167,12 +181,27 @@ const slipController = {
         for (const pick of param.numberPick) {
           const numberOfSelections = pick.val.length;
           totalStake += pick.stake;
-          if (isNaN(pick?.val[0])) {
+          if(pick.market == "Color" || pick.market === "OddEven" || pick.market === "HighLow") {
             pick.odd = 2;
-            // Update minWin and maxWin based on the stake
-            minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin; // Assuming the minimum win is the same as the stake
+            minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin;
             maxWin += pick.stake * 2;
-          } else {
+          } else if (pick.market == "Column" || pick.market === "Dozens") {
+            pick.odd = 3;
+            minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin;
+            maxWin += pick.stake * 3;
+          } else if (pick.market == "Sectors") {
+            pick.odd = 6;
+            minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin;
+            maxWin += pick.stake * 6;
+          } else if (pick.market == "Neighbors") {
+            pick.odd = 7;
+            minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin;
+            maxWin += pick.stake * 7;
+          } else if (pick.market == "Corner") {
+            pick.odd = 9;
+            minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin;
+            maxWin += pick.stake * 9;
+          } else if(!isNaN(pick?.val[0])) {
             pick.odd = 36 / numberOfSelections;
             // Update minWin and maxWin based on the stake
             minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin; // Assuming the minimum win is the same as the stake
@@ -184,6 +213,34 @@ const slipController = {
         return res
           .status(404)
           .json({ message: "Game Type not found.", err: "true" });
+      }
+
+      if (cashier.shop?.minStake > totalStake) {
+        return res
+          .status(200)
+          .json({
+            error: `Minimus stake is ${cashier.shop?.minStake}.`,
+            status: "error",
+            err: "true",
+          });
+      }
+      if (cashier.shop?.maxStake < totalStake) {
+        return res
+          .status(200)
+          .json({
+            error: `Maximus stake is ${cashier.shop?.maxStake}.`,
+            status: "error",
+            err: "true",
+          });
+      }
+      if (50000 < maxWin) {
+        return res
+          .status(200)
+          .json({
+            error: `Maximus win allowed is ${50000}.`,
+            status: "error",
+            err: "true",
+          });
       }
 
       const slip = await Slip.query().insert({
@@ -242,7 +299,9 @@ const slipController = {
         totalStake: slip.totalStake,
         user: JSON.parse(slip.numberPick),
         showOwnerId: slipController.showOwner,
-        ...(((cashier.cashierLimit - 500) < cashier.netWinning) && { limitwarning: 'Almost reach cashier limit!' }),
+        ...(cashier.cashierLimit - 500 < cashier.netWinning && {
+          limitwarning: "Almost reach cashier limit!",
+        }),
         agent: "agent",
         by: "cashier",
       });

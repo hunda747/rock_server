@@ -1,9 +1,9 @@
 // controllers/ShopOwnerController.js
-const ShopOwner = require('../models/ShopOwner');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const { v4: uuidv4 } = require('uuid');
-const AuthController = require('./AuthController');
+const ShopOwner = require("../models/ShopOwner");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const { v4: uuidv4 } = require("uuid");
+const AuthController = require("./AuthController");
 
 class ShopOwnerController {
   constructor() {
@@ -16,7 +16,9 @@ class ShopOwnerController {
   }
 
   generateAccessToken(shopOwnerId) {
-    return jwt.sign({ shopOwnerId }, 'your_access_secret_key', { expiresIn: '15m' });
+    return jwt.sign({ shopOwnerId }, "your_access_secret_key", {
+      expiresIn: "15m",
+    });
   }
 
   generateRefreshToken() {
@@ -30,7 +32,11 @@ class ShopOwnerController {
       const shopOwner = await ShopOwner.query().findOne({ username });
 
       if (!shopOwner || !(await bcrypt.compare(password, shopOwner.password))) {
-        return res.status(401).json({ error: 'Invalid credentials' });
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      if (!shopOwner.status) {
+        return res.status(401).json({ error: "Shop owner is Blocked!" });
       }
 
       // Generate tokens upon successful login
@@ -39,12 +45,12 @@ class ShopOwnerController {
 
       // Store the refresh token (you may want to store it securely in a database)
       // For demonstration purposes, we're just attaching it to the response header
-      res.header('Refresh-Token', refreshToken);
+      res.header("Refresh-Token", refreshToken);
 
       res.json({ accessToken, refreshToken, id: shopOwner.id, shopOwner });
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: "Internal Server Error" });
     }
   }
 
@@ -56,32 +62,34 @@ class ShopOwnerController {
       const user = await ShopOwner.query().findById(id);
 
       if (!user) {
-        return res.status(404).json({ error: 'User not found' });
+        return res.status(404).json({ error: "User not found" });
       }
 
       // Hash the new password
       const hashedPassword = await bcrypt.hash(newPassword, 10);
 
       // Update the user's password in the database
-      await ShopOwner.query().patch({ password: hashedPassword }).where('id', id);
+      await ShopOwner.query()
+        .patch({ password: hashedPassword })
+        .where("id", id);
 
-      res.json({ message: 'Password changed successfully' });
+      res.json({ message: "Password changed successfully" });
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: "Internal Server Error" });
     }
   }
 
   verifyAccessToken(req, res, next) {
-    const token = req.headers['authorization']?.split(' ')[1];
+    const token = req.headers["authorization"]?.split(" ")[1];
 
     if (!token) {
-      return res.status(401).json({ error: 'Access token not provided' });
+      return res.status(401).json({ error: "Access token not provided" });
     }
 
-    jwt.verify(token, 'your_access_secret_key', (err, decoded) => {
+    jwt.verify(token, "your_access_secret_key", (err, decoded) => {
       if (err) {
-        return res.status(403).json({ error: 'Invalid access token' });
+        return res.status(403).json({ error: "Invalid access token" });
       }
 
       req.shopOwnerId = decoded.shopOwnerId;
@@ -93,7 +101,7 @@ class ShopOwnerController {
     try {
       // You may want to store and verify the refresh token securely
       // For demonstration purposes, we're just verifying it using jwt.verify
-      const decoded = jwt.verify(refreshToken, 'your_refresh_secret_key');
+      const decoded = jwt.verify(refreshToken, "your_refresh_secret_key");
       return decoded;
     } catch (error) {
       console.error(error);
@@ -109,16 +117,18 @@ class ShopOwnerController {
       const decodedRefreshToken = this.verifyRefreshToken(refreshToken);
 
       if (!decodedRefreshToken) {
-        return res.status(401).json({ error: 'Invalid refresh token' });
+        return res.status(401).json({ error: "Invalid refresh token" });
       }
 
       // Generate a new access token
-      const newAccessToken = this.generateAccessToken(decodedRefreshToken.shopOwnerId);
+      const newAccessToken = this.generateAccessToken(
+        decodedRefreshToken.shopOwnerId
+      );
 
       res.json({ accessToken: newAccessToken });
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: "Internal Server Error" });
     }
   }
 
@@ -128,7 +138,7 @@ class ShopOwnerController {
       res.json(shopOwners);
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: "Internal Server Error" });
     }
   }
 
@@ -139,11 +149,11 @@ class ShopOwnerController {
       if (shopOwner) {
         res.json(shopOwner);
       } else {
-        res.status(404).json({ error: 'Shop Owner not found' });
+        res.status(404).json({ error: "Shop Owner not found" });
       }
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: "Internal Server Error" });
     }
   }
 
@@ -159,7 +169,7 @@ class ShopOwnerController {
       res.json(newShopOwner);
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: "Internal Server Error" });
     }
   }
 
@@ -167,15 +177,18 @@ class ShopOwnerController {
     const { id } = req.params;
     const updatedData = req.body;
     try {
-      const updatedShopOwner = await ShopOwner.query().patchAndFetchById(id, updatedData);
+      const updatedShopOwner = await ShopOwner.query().patchAndFetchById(
+        id,
+        updatedData
+      );
       if (updatedShopOwner) {
         res.json(updatedShopOwner);
       } else {
-        res.status(404).json({ error: 'Shop Owner not found' });
+        res.status(404).json({ error: "Shop Owner not found" });
       }
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: "Internal Server Error" });
     }
   }
 
@@ -184,13 +197,13 @@ class ShopOwnerController {
     try {
       const deletedCount = await ShopOwner.query().deleteById(id);
       if (deletedCount > 0) {
-        res.json({ message: 'Shop Owner deleted successfully' });
+        res.json({ message: "Shop Owner deleted successfully" });
       } else {
-        res.status(404).json({ error: 'Shop Owner not found' });
+        res.status(404).json({ error: "Shop Owner not found" });
       }
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ error: "Internal Server Error" });
     }
   }
 }

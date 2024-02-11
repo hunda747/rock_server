@@ -11,7 +11,7 @@ router.post('/changeOwnPassword', subAgentController.changeOwnPassword);
 router.get('/', subAgentController.getAllSubAgents);
 router.get('/:id', subAgentController.getSubAgentById);
 router.put('/:id', subAgentController.updateSubAgentById);
-router.get('/getCashiers/:subAgentId', subAgentController.getCashiersBySubAgentId);
+router.get('/getCashiers/:subAgentId', subAgentController.getCashierssBySubAgentId);
 router.delete('/:id', subAgentController.deleteSubAgentById);
 
 module.exports = router;

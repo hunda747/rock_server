@@ -13,6 +13,7 @@ exports.up = function (knex) {
     table.integer('shopOwnerId').unsigned();
     table.foreign('shopOwnerId').references('shop_owners.id');
     table.integer('totalTickets').defaultTo(0);
+    table.boolean('active').defaultTo(false);
     table.decimal('totalStake', 10, 2).defaultTo(0);
     table.decimal('totalPayout', 10, 2).defaultTo(0);
     table.decimal('totalPayoutCount').defaultTo(0);

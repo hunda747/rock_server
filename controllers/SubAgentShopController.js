@@ -81,7 +81,7 @@ const deleteSubAgentShopById = async (req, res) => {
     if (deletedCount === 0) {
       return res.status(404).json({ error: 'Record not found' });
     }
-    res.status(204).end();
+    res.status(204).json({ error: 'Record Delleted!' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
