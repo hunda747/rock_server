@@ -619,7 +619,7 @@ function convertToRebalancedFormat(slip) {
     user: numberPick.map((selection) => ({
       odd: selection.odd,
       stake: selection.stake,
-      selection: selection.selection,
+      selection: selection.selection || selection.val,
     })),
   };
 }

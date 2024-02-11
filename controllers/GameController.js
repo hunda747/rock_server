@@ -291,18 +291,26 @@ const GameController = {
       }
 
       const drawnNumber = JSON.parse(currentGame?.pickedNumbers)?.selection;
-      if (!drawnNumber || !Array.isArray(drawnNumber)) {
+      console.log('dd', drawnNumber);
+      if (!drawnNumber || !(drawnNumber)) {
         return res.status(500).json({ message: "Invalid drawn numbers." });
+      }
+
+      let drawn = [];
+      if(!Array.isArray(drawnNumber)){
+        drawn.push(drawnNumber)
+      }else{
+        drawn = drawnNumber
       }
 
       console.log("draw", drawnNumber);
 
       const resultObject = {
         err: "false",
-        ...drawnNumber.reduce((acc, number, index) => {
+        ...drawn?.reduce((acc, number, index) => {
           acc[index + 1] = number;
           return acc;
-        }, {}),
+        }, {}) || drawnNumber,
         21: currentGame.gameNumber,
         22: currentGame.gameNumber, // Assuming gameId is what you want for "21" and "22"
         0: currentGame.gameType,
