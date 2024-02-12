@@ -23,7 +23,7 @@ const adminController = require('./controllers/AdminController');
 const CashierController = require('./controllers/CashierController');
 const errorHandler = require('./middleware/errorHandlerMiddleware');
 
-var schedule = require('node-schedule');  
+var schedule = require('node-schedule');
 const { generateDailyReport, getCurrentDate } = require('./controllers/DailyReportController');
 
 // Middleware to parse JSON requests
@@ -33,7 +33,9 @@ app.use(express.json());
 app.use(cors({ origin: '*' }));
 
 // schedule.scheduleJob('0 50 16 * * * ', async function (){
-schedule.scheduleJob('0 44 23 * * * ', async function (){
+// schedule.scheduleJob('0 44 23 * * * ', async function (){
+schedule.scheduleJob({ hour: 23, minute: 44, second: 0, tz: 'Africa/Nairobi' }, async function () {
+  // schedule.scheduleJob({ hour: 22, minute: 52, second: 0, tz: 'Africa/Nairobi' }, async function () {
   console.log('The answer to life, the universe, and everything!');
   const todayData = await generateDailyReport(getCurrentDate());
   console.log('Today report is generated!');
