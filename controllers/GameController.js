@@ -216,8 +216,8 @@ const GameController = {
           headsCount > tailsCount
             ? "heads"
             : tailsCount > headsCount
-            ? "tails"
-            : "evens";
+              ? "tails"
+              : "evens";
         // Update the pickedNumbers field with the drawn number
         await currentGame.$query().patch({
           pickedNumbers: JSON.stringify({ selection: drawnNumber }),
@@ -297,9 +297,9 @@ const GameController = {
       }
 
       let drawn = [];
-      if(!Array.isArray(drawnNumber)){
+      if (!Array.isArray(drawnNumber)) {
         drawn.push(drawnNumber)
-      }else{
+      } else {
         drawn = drawnNumber
       }
 
@@ -744,7 +744,7 @@ const calculateSlipWiningNumbers = async (
         if (pick?.val[0] === winner?.oddEven) {
           ticketWin += pick.stake * pick.odd;
         }
-      } else if (pick.market === "Column") {
+      } else if (pick.market === "Color") {
         if (pick?.val[0] === winner?.color) {
           ticketWin += pick.stake * pick.odd;
         }
