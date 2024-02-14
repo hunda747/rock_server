@@ -300,21 +300,36 @@ const GameController = {
       if (!Array.isArray(drawnNumber)) {
         drawn.push(drawnNumber)
       } else {
-        drawn = drawnNumber
+        drawn = null
       }
-
-      console.log("draw", drawnNumber);
-
-      const resultObject = {
-        err: "false",
-        ...drawn?.reduce((acc, number, index) => {
-          acc[index + 1] = number;
-          return acc;
-        }, {}) || drawnNumber,
-        21: currentGame.gameNumber,
-        22: currentGame.gameNumber, // Assuming gameId is what you want for "21" and "22"
-        0: currentGame.gameType,
-      };
+      
+      
+      let resultObject = null;
+      if(!Array.isArray(drawn)){
+        console.log("draw", drawn);
+        resultObject = {
+         err: "false",
+         ...drawn?.reduce((acc, number, index) => {
+           acc[index + 1] = number;
+           return acc;
+         }, {}) || drawnNumber,
+         21: currentGame.gameNumber,
+         22: currentGame.gameNumber, // Assuming gameId is what you want for "21" and "22"
+         0: currentGame.gameType,
+        };
+      } else {
+        console.log("draw", drawnNumber);
+        const winc = determineAllWinners(drawnNumber);
+        resultObject = {
+          err: 'false',
+          1: drawnNumber,
+          2: (winc.color),
+          3: (winc.oddEven),
+          21: currentGame.gameNumber,
+          22: currentGame.gameNumber, // Assuming gameId is what you want for "21" and "22"
+          0: currentGame.gameType,
+        }
+      }
       res.status(200).send(resultObject);
     } catch (error) {
       console.error("Error getting current game result:", error);
