@@ -108,7 +108,7 @@ const slipController = {
     const cashier = await Cashier.query()
       .findById(param.cashier)
       .withGraphFetched("shop");
-    
+
     if (cashier.cashierLimit < cashier.netWinning) {
       return res.status(200).json({
         error: "Cashier limit reached. Please contact the admin.",
@@ -181,7 +181,7 @@ const slipController = {
         for (const pick of param.numberPick) {
           const numberOfSelections = pick.val.length;
           totalStake += pick.stake;
-          if(pick.market == "Color" || pick.market === "OddEven" || pick.market === "HighLow") {
+          if (pick.market == "Color" || pick.market === "OddEven" || pick.market === "HighLow") {
             pick.odd = 2;
             minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin;
             maxWin += pick.stake * 2;
@@ -201,7 +201,7 @@ const slipController = {
             pick.odd = 9;
             minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin;
             maxWin += pick.stake * 9;
-          } else if(!isNaN(pick?.val[0])) {
+          } else if (!isNaN(pick?.val[0])) {
             pick.odd = 36 / numberOfSelections;
             // Update minWin and maxWin based on the stake
             minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin; // Assuming the minimum win is the same as the stake
@@ -347,7 +347,7 @@ const slipController = {
         const updateSlip = await Slip.query().patchAndFetchById(id, {
           status: "redeemed",
         });
-        res.status(200).json({ err: "false" });
+        res.status(200).json({ err: "false", data: updateSlip });
       } else {
         res.status(404).json({ error: "Slip not found 3" });
       }
