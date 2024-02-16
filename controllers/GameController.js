@@ -503,43 +503,43 @@ const GameController = {
 };
 
 const generateRandomNumbers = async (gameNumber) => {
-  // const tickets = await Ticket.query()
-  //   .where("gameId", gameNumber)
-  //   .whereNot("status", "canceled");
+  const tickets = await Ticket.query()
+    .where("gameId", gameNumber)
+    .whereNot("status", "canceled");
 
-  // const picks = [];
+  const picks = [];
 
-  // // if (!tickets) {
-  // //   return false;
-  // // }
-
-  // // Iterate through each ticket
-  // for (const ticket of tickets) {
-  //   const ticketPicks = JSON.parse(ticket.numberPick);
-
-  //   for (const pick of ticketPicks) {
-  //     let newpick = {};
-  //     newpick.coinsPlaced = pick.stake;
-  //     newpick.selectedNumbers = pick.selection;
-  //     picks.push(newpick);
-  //   }
+  // if (!tickets) {
+  //   return false;
   // }
 
-  // console.log("picks", picks);
-  // const weight = calculateWeights(picks);
-  // const drawnnumber = drawTwoUniqueNumbers(weight, 20);
-  // console.log("ወኢግህት", drawnnumber);
+  // Iterate through each ticket
+  for (const ticket of tickets) {
+    const ticketPicks = JSON.parse(ticket.numberPick);
 
-  const drawnnumber = [];
-
-  while (drawnnumber.length < 20) {
-    const randomNum = Math.floor(Math.random() * 80) + 1;
-
-    // Ensure the number is not already in the array
-    if (!drawnnumber.includes(randomNum)) {
-      drawnnumber.push(randomNum);
+    for (const pick of ticketPicks) {
+      let newpick = {};
+      newpick.coinsPlaced = pick.stake;
+      newpick.selectedNumbers = pick.selection;
+      picks.push(newpick);
     }
   }
+
+  console.log("picks", picks);
+  const weight = calculateWeights(picks);
+  const drawnnumber = drawTwoUniqueNumbers(weight, 20);
+  console.log("ወኢግህት", drawnnumber);
+
+  // const drawnnumber = [];
+
+  // while (drawnnumber.length < 20) {
+  //   const randomNum = Math.floor(Math.random() * 80) + 1;
+
+  //   // Ensure the number is not already in the array
+  //   if (!drawnnumber.includes(randomNum)) {
+  //     drawnnumber.push(randomNum);
+  //   }
+  // }
 
   return drawnnumber;
 };
