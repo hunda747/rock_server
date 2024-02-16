@@ -10,6 +10,7 @@ router.get('/:id', shopOwnerController.getById);
 router.post('/', shopOwnerController.create);
 router.post('/login', shopOwnerController.login);
 router.post('/changePassword', shopOwnerController.changePassword);
+router.post('/changeOwnPassword', shopOwnerController.changeOwnPassword);
 router.post('/refresh', shopOwnerController.refreshToken);
 router.put('/:id', shopOwnerController.update);
 router.delete('/:id', shopOwnerController.delete);
