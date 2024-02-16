@@ -215,14 +215,14 @@ function simulateGame(players, numDrawnNumbers = 2) {
   return { drawnNumbers, totalCoinsPlaced, totalWinnings };
 }
 
-// Simulate the game and get the result
-const gameResult = simulateGame(players, 3);
+// // Simulate the game and get the result
+// const gameResult = simulateGame(players, 3);
 
-// Display the result and player details
-console.log(`Drawn Numbers: ${gameResult.drawnNumbers.join(', ')}`);
-console.log(`Total Coins Placed: ${gameResult.totalCoinsPlaced}`);
-console.log(`Total Winnings: ${gameResult.totalWinnings}`);
-console.log(`Total Net: ${gameResult.totalCoinsPlaced - gameResult.totalWinnings}`);
-players.forEach((player, index) => {
-  console.log(`Player ${index + 1}: Selected ${player.selectedNumbers}, Placed Bet ${player.coinsPlaced}, Winnings ${player.winnings}, Net ${player.winnings - player.coinsPlaced}`);
-});
+// // Display the result and player details
+// console.log(`Drawn Numbers: ${gameResult.drawnNumbers.join(', ')}`);
+// console.log(`Total Coins Placed: ${gameResult.totalCoinsPlaced}`);
+// console.log(`Total Winnings: ${gameResult.totalWinnings}`);
+// console.log(`Total Net: ${gameResult.totalCoinsPlaced - gameResult.totalWinnings}`);
+// players.forEach((player, index) => {
+//   console.log(`Player ${index + 1}: Selected ${player.selectedNumbers}, Placed Bet ${player.coinsPlaced}, Winnings ${player.winnings}, Net ${player.winnings - player.coinsPlaced}`);
+// });

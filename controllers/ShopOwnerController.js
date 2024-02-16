@@ -81,7 +81,8 @@ class ShopOwnerController {
   }
 
   async changeOwnPassword(req, res) {
-    const { id, oldPassword, newPassword } = req.body;
+    const {id} = req.params;
+    const { oldPassword, newPassword } = req.body;
     console.log(id);
     try {
       // Fetch the user from the database (either a shop owner or a cashier)

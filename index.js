@@ -45,8 +45,8 @@ schedule.scheduleJob({ hour: 23, minute: 44, second: 0, tz: 'Africa/Nairobi' }, 
 app.get('/', async (req, res) => {
   res.json('welcome');
 });
-app.use('/bet', bet);
-app.use('/bettest', bettest);
+// app.use('/bet', bet);
+// app.use('/bettest', bettest);
 // app.get('/user', userRoutes);
 app.use('/admin', adminRoutes);
 app.use('/shop-owners', shopOwnersRoutes);
