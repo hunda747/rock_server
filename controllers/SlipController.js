@@ -373,6 +373,7 @@ const slipController = {
             }
           } else{
             for (const pick of ticketPicks) {
+              const winningNumbers = JSON.parse(game.pickedNumbers).selection;
               const numberOfSelections = pick.selection.length;
 
               if (typeof pick?.selection[0] === "string") {
@@ -390,7 +391,11 @@ const slipController = {
                   );
                   
                   if (oddsEntry && actualWinnings) {
-                  winnerPick.push(pick);
+                    
+          const modd = oddsEntry[actualWinnings - 1];
+                    if(pick.stake * Object.values(modd)[0]){
+                      winnerPick.push(pick);
+                    }
                 }
               }
             }
