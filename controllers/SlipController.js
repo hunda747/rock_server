@@ -379,7 +379,7 @@ const slipController = {
               if (typeof pick?.selection[0] === "string") {
                 if (game.winner === "evens" && pick?.selection[0] === game.winner) {
                   winnerPick.push(pick);
-                } else if (pick?.selection[0] === winner) {
+                } else if (pick?.selection[0] === game.winner) {
                   winnerPick.push(pick);
                 }
               } else {
