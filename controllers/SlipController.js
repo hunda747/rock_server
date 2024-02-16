@@ -347,9 +347,58 @@ const slipController = {
         const updateSlip = await Slip.query().patchAndFetchById(id, {
           status: "redeemed",
         });
-        res.status(200).json({ err: "false", data: updateSlip });
+        const game = await Game.query().findById(updatedSlip.gameId);
+          const ticketPicks = JSON.parse(updateSlip.numberPick);
+          // Initialize variables for each ticket
+          let ticketWin = 0;
+          let winnerPick = [];
+          if(updateSlip.gameType === "spin"){
+            const winningNumbers = JSON.parse(game.pickedNumbers).selection;
+            const winner = determineAllWinners(winningNumbers)
+            for (const pick of ticketPicks) {
+              if (pick.market === "OddEven") {
+                if (pick?.val[0] === winner?.oddEven) {
+                  winnerPick.push(pick);
+                }
+              } else if (pick.market === "Color") {
+                if (pick?.val[0] === winner?.color) {
+                  winnerPick.push(pick);
+                }
+              } else {
+                console.log("numbers", winningNumbers);
+                if (pick.val.map(Number).includes(winningNumbers)) {
+                  winnerPick.push(pick);
+                }
+              }
+            }
+          } else{
+            for (const pick of ticketPicks) {
+              const numberOfSelections = pick.selection.length;
+
+              if (typeof pick?.selection[0] === "string") {
+                if (game.winner === "evens" && pick?.selection[0] === game.winner) {
+                  winnerPick.push(pick);
+                } else if (pick?.selection[0] === winner) {
+                  winnerPick.push(pick);
+                }
+              } else {
+                const oddsEntry = oddsTable[updateSlip.oddType][numberOfSelections];
+                
+                const actualWinnings = countCorrectGuesses(
+                  pick.selection,
+                  winningNumbers
+                  );
+                  
+                  if (oddsEntry && actualWinnings) {
+                  winnerPick.push(pick);
+                }
+              }
+            }
+          }
+      
+        res.status(200).json({ err: "false", data: winnerPick });
       } else {
-        res.status(404).json({ error: "Slip not found 3" });
+        res.status(404).json({ error: "Slip not found" });
       }
     } catch (error) {
       console.log(error);
@@ -597,6 +646,15 @@ const slipController = {
   },
 };
 
+
+function countCorrectGuesses(userSelection, winningNumbers) {
+  // Implement logic to count the number of correct guesses between userSelection and winningNumbers
+  const correctGuesses = userSelection.filter((num) =>
+    winningNumbers.includes(num)
+  ).length;
+  return correctGuesses;
+}
+
 function convertToRebalancedFormat(slip) {
   const numberPick = JSON.parse(slip.numberPick);
   // console.log(slip);
@@ -623,5 +681,65 @@ function convertToRebalancedFormat(slip) {
     })),
   };
 }
+
+function determineWinningColors(drawnNumber) {
+  return numberToColorMap[drawnNumber];
+}
+
+// Function to determine winners for all groups based on the drawn number
+function determineAllWinners(drawnNumber) {
+  const allWinners = {};
+
+  // Check win option
+  allWinners.win = drawnNumber;
+
+  // Check color option
+  const drawnColors = determineWinningColors(drawnNumber);
+  allWinners.color = drawnColors[0];
+
+  // Check oddEven option
+  allWinners.oddEven = drawnNumber % 2 === 0 ? "EVN" : "ODD";
+
+  return allWinners;
+}
+
+const numberToColorMap = {
+  1: ["RED", "purple"],
+  2: ["BLK", "orange"],
+  3: ["RED", "white"],
+  4: ["BLK", "orange"],
+  5: ["RED", "purple"],
+  6: ["BLK", "blue"],
+  7: ["RED", "white"],
+  8: ["BLK", "pink"],
+  9: ["RED", "yellow"],
+  10: ["BLK", "pink"],
+  11: ["BLK", "pink"],
+  12: ["RED", "white"],
+  13: ["RLK", "blue"],
+  14: ["RED", "yellow"],
+  15: ["RLK", "orange"],
+  16: ["RED", "purple"],
+  17: ["RLK", "blue"],
+  18: ["RED", "yellow"],
+  19: ["RED", "orange"],
+  20: ["BLK", "purple"],
+  21: ["RED", "orange"],
+  22: ["BLK", "yellow"],
+  23: ["RED", "pink"],
+  24: ["BLK", "purple"],
+  25: ["RED", "blue"],
+  26: ["BLK", "orange"],
+  27: ["RED", "blue"],
+  28: ["BLK", "white"],
+  29: ["BLK", "yellow"],
+  30: ["RED", "pink"],
+  31: ["RLK", "yellow"],
+  32: ["RED", "orange"],
+  33: ["BLK", "purple"],
+  34: ["RED", "blue"],
+  35: ["BLK", "white"],
+  36: ["RED", "pink"],
+};
 
 module.exports = slipController;
