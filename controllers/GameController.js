@@ -839,7 +839,7 @@ const getLast100Games = async () => {
       .where("status", "done")
       .andWhere("gameType", "spin")
       .orderBy("time", "desc")
-      .limit(100);
+      .limit(200);
 
     const formattedGames = games.map((game) => {
       const { id, gameNumber, status, pickedNumbers } = game;
