@@ -303,20 +303,20 @@ const GameController = {
       } else {
         drawn = null
       }
-      
-      
+
+
       let resultObject = null;
-      if(!Array.isArray(drawn)){
+      if (!Array.isArray(drawn)) {
         console.log("draw", drawn);
         resultObject = {
-         err: "false",
-         ...drawn?.reduce((acc, number, index) => {
-           acc[index + 1] = number;
-           return acc;
-         }, {}) || drawnNumber,
-         21: currentGame.gameNumber,
-         22: currentGame.gameNumber, // Assuming gameId is what you want for "21" and "22"
-         0: currentGame.gameType,
+          err: "false",
+          ...drawn?.reduce((acc, number, index) => {
+            acc[index + 1] = number;
+            return acc;
+          }, {}) || drawnNumber,
+          21: currentGame.gameNumber,
+          22: currentGame.gameNumber, // Assuming gameId is what you want for "21" and "22"
+          0: currentGame.gameType,
         };
       } else {
         console.log("draw", drawnNumber);
@@ -602,7 +602,7 @@ function calculateWeights(players) {
 
   // Calculate base weight (average coins placed per number)
   const baseWeight = totalCoinsPlaced / allNumbers.length;
-    console.log(baseWeight);
+  console.log(baseWeight);
   // Return weights for all numbers
   return allNumbers.map((number) => ({
     value: number,
@@ -839,7 +839,7 @@ const getLast100Games = async () => {
       .where("status", "done")
       .andWhere("gameType", "spin")
       .orderBy("time", "desc")
-      .limit(10);
+      .limit(100);
 
     const formattedGames = games.map((game) => {
       const { id, gameNumber, status, pickedNumbers } = game;
