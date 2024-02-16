@@ -5,6 +5,7 @@ const Ticket = require("../models/slip");
 const Cashier = require("../models/cashier");
 const knex = require("knex");
 const oddsTable = require("../odd/kiron");
+const { generateSpinRandomNumbers } = require("../middleware/spinResult");
 
 const GameController = {
   constructor: () => {
@@ -186,12 +187,12 @@ const GameController = {
     const { gameNumber } = req.params;
     try {
       // Update the current game with the drawn number
-      const currentGame = await Game.query().where("id", gameNumber).first();
+      const currentGame = await Game.query().where("id", gameNumber).andWhere('gameType', 'keno').first();
 
       if (!currentGame) {
         return res.status(404).json({ message: "No active games currently." });
       }
-      console.log("result:", currentGame);
+      // console.log("result:", currentGame);
       let drawnNumber;
       if (!currentGame.pickedNumbers) {
         // Assume you have a function to draw the number and update the database
@@ -408,7 +409,8 @@ const GameController = {
       let drawnNumber;
       if (!currentGame.pickedNumbers) {
         // Assume you have a function to draw the number and update the database
-        drawnNumber = Math.floor(Math.random() * 37);
+        drawnNumber = await generateSpinRandomNumbers(gameNumber)
+        console.log('ddraw', drawnNumber);
 
         const winners = determineAllWinners(drawnNumber);
         console.log(winners);
@@ -507,11 +509,11 @@ const generateRandomNumbers = async (gameNumber) => {
 
   // const picks = [];
 
-  // if (!tickets) {
-  //   return false;
-  // }
+  // // if (!tickets) {
+  // //   return false;
+  // // }
 
-  // Iterate through each ticket
+  // // Iterate through each ticket
   // for (const ticket of tickets) {
   //   const ticketPicks = JSON.parse(ticket.numberPick);
 
@@ -544,11 +546,11 @@ const generateRandomNumbers = async (gameNumber) => {
 
 function drawTwoUniqueNumbers(weights, num = 20) {
   const drawnNumbers = new Set();
-  // console.log('weight', weights)
+  console.log('weight', weights)
   while (drawnNumbers.size < num) {
     const candidateNumber = weightedRandom(weights);
 
-    console.log("weight", candidateNumber);
+    // console.log("weight", candidateNumber);
     if (!drawnNumbers.has(candidateNumber)) {
       drawnNumbers.add(candidateNumber);
     }
@@ -570,13 +572,14 @@ function weightedRandom(weights) {
 }
 
 function calculateWeights(players) {
+  const scalingFactor = 0.2;
   // Create an array to store all possible numbers
   const allNumbers = Array.from({ length: 80 }, (_, i) => i + 1); // [1, 2, 3, 4, 5, 6]
 
   if (!players.length) {
     return allNumbers.map((number) => ({
       value: number,
-      weight: 0.1, // Lower weight for selected numbers
+      weight: 1, // Lower weight for selected numbers
     }));
   }
   // Initialize empty object to store total coins placed
@@ -599,11 +602,15 @@ function calculateWeights(players) {
 
   // Calculate base weight (average coins placed per number)
   const baseWeight = totalCoinsPlaced / allNumbers.length;
-
+    console.log(baseWeight);
   // Return weights for all numbers
   return allNumbers.map((number) => ({
     value: number,
-    weight: coinsSum[number] ? baseWeight / coinsSum[number] : baseWeight, // Lower weight for selected numbers
+    weight: (coinsSum[number] ? baseWeight / (coinsSum[number]) : baseWeight)
+    // weight: (coinsSum[number] ? baseWeight / (coinsSum[number] * baseWeight) : baseWeight)
+    // weight: (coinsSum[number] ? baseWeight / coinsSum[number] : baseWeight) * scalingFactor
+    // weight: Math.pow((coinsSum[number] ? baseWeight / coinsSum[number] : baseWeight), scalingFactor)
+    , // Lower weight for selected numbers
   }));
 }
 
