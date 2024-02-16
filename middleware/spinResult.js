@@ -54,7 +54,7 @@ function drawNumber(weights) {
 }
 
 function calculateWeights(players) {
-  const scalingFactor = 0.08;
+  const scalingFactor = 0.05;
   const allNumbers = Array.from({ length: 37 }, (_, i) => i);
 
   if (!players.length) {
