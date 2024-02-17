@@ -191,7 +191,7 @@ const GameController = {
   getCurrentGameResult: async (req, res) => {
     const { gameNumber } = req.params;
     // Use the mutex to protect the critical section of code
-    const release = await gameMutex.acquire();
+    // const release = await gameMutex.acquire();
     try {
       // Update the current game with the drawn number
       const currentGame = await Game.query().where("id", gameNumber).andWhere('gameType', 'keno').first();
@@ -284,7 +284,7 @@ const GameController = {
       return res.status(500).json({ message: "Internal server error." });
     } finally {
       // Release the lock when the critical section is done
-      release();
+      // release();
     }
   },
 
