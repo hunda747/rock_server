@@ -5,7 +5,12 @@ const Ticket = require("../models/slip");
 const Cashier = require("../models/cashier");
 const knex = require("knex");
 const oddsTable = require("../odd/kiron");
+
+const { Mutex } = require('async-mutex');
+const gameMutex = new Mutex();
+
 const { generateSpinRandomNumbers } = require("../middleware/spinResult");
+const { generateRandomNumbersKeno } = require("../middleware/kenoResult");
 
 const GameController = {
   constructor: () => {
@@ -185,6 +190,8 @@ const GameController = {
   // Controller
   getCurrentGameResult: async (req, res) => {
     const { gameNumber } = req.params;
+    // Use the mutex to protect the critical section of code
+    const release = await gameMutex.acquire();
     try {
       // Update the current game with the drawn number
       const currentGame = await Game.query().where("id", gameNumber).andWhere('gameType', 'keno').first();
@@ -196,7 +203,7 @@ const GameController = {
       let drawnNumber;
       if (!currentGame.pickedNumbers) {
         // Assume you have a function to draw the number and update the database
-        const numbers = await generateRandomNumbers(gameNumber);
+        const numbers = await generateRandomNumbersKeno(gameNumber);
         drawnNumber = numbers;
 
         let headsCount = 0;
@@ -275,66 +282,9 @@ const GameController = {
     } catch (error) {
       console.error("Error getting current game result:", error);
       return res.status(500).json({ message: "Internal server error." });
-    }
-  },
-
-  getGameRusult: async (req, res) => {
-    const { gameNumber } = req.params;
-    try {
-      // Update the current game with the drawn number
-      const currentGame = await Game.query()
-        .where("gameNumber", gameNumber)
-        .andWhere("status", "done")
-        .first();
-
-      if (!currentGame) {
-        return res.status(404).json({ message: "Game not found." });
-      }
-
-      const drawnNumber = JSON.parse(currentGame?.pickedNumbers)?.selection;
-      console.log('dd', drawnNumber);
-      if (!drawnNumber || !(drawnNumber)) {
-        return res.status(500).json({ message: "Invalid drawn numbers." });
-      }
-
-      let drawn = [];
-      if (!Array.isArray(drawnNumber)) {
-        drawn.push(drawnNumber)
-      } else {
-        drawn = null
-      }
-
-
-      let resultObject = null;
-      if (!Array.isArray(drawn)) {
-        console.log("draw", drawn);
-        resultObject = {
-          err: "false",
-          ...drawn?.reduce((acc, number, index) => {
-            acc[index + 1] = number;
-            return acc;
-          }, {}) || drawnNumber,
-          21: currentGame.gameNumber,
-          22: currentGame.gameNumber, // Assuming gameId is what you want for "21" and "22"
-          0: currentGame.gameType,
-        };
-      } else {
-        console.log("draw", drawnNumber);
-        const winc = determineAllWinners(drawnNumber);
-        resultObject = {
-          err: 'false',
-          1: drawnNumber,
-          2: (winc.color),
-          3: (winc.oddEven),
-          21: currentGame.gameNumber,
-          22: currentGame.gameNumber, // Assuming gameId is what you want for "21" and "22"
-          0: currentGame.gameType,
-        }
-      }
-      res.status(200).send(resultObject);
-    } catch (error) {
-      console.error("Error getting current game result:", error);
-      return res.status(500).json({ message: "Internal server error." });
+    } finally {
+      // Release the lock when the critical section is done
+      release();
     }
   },
 
@@ -491,7 +441,7 @@ const GameController = {
             .where("time", "<=", endOfDay);
         }
 
-        result = await query;
+        result = await query.limit(20);
       }
 
       res.status(200).json(result);
@@ -500,119 +450,68 @@ const GameController = {
       res.status(500).json({ error: "Internal Server Error" });
     }
   },
+
+  getGameRusult: async (req, res) => {
+    const { gameNumber } = req.params;
+    try {
+      // Update the current game with the drawn number
+      const currentGame = await Game.query()
+        .where("gameNumber", gameNumber)
+        .andWhere("status", "done")
+        .first();
+
+      if (!currentGame) {
+        return res.status(404).json({ message: "Game not found." });
+      }
+
+      const drawnNumber = JSON.parse(currentGame?.pickedNumbers)?.selection;
+      console.log('dd', drawnNumber);
+      if (!drawnNumber || !(drawnNumber)) {
+        return res.status(500).json({ message: "Invalid drawn numbers." });
+      }
+
+      let drawn = [];
+      if (!Array.isArray(drawnNumber)) {
+        drawn.push(drawnNumber)
+      } else {
+        drawn = null
+      }
+
+
+      let resultObject = null;
+      if (!Array.isArray(drawn)) {
+        console.log("draw", drawn);
+        resultObject = {
+          err: "false",
+          ...drawn?.reduce((acc, number, index) => {
+            acc[index + 1] = number;
+            return acc;
+          }, {}) || drawnNumber,
+          21: currentGame.gameNumber,
+          22: currentGame.gameNumber, // Assuming gameId is what you want for "21" and "22"
+          0: currentGame.gameType,
+        };
+      } else {
+        console.log("draw", drawnNumber);
+        const winc = determineAllWinners(drawnNumber);
+        resultObject = {
+          err: 'false',
+          1: drawnNumber,
+          2: (winc.color),
+          3: (winc.oddEven),
+          21: currentGame.gameNumber,
+          22: currentGame.gameNumber, // Assuming gameId is what you want for "21" and "22"
+          0: currentGame.gameType,
+        }
+      }
+      res.status(200).send(resultObject);
+    } catch (error) {
+      console.error("Error getting current game result:", error);
+      return res.status(500).json({ message: "Internal server error." });
+    }
+  },
 };
 
-const generateRandomNumbers = async (gameNumber) => {
-  const tickets = await Ticket.query()
-    .where("gameId", gameNumber)
-    .whereNot("status", "canceled");
-
-  const picks = [];
-
-  // if (!tickets) {
-  //   return false;
-  // }
-
-  // Iterate through each ticket
-  for (const ticket of tickets) {
-    const ticketPicks = JSON.parse(ticket.numberPick);
-
-    for (const pick of ticketPicks) {
-      let newpick = {};
-      newpick.coinsPlaced = pick.stake;
-      newpick.selectedNumbers = pick.selection;
-      picks.push(newpick);
-    }
-  }
-
-  console.log("picks", picks);
-  const weight = calculateWeights(picks);
-  const drawnnumber = drawTwoUniqueNumbers(weight, 20);
-  console.log("ወኢግህት", drawnnumber);
-
-  // const drawnnumber = [];
-
-  // while (drawnnumber.length < 20) {
-  //   const randomNum = Math.floor(Math.random() * 80) + 1;
-
-  //   // Ensure the number is not already in the array
-  //   if (!drawnnumber.includes(randomNum)) {
-  //     drawnnumber.push(randomNum);
-  //   }
-  // }
-
-  return drawnnumber;
-};
-
-function drawTwoUniqueNumbers(weights, num = 20) {
-  const drawnNumbers = new Set();
-  console.log('weight', weights)
-  while (drawnNumbers.size < num) {
-    const candidateNumber = weightedRandom(weights);
-
-    // console.log("weight", candidateNumber);
-    if (!drawnNumbers.has(candidateNumber)) {
-      drawnNumbers.add(candidateNumber);
-    }
-  }
-  return Array.from(drawnNumbers); // Ensure sorted order
-}
-
-function weightedRandom(weights) {
-  const totalWeight = weights.reduce((sum, weight) => sum + weight.weight, 0);
-  const randomValue = Math.random() * totalWeight;
-
-  let cumulativeWeight = 0;
-  for (let i = 0; i < weights.length; i++) {
-    cumulativeWeight += weights[i].weight;
-    if (randomValue <= cumulativeWeight) {
-      return weights[i].value; // Return the selected number
-    }
-  }
-}
-
-function calculateWeights(players) {
-  const scalingFactor = 0.2;
-  // Create an array to store all possible numbers
-  const allNumbers = Array.from({ length: 80 }, (_, i) => i + 1); // [1, 2, 3, 4, 5, 6]
-
-  if (!players.length) {
-    return allNumbers.map((number) => ({
-      value: number,
-      weight: 1, // Lower weight for selected numbers
-    }));
-  }
-  // Initialize empty object to store total coins placed
-  const coinsSum = {};
-
-  // Iterate through players and count their bets
-  players.forEach((player) => {
-    player.selectedNumbers.forEach((number) => {
-      coinsSum[number] =
-        (coinsSum[number] || 0) +
-        player.coinsPlaced / player.selectedNumbers.length;
-    });
-  });
-
-  // Calculate total coins placed
-  const totalCoinsPlaced = Object.values(coinsSum).reduce(
-    (sum, value) => sum + value,
-    0
-  );
-
-  // Calculate base weight (average coins placed per number)
-  const baseWeight = totalCoinsPlaced / allNumbers.length;
-  console.log(baseWeight);
-  // Return weights for all numbers
-  return allNumbers.map((number) => ({
-    value: number,
-    weight: (coinsSum[number] ? baseWeight / (coinsSum[number]) : baseWeight)
-    // weight: (coinsSum[number] ? baseWeight / (coinsSum[number] * baseWeight) : baseWeight)
-    // weight: (coinsSum[number] ? baseWeight / coinsSum[number] : baseWeight) * scalingFactor
-    // weight: Math.pow((coinsSum[number] ? baseWeight / coinsSum[number] : baseWeight), scalingFactor)
-    , // Lower weight for selected numbers
-  }));
-}
 
 const generateRandomNumbersWithNoConsq = () => {
   const numbers = [];
