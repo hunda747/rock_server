@@ -17,7 +17,7 @@ const generateSpinRandomNumbers = async (gameNumber) => {
 
     for (const pick of ticketPicks) {
       // console.log(pick);
-      if(pick.market !== 'Color' && pick.market !== "OddEven"){
+      if (pick.market !== 'Color' && pick.market !== "OddEven") {
         let newpick = {};
         newpick.coinsPlaced = pick.stake * pick.odd;
         newpick.selectedNumbers = pick.val;
@@ -54,7 +54,7 @@ function drawNumber(weights) {
 }
 
 function calculateWeights(players) {
-  const scalingFactor = 0.8;
+  const scalingFactor = 0.1;
   const allNumbers = Array.from({ length: 37 }, (_, i) => i);
 
   if (!players.length) {
@@ -86,4 +86,4 @@ function calculateWeights(players) {
   }));
 }
 
-module.exports = {generateSpinRandomNumbers};
+module.exports = { generateSpinRandomNumbers };
