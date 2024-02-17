@@ -79,7 +79,7 @@ function weightedRandom(weights) {
 }
 
 function calculateWeights(players) {
-  const scalingFactor = 0;
+  const scalingFactor = 0.05;
   // Create an array to store all possible numbers
   const allNumbers = Array.from({ length: 80 }, (_, i) => i + 1);
 
