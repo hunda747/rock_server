@@ -26,8 +26,9 @@ const generateSpinRandomNumbers = async (gameNumber) => {
     }
   }
 
+  const scalingFactor = 0.01;
   // console.log("picks", picks);
-  const weight = calculateWeights(picks);
+  const weight = calculateWeights(picks, scalingFactor);
   // console.log(weight);
   const drawnnumber = drawNumber(weight);
   // console.log("ወኢግህት", drawnnumber);
@@ -53,8 +54,7 @@ function drawNumber(weights) {
   return weights[weights.length - 1].value;
 }
 
-function calculateWeights(players) {
-  const scalingFactor = 0.0001;
+function calculateWeights(players, scalingFactor) {
   const allNumbers = Array.from({ length: 37 }, (_, i) => i);
 
   if (!players.length) {
@@ -74,15 +74,17 @@ function calculateWeights(players) {
   // console.log(coinsSum)
 
   const totalCoinsPlaced = Object.values(coinsSum).reduce((sum, value) => sum + value, 0);
-
+  const maxCoins = Math.max(...Object.values(coinsSum));
   const baseWeight = totalCoinsPlaced / allNumbers.length;
   const scaledBaseWeight = baseWeight * scalingFactor;
 
   return allNumbers.map((number) => ({
     value: number,
     // weight: coinsSum[number] ? scaledBaseWeight / coinsSum[number] : scaledBaseWeight,
-    weight: Math.pow(coinsSum[number] ? scaledBaseWeight / coinsSum[number] : scaledBaseWeight, scalingFactor),
-    // weight: Math.pow((coinsSum[number] ?  (coinsSum[number])/totalCoinsPlaced  : totalCoinsPlaced), scalingFactor)
+    // weight: Math.pow(coinsSum[number] ? scaledBaseWeight / coinsSum[number] : scaledBaseWeight, scalingFactor),
+    weight: coinsSum[number]
+      ? Math.exp(-scalingFactor * coinsSum[number] / maxCoins) * maxCoins
+      : maxCoins,
   }));
 }
 
