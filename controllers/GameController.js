@@ -483,13 +483,13 @@ const GameController = {
         console.log("draw", drawn);
         resultObject = {
           err: "false",
-          ...drawn?.reduce((acc, number, index) => {
+          0: currentGame.gameType,
+          ...drawnNumber?.reduce((acc, number, index) => {
             acc[index + 1] = number;
             return acc;
           }, {}) || drawnNumber,
           21: currentGame.gameNumber,
           22: currentGame.gameNumber, // Assuming gameId is what you want for "21" and "22"
-          0: currentGame.gameType,
         };
       } else {
         console.log("draw", drawnNumber);
