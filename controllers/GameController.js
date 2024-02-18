@@ -762,7 +762,7 @@ const getLast10Games = async (shopId) => {
       .where("status", "done")
       .andWhere("gameType", "keno")
       .andWhere('shopId', shopId)
-      .orderBy("time", "desc")
+      .orderBy("id", "desc")
       .limit(10);
 
     const formattedGames = games.map((game) => {
@@ -788,7 +788,7 @@ const getLast100Games = async (shopId) => {
       .where("status", "done")
       .andWhere("gameType", "spin")
       .andWhere('shopId', shopId)
-      .orderBy("time", "desc")
+      .orderBy("id", "desc")
       .limit(200);
 
     const formattedGames = games.map((game) => {
