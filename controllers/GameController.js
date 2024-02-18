@@ -226,7 +226,7 @@ const GameController = {
       let drawnNumber;
       if (!currentGame.pickedNumbers) {
         // Assume you have a function to draw the number and update the database
-        const numbers = await generateRandomNumbersKeno(gameNumber);
+        const numbers = await generateRandomNumbersKeno(gameNumber, findshop.rtp);
         drawnNumber = numbers;
 
         let headsCount = 0;
@@ -408,7 +408,7 @@ const GameController = {
       let drawnNumber;
       if (!currentGame.pickedNumbers) {
         // Assume you have a function to draw the number and update the database
-        drawnNumber = await generateSpinRandomNumbers(gameNumber)
+        drawnNumber = await generateSpinRandomNumbers(gameNumber, findshop.rtp)
         console.log('ddraw', drawnNumber);
 
         const winners = determineAllWinners(drawnNumber);

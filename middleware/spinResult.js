@@ -1,6 +1,6 @@
 const Ticket = require('../models/slip');
 
-const generateSpinRandomNumbers = async (gameNumber) => {
+const generateSpinRandomNumbers = async (gameNumber, rtp) => {
   const tickets = await Ticket.query()
     .where("gameId", gameNumber)
     .whereNot("status", "canceled");
@@ -26,7 +26,7 @@ const generateSpinRandomNumbers = async (gameNumber) => {
     }
   }
 
-  const scalingFactor = 0.01;
+  const scalingFactor = rtp/100;
   // console.log("picks", picks);
   const weight = calculateWeights(picks, scalingFactor);
   // console.log(weight);

@@ -1,5 +1,5 @@
 const Ticket = require("../models/slip");
-const generateRandomNumbersKeno = async (gameNumber) => {
+const generateRandomNumbersKeno = async (gameNumber, rtp) => {
   const tickets = await Ticket.query()
     .where("gameId", gameNumber)
     .whereNot("status", "canceled");
@@ -26,13 +26,13 @@ const generateRandomNumbersKeno = async (gameNumber) => {
 
     for (const pick of ticketPicks) {
       let newpick = {};
-      newpick.coinsPlaced = pick.stake * pick.odd;
+      newpick.coinsPlaced = (pick.stake * pick.odd)/ pick.selection.length;
       newpick.selectedNumbers = pick.selection;
       picks.push(newpick);
     }
   }
 
-  const scalingFactor = 0.10;
+  const scalingFactor = rtp/100;
   console.log("picks", picks);
   const weight = calculateWeights(picks, scalingFactor);
   const drawnnumber = drawTwoUniqueNumbers(weight, 20);
