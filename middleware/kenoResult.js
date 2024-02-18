@@ -32,8 +32,9 @@ const generateRandomNumbersKeno = async (gameNumber) => {
     }
   }
 
+  const scalingFactor = 0.10;
   console.log("picks", picks);
-  const weight = calculateWeights(picks);
+  const weight = calculateWeights(picks, scalingFactor);
   const drawnnumber = drawTwoUniqueNumbers(weight, 20);
   console.log("ወኢግህት", drawnnumber);
 
@@ -78,8 +79,7 @@ function weightedRandom(weights) {
   }
 }
 
-function calculateWeights(players) {
-  const scalingFactor = 0.2;
+function calculateWeights(players, scalingFactor) {
   // Create an array to store all possible numbers
   const allNumbers = Array.from({ length: 80 }, (_, i) => i + 1);
 
@@ -105,6 +105,7 @@ function calculateWeights(players) {
     (sum, value) => sum + value,
     0
   );
+  const maxCoins = Math.max(...Object.values(coinsSum));
   const baseWeight = totalCoinsPlaced / allNumbers.length;
   const scaledBaseWeight = baseWeight * scalingFactor;
   console.log(baseWeight);
@@ -112,11 +113,14 @@ function calculateWeights(players) {
   // Return weights for all numbers
   return allNumbers.map((number) => ({
     value: number,
-    weight: Math.pow(
-      coinsSum[number] ? scaledBaseWeight / coinsSum[number] : scaledBaseWeight,
-      scalingFactor
-    ),
     // weight: (coinsSum[number] ? baseWeight / (coinsSum[number]) : baseWeight)
+    // weight: Math.pow(
+    //   coinsSum[number] ? scaledBaseWeight / coinsSum[number] : scaledBaseWeight,
+    //   scalingFactor
+    // ),
+    weight: coinsSum[number]
+      ? Math.exp(-scalingFactor * coinsSum[number] / maxCoins) * maxCoins
+      : maxCoins,
   }));
 }
 
