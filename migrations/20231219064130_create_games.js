@@ -7,6 +7,8 @@
 exports.up = function (knex) {
   return knex.schema.createTable('games', function (table) {
     table.increments('id').primary();
+    table.integer('shopId').unsigned().notNullable();
+    table.foreign('shopId').references('shops.id');
     table.integer('gameNumber', 20).notNullable();
     table.string('gameType', 20).notNullable();
     table.jsonb('pickedNumbers');

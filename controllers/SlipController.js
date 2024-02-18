@@ -98,7 +98,8 @@ const slipController = {
     const currentGame = await Game.query()
       .where("status", "playing")
       .where("gameType", param.gameType)
-      .orderBy("time", "desc")
+      .andWhere("shopId", param.shop)
+      .orderBy("id", "desc")
       .first();
 
     if (!currentGame) {
@@ -327,7 +328,7 @@ const slipController = {
   },
 
   redeemSlip: async (req, res, next) => {
-    const { id } = req.params;
+    const { id, shop } = req.params;
 
     try {
       // const currentGame = await Game.query().where("id", gameNumber).where("status", 'done').first();
@@ -336,7 +337,7 @@ const slipController = {
       //   return res.status(404).json({ message: "Game not found." });
       // }
 
-      const updatedSlip = await Slip.query().findById(id);
+      const updatedSlip = await Slip.query().findById(id).where('shopId', shop);
       console.log("slip", updatedSlip);
       // if (updatedSlip) {
       if (updatedSlip.status == "active") {

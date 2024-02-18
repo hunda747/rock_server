@@ -7,7 +7,7 @@ exports.up = function (knex) {
   return knex.schema.createTable('cashiers', (table) => {
     table.increments('id').primary();
     table.integer('shopId').unsigned().notNullable();
-    table.foreign('shopId').references('shops.id').onDelete('CASCADE');
+    table.foreign('shopId').references('shops.id');
     table.string('name').notNullable();
     table.integer('cashierLimit');
     table.integer('netWinning');

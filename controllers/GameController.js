@@ -11,6 +11,7 @@ const gameMutex = new Mutex();
 
 const { generateSpinRandomNumbers } = require("../middleware/spinResult");
 const { generateRandomNumbersKeno } = require("../middleware/kenoResult");
+const Shop = require("../models/shop");
 
 const GameController = {
   constructor: () => {
@@ -58,21 +59,21 @@ const GameController = {
 
     const updateQuery = {};
 
-    if (updatedGameData.hasOwnProperty("gameNumber")) {
-      updateQuery.gameNumber = updatedGameData.gameNumber;
-    }
+    // if (updatedGameData.hasOwnProperty("gameNumber")) {
+    //   updateQuery.gameNumber = updatedGameData.gameNumber;
+    // }
 
-    if (updatedGameData.hasOwnProperty("gameType")) {
-      updateQuery.gameType = updatedGameData.gameType;
-    }
+    // if (updatedGameData.hasOwnProperty("gameType")) {
+    //   updateQuery.gameType = updatedGameData.gameType;
+    // }
 
-    if (updatedGameData.hasOwnProperty("pickedNumbers")) {
-      updateQuery.pickedNumbers = JSON.stringify(updatedGameData.pickedNumbers);
-      // updateQuery.pickedNumbers = Game.raw(
-      //   'JSON_SET(pickedNumbers, "$.selection", ?)',
-      //   [updatedGameData.pickedNumbers.selection]
-      // );
-    }
+    // if (updatedGameData.hasOwnProperty("pickedNumbers")) {
+    //   updateQuery.pickedNumbers = JSON.stringify(updatedGameData.pickedNumbers);
+    //   // updateQuery.pickedNumbers = Game.raw(
+    //   //   'JSON_SET(pickedNumbers, "$.selection", ?)',
+    //   //   [updatedGameData.pickedNumbers.selection]
+    //   // );
+    // }
 
     if (updatedGameData.hasOwnProperty("winner")) {
       updateQuery.winner = updatedGameData.winner;
@@ -106,13 +107,14 @@ const GameController = {
     }
   },
 
-  createNewGameEntry: async (gameType, gameNumber) => {
+  createNewGameEntry: async (gameType, gameNumber, shopId) => {
     try {
       // Use Knex to insert a new entry into the 'games' table
       const newGameEntry = await Game.query()
         .insert({
           gameType: gameType,
           gameNumber: gameNumber,
+          shopId: shopId,
           // Add other fields as needed based on your table structure
           // Example: pickedNumbers, winner, time, status, etc.
         })
@@ -129,23 +131,34 @@ const GameController = {
 
   // Controller
   getLastPlayedGame: async (req, res) => {
+    let {shopId} = req.body;
+    if(!shopId){
+      return res.status(404).json({ message: "No active games currently." });
+    }
+    const findshop = await Shop.query().where("username", shopId).first();
+    if (!findshop) {
+      return res.status(404).json({ message: "No active games currently." });
+    }
+    shopId = findshop.id;
     try {
       // Retrieve the last played game
       const lastPlayedGame = await Game.query()
         .where("status", "done")
         .andWhere("gameType", "keno")
-        .orderBy("time", "desc")
+        .andWhere("shopId", shopId)
+        .orderBy("id", "desc")
         .first();
 
-      if (!lastPlayedGame) {
-        return res.status(404).json({ message: "No games played yet." });
-      }
+      // if (!lastPlayedGame) {
+      //   return res.status(404).json({ message: "No games played yet." });
+      // }
 
       // Update the current game with the drawn number
       const currentGame = await Game.query()
         .where("status", "playing")
         .andWhere("gameType", "keno")
-        .orderBy("time", "desc")
+        .andWhere("shopId", shopId)
+        .orderBy("id", "desc")
         .first();
 
       let openGame;
@@ -153,30 +166,32 @@ const GameController = {
       if (currentGame) {
         openGame = currentGame;
       } else {
+        const gn = lastPlayedGame?.gameNumber || 3000;
         openGame = await Game.query()
           .insert({
             gameType: "keno",
-            gameNumber: lastPlayedGame.gameNumber + 1,
+            gameNumber: gn + 1,
+            shopId: shopId
             // Add other fields as needed based on your table structure
             // Example: pickedNumbers, winner, time, status, etc.
           })
           .returning("*");
       }
       // Retrieve the open game (next game)
-      console.log("json", lastPlayedGame.pickedNumbers);
-      console.log("json", lastPlayedGame.pickedNumbers.selection);
+      // console.log("json", lastPlayedGame.pickedNumbers);
+      // console.log("json", lastPlayedGame.pickedNumbers.selection);
       // Construct the response in the specified format
       const response = {
         openGame: openGame
           ? { id: openGame.id, gameNumber: openGame.gameNumber }
           : null,
-        result: JSON.parse(lastPlayedGame.pickedNumbers)?.selection.map(
+        result: lastPlayedGame ? JSON.parse(lastPlayedGame.pickedNumbers)?.selection.map(
           (item) => ({ value: item })
-        ),
+        ) : [],
         lastGame: lastPlayedGame
           ? { id: lastPlayedGame.id, gameNumber: lastPlayedGame.gameNumber }
           : null,
-        recent: await getLast10Games(),
+        recent: await getLast10Games(shopId),
         // recent: lastPlayedGame.gameNumber,
       };
 
@@ -189,12 +204,20 @@ const GameController = {
 
   // Controller
   getCurrentGameResult: async (req, res) => {
-    const { gameNumber } = req.params;
+    let { gameNumber, shopId } = req.body;
     // Use the mutex to protect the critical section of code
     // const release = await gameMutex.acquire();
+    if(!shopId){
+      return res.status(404).json({ message: "No active games currently." });
+    }
+    const findshop = await Shop.query().where("username", shopId).first();
+    if (!findshop) {
+      return res.status(404).json({ message: "No active games currently." });
+    }
+    shopId = findshop.id;
     try {
       // Update the current game with the drawn number
-      const currentGame = await Game.query().where("id", gameNumber).andWhere('gameType', 'keno').first();
+      const currentGame = await Game.query().where("id", gameNumber).andWhere('gameType', 'keno').andWhere('shopId', shopId).first();
 
       if (!currentGame) {
         return res.status(404).json({ message: "No active games currently." });
@@ -244,6 +267,7 @@ const GameController = {
       const previousGame = await Game.query()
         .where("status", "done")
         .andWhere("gameType", "keno")
+        .andWhere('shopId', shopId)
         .orderBy("time", "desc")
         .offset(1)
         .first();
@@ -253,6 +277,7 @@ const GameController = {
       const newGame = await Game.query()
         .where("status", "playing")
         .andWhere("gameType", "keno")
+        .andWhere('shopId', shopId)
         .orderBy("time", "desc")
         .first();
 
@@ -263,6 +288,7 @@ const GameController = {
           .insert({
             gameType: "keno",
             gameNumber: currentGame.gameNumber + 1,
+            shopId: shopId
             // Add other fields as needed based on your table structure
             // Example: pickedNumbers, winner, time, status, etc.
           })
@@ -275,7 +301,7 @@ const GameController = {
         game: { gameNumber: currentGame.gameNumber },
         result: drawnNumber.map((item) => ({ value: item })),
         lastGame: previousGame ? previousGame.gameNumber : null,
-        recent: await getLast10Games(),
+        recent: await getLast10Games(shopId),
       };
       // Respond with the updated game data
       return res.status(200).json(response);
@@ -290,22 +316,33 @@ const GameController = {
 
   // Controller
   getLastPlayedGameSpin: async (req, res) => {
+    let {shopId} = req.body;
+    if(!shopId){
+      return res.status(404).json({ message: "No active games currently." });
+    }
+    const findshop = await Shop.query().where("username", shopId).first();
+    if (!findshop) {
+      return res.status(404).json({ message: "No active games currently." });
+    }
+    shopId = findshop.id;
     try {
       // Retrieve the last played game
       const lastPlayedGame = await Game.query()
         .where("status", "done")
         .andWhere("gameType", "spin")
+        .andWhere("shopId", shopId)
         .orderBy("time", "desc")
         .first();
 
-      if (!lastPlayedGame) {
-        return res.status(404).json({ message: "No games played yet." });
-      }
+      // if (!lastPlayedGame) {
+      //   return res.status(404).json({ message: "No games played yet." });
+      // }
 
       // Update the current game with the drawn number
       const currentGame = await Game.query()
         .where("status", "playing")
         .andWhere("gameType", "spin")
+        .andWhere("shopId", shopId)
         .orderBy("time", "desc")
         .first();
 
@@ -314,10 +351,12 @@ const GameController = {
       if (currentGame) {
         openGame = currentGame;
       } else {
+        const gm = lastPlayedGame?.gameNumber || 20000
         openGame = await Game.query()
           .insert({
             gameType: "spin",
-            gameNumber: lastPlayedGame.gameNumber + 1,
+            gameNumber: gm + 1,
+            shopId: shopId
             // Add other fields as needed based on your table structure
             // Example: pickedNumbers, winner, time, status, etc.
           })
@@ -331,7 +370,7 @@ const GameController = {
         openGame: openGame
           ? { id: openGame.id, gameNumber: openGame.gameNumber }
           : null,
-        recent: await getLast100Games(),
+        recent: await getLast100Games(shopId),
         // recent: lastPlayedGame.gameNumber,
       };
 
@@ -344,11 +383,21 @@ const GameController = {
 
   // Controller
   getCurrentGameResultSpin: async (req, res) => {
-    const { gameNumber } = req.query;
+    let { gameNumber, shopId } = req.body;
+
+    if(!shopId){
+      return res.status(404).json({ message: "No agent username." });
+    }
+    const findshop = await Shop.query().where("username", shopId).first();
+    if (!findshop) {
+      return res.status(404).json({ message: "No shop found." });
+    }
+    shopId = findshop.id;
     try {
       // Update the current game with the drawn number
       const currentGame = await Game.query()
         .where("id", gameNumber)
+        .andWhere("shopId", shopId)
         .andWhere("gameType", "spin")
         .first();
 
@@ -373,17 +422,16 @@ const GameController = {
 
         calculateSlipWiningNumbers(gameNumber, drawnNumber, winners);
       } else {
-        // console.log('resultPA:', );
         drawnNumber = JSON.parse(currentGame?.pickedNumbers)?.selection;
       }
-      // calculateWiningNumbers(drawnNumber, gameNumber);
 
       let openGame;
       // Update the current game with the drawn number
       const newGame = await Game.query()
         .where("status", "playing")
         .andWhere("gameType", "spin")
-        .orderBy("time", "desc")
+        .andWhere("shopId", shopId)
+        .orderBy("id", "desc")
         .first();
 
       if (newGame) {
@@ -393,7 +441,7 @@ const GameController = {
           .insert({
             gameType: "spin",
             gameNumber: currentGame.gameNumber + 1,
-            // Add other fields as needed based on your table structure
+            shopId: shopId
             // Example: pickedNumbers, winner, time, status, etc.
           })
           .returning("*");
@@ -407,7 +455,7 @@ const GameController = {
           gameNumber: currentGame.gameNumber,
           id: currentGame.id,
         },
-        recent: await getLast100Games(),
+        recent: await getLast100Games(shopId),
       };
       // Respond with the updated game data
       return res.status(200).json(response);
@@ -452,11 +500,12 @@ const GameController = {
   },
 
   getGameRusult: async (req, res) => {
-    const { gameNumber } = req.params;
+    const { gameNumber, shop } = req.params;
     try {
       // Update the current game with the drawn number
       const currentGame = await Game.query()
         .where("gameNumber", gameNumber)
+        .andWhere("shopId", shop)
         .andWhere("status", "done")
         .first();
 
@@ -706,12 +755,13 @@ function countCorrectGuesses(userSelection, winningNumbers) {
   return correctGuesses;
 }
 
-const getLast10Games = async () => {
+const getLast10Games = async (shopId) => {
   try {
     const games = await Game.query()
       .select("id", "gameNumber", "status", "pickedNumbers")
       .where("status", "done")
       .andWhere("gameType", "keno")
+      .andWhere('shopId', shopId)
       .orderBy("time", "desc")
       .limit(10);
 
@@ -731,12 +781,13 @@ const getLast10Games = async () => {
   }
 };
 
-const getLast100Games = async () => {
+const getLast100Games = async (shopId) => {
   try {
     const games = await Game.query()
       .select("id", "gameNumber", "status", "pickedNumbers")
       .where("status", "done")
       .andWhere("gameType", "spin")
+      .andWhere('shopId', shopId)
       .orderBy("time", "desc")
       .limit(200);
 
