@@ -26,13 +26,13 @@ const generateRandomNumbersKeno = async (gameNumber, rtp) => {
 
     for (const pick of ticketPicks) {
       let newpick = {};
-      newpick.coinsPlaced = (pick.stake * pick.odd)/ pick.selection.length;
+      newpick.coinsPlaced = (pick.stake * pick.odd) / pick.selection.length;
       newpick.selectedNumbers = pick.selection;
       picks.push(newpick);
     }
   }
 
-  const scalingFactor = rtp/100;
+  const scalingFactor = rtp / 100;
   console.log("picks", picks);
   const weight = calculateWeights(picks, scalingFactor);
   const drawnnumber = drawTwoUniqueNumbers(weight, 20);
@@ -114,13 +114,13 @@ function calculateWeights(players, scalingFactor) {
   return allNumbers.map((number) => ({
     value: number,
     // weight: (coinsSum[number] ? baseWeight / (coinsSum[number]) : baseWeight)
-    // weight: Math.pow(
-    //   coinsSum[number] ? scaledBaseWeight / coinsSum[number] : scaledBaseWeight,
-    //   scalingFactor
-    // ),
-    weight: coinsSum[number]
-      ? Math.exp(-scalingFactor * coinsSum[number] / maxCoins) * maxCoins
-      : maxCoins,
+    weight: Math.pow(
+      coinsSum[number] ? scaledBaseWeight / coinsSum[number] : scaledBaseWeight,
+      scalingFactor
+    ),
+    // weight: coinsSum[number]
+    //   ? Math.exp(-scalingFactor * coinsSum[number] / maxCoins) * maxCoins
+    //   : maxCoins,
   }));
 }
 
