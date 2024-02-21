@@ -1,6 +1,7 @@
 // index.js
 
 const express = require('express');
+const serverless = require('serverless-http')
 const app = express();
 const port = 5500;
 
@@ -62,6 +63,8 @@ app.use('/dailyReport', dailyReportRoutes);
 app.use(errorHandler)
 
 // Start the server
-app.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`);
-});
+// app.listen(port, () => {
+//   console.log(`Server is running at http://localhost:${port}`);
+// });
+
+module.exports.handler = serverless(app)
