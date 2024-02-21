@@ -476,7 +476,7 @@ const GameController = {
         return res.status(404).json({ error: "Missing game type" });
       }
       if (eventId) {
-        result = await Game.query().where("gameNumber", eventId);
+        result = await Game.query().where("gameNumber", eventId).andWhere("shopId", shopId);
       } else {
         let query = Game.query().where("gameType", gameType);
         if (date) {
