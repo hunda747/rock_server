@@ -135,11 +135,10 @@ const generateDailyReport = async (reportDate, res) => {
             totalUnclaimedCount: unclaimedCount,
             totalRevoked: revoked,
             totalRevokedCount: revokedCount,
-            totalGGR: parseInt(stake) - parseInt(payout) - parseInt(revoked),
+            totalGGR: parseInt(stake) - parseInt(payout) - parseInt(unclaimed) - parseInt(revoked),
             totalNetBalance:
               parseInt(stake) -
               parseInt(payout) -
-              parseInt(unclaimed) -
               parseInt(revoked),
           });
           return newDailyReport;
