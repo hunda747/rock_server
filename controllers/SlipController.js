@@ -167,8 +167,10 @@ const slipController = {
             if (oddsEntry) {
               const modd = oddsEntry[numberOfSelections - 1];
               // Calculate the stake for the current pick based on the odds table
-
               pick.odd = Object.values(modd)[0];
+              pick.selection = pick.selection.sort((a, b) => {
+                return a - b;
+              })
               // Update minWin and maxWin based on the stake
               minWin =
                 pick.stake < minWin || minWin === 0 ? pick.stake : minWin; // Assuming the minimum win is the same as the stake
@@ -208,6 +210,9 @@ const slipController = {
             minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin; // Assuming the minimum win is the same as the stake
             maxWin += pick.stake * pick.odd;
           }
+          pick.val = pick.val.sort((a, b) => {
+            return a - b;
+          })
         }
         // return res.status(400).json({err: "true"});
       } else {
@@ -349,59 +354,59 @@ const slipController = {
           status: "redeemed",
         });
         const game = await Game.query().findById(updatedSlip.gameId);
-          const ticketPicks = JSON.parse(updateSlip.numberPick);
-          // Initialize variables for each ticket
-          let ticketWin = 0;
-          let winnerPick = [];
-          if(updateSlip.gameType === "spin"){
-            const winningNumbers = JSON.parse(game.pickedNumbers).selection;
-            const winner = determineAllWinners(winningNumbers)
-            for (const pick of ticketPicks) {
-              if (pick.market === "OddEven") {
-                if (pick?.val[0] === winner?.oddEven) {
-                  winnerPick.push(pick);
-                }
-              } else if (pick.market === "Color") {
-                if (pick?.val[0] === winner?.color) {
-                  winnerPick.push(pick);
-                }
-              } else {
-                console.log("numbers", winningNumbers);
-                if (pick.val.map(Number).includes(winningNumbers)) {
-                  winnerPick.push(pick);
-                }
+        const ticketPicks = JSON.parse(updateSlip.numberPick);
+        // Initialize variables for each ticket
+        let ticketWin = 0;
+        let winnerPick = [];
+        if (updateSlip.gameType === "spin") {
+          const winningNumbers = JSON.parse(game.pickedNumbers).selection;
+          const winner = determineAllWinners(winningNumbers)
+          for (const pick of ticketPicks) {
+            if (pick.market === "OddEven") {
+              if (pick?.val[0] === winner?.oddEven) {
+                winnerPick.push(pick);
+              }
+            } else if (pick.market === "Color") {
+              if (pick?.val[0] === winner?.color) {
+                winnerPick.push(pick);
+              }
+            } else {
+              console.log("numbers", winningNumbers);
+              if (pick.val.map(Number).includes(winningNumbers)) {
+                winnerPick.push(pick);
               }
             }
-          } else{
-            for (const pick of ticketPicks) {
-              const winningNumbers = JSON.parse(game.pickedNumbers).selection;
-              const numberOfSelections = pick.selection.length;
+          }
+        } else {
+          for (const pick of ticketPicks) {
+            const winningNumbers = JSON.parse(game.pickedNumbers).selection;
+            const numberOfSelections = pick.selection.length;
 
-              if (typeof pick?.selection[0] === "string") {
-                if (game.winner === "evens" && pick?.selection[0] === game.winner) {
+            if (typeof pick?.selection[0] === "string") {
+              if (game.winner === "evens" && pick?.selection[0] === game.winner) {
+                winnerPick.push(pick);
+              } else if (pick?.selection[0] === game.winner) {
+                winnerPick.push(pick);
+              }
+            } else {
+              const oddsEntry = oddsTable[updateSlip.oddType][numberOfSelections];
+
+              const actualWinnings = countCorrectGuesses(
+                pick.selection,
+                winningNumbers
+              );
+
+              if (oddsEntry && actualWinnings) {
+
+                const modd = oddsEntry[actualWinnings - 1];
+                if (pick.stake * Object.values(modd)[0]) {
                   winnerPick.push(pick);
-                } else if (pick?.selection[0] === game.winner) {
-                  winnerPick.push(pick);
-                }
-              } else {
-                const oddsEntry = oddsTable[updateSlip.oddType][numberOfSelections];
-                
-                const actualWinnings = countCorrectGuesses(
-                  pick.selection,
-                  winningNumbers
-                  );
-                  
-                  if (oddsEntry && actualWinnings) {
-                    
-          const modd = oddsEntry[actualWinnings - 1];
-                    if(pick.stake * Object.values(modd)[0]){
-                      winnerPick.push(pick);
-                    }
                 }
               }
             }
           }
-      
+        }
+
         res.status(200).json({ err: "false", data: winnerPick });
       } else {
         res.status(404).json({ error: "Slip not found" });
