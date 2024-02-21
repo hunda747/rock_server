@@ -50,6 +50,9 @@ functions:
       DATABASE_USER: rockgatr_remote
       DATABASE_PASSWORD: VNDSLFiLqNL6
       DATABASE_HOST: rockgamesretail.com
+
+plugins:
+  - serverless-bundle
 # you can add CloudFormation resource templates here
 #resources:
 #  Resources:

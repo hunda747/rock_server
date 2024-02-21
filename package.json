@@ -30,5 +30,8 @@
     "serverless": "^3.38.0",
     "serverless-http": "^3.2.0",
     "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "serverless-bundle": "^6.1.0"
   }
 }
