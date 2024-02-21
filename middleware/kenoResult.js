@@ -94,8 +94,11 @@ function calculateWeights(players, scalingFactor) {
   const coinsSum = {};
   // Iterate through players and count their bets
   players.forEach((player) => {
-    player.selectedNumbers.forEach((number) => {
-      coinsSum[number] = (coinsSum[number] || 0) + player.coinsPlaced;
+    player.selectedNumbers.forEach((number, index) => {
+      console.log(index);
+      if (!((player.selectedNumbers.length > 1 && index === 0) || (player.selectedNumbers.length > 3 && index === player.selectedNumbers.length - 1))) {
+        coinsSum[number] = (coinsSum[number] || 0) + player.coinsPlaced;
+      }
     });
   });
   console.log(coinsSum);

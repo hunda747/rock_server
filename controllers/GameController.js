@@ -131,8 +131,8 @@ const GameController = {
 
   // Controller
   getLastPlayedGame: async (req, res) => {
-    let {shopId} = req.body;
-    if(!shopId){
+    let { shopId } = req.body;
+    if (!shopId) {
       return res.status(404).json({ message: "No active games currently." });
     }
     const findshop = await Shop.query().where("username", shopId).first();
@@ -207,7 +207,7 @@ const GameController = {
     let { gameNumber, shopId } = req.body;
     // Use the mutex to protect the critical section of code
     // const release = await gameMutex.acquire();
-    if(!shopId){
+    if (!shopId) {
       return res.status(404).json({ message: "No active games currently." });
     }
     const findshop = await Shop.query().where("username", shopId).first();
@@ -268,7 +268,7 @@ const GameController = {
         .where("status", "done")
         .andWhere("gameType", "keno")
         .andWhere('shopId', shopId)
-        .orderBy("time", "desc")
+        .orderBy("id", "desc")
         .offset(1)
         .first();
 
@@ -278,7 +278,7 @@ const GameController = {
         .where("status", "playing")
         .andWhere("gameType", "keno")
         .andWhere('shopId', shopId)
-        .orderBy("time", "desc")
+        .orderBy("id", "desc")
         .first();
 
       if (newGame) {
@@ -316,8 +316,8 @@ const GameController = {
 
   // Controller
   getLastPlayedGameSpin: async (req, res) => {
-    let {shopId} = req.body;
-    if(!shopId){
+    let { shopId } = req.body;
+    if (!shopId) {
       return res.status(404).json({ message: "No active games currently." });
     }
     const findshop = await Shop.query().where("username", shopId).first();
@@ -331,7 +331,7 @@ const GameController = {
         .where("status", "done")
         .andWhere("gameType", "spin")
         .andWhere("shopId", shopId)
-        .orderBy("time", "desc")
+        .orderBy("id", "desc")
         .first();
 
       // if (!lastPlayedGame) {
@@ -343,7 +343,7 @@ const GameController = {
         .where("status", "playing")
         .andWhere("gameType", "spin")
         .andWhere("shopId", shopId)
-        .orderBy("time", "desc")
+        .orderBy("id", "desc")
         .first();
 
       let openGame;
@@ -385,7 +385,7 @@ const GameController = {
   getCurrentGameResultSpin: async (req, res) => {
     let { gameNumber, shopId } = req.body;
 
-    if(!shopId){
+    if (!shopId) {
       return res.status(404).json({ message: "No agent username." });
     }
     const findshop = await Shop.query().where("username", shopId).first();
@@ -467,8 +467,11 @@ const GameController = {
 
   searchGame: async (req, res) => {
     try {
-      const { gameType, date, eventId } = req.query;
+      const { gameType, date, eventId, shopId } = req.query;
       let result = [];
+      if (!shopId) {
+        return res.status(404).json({ error: "Missing Shop Id" });
+      }
       if (!gameType) {
         return res.status(404).json({ error: "Missing game type" });
       }
@@ -476,7 +479,6 @@ const GameController = {
         result = await Game.query().where("gameNumber", eventId);
       } else {
         let query = Game.query().where("gameType", gameType);
-
         if (date) {
           const startOfDay = new Date(date);
           startOfDay.setHours(0, 0, 0, 0);
@@ -488,8 +490,7 @@ const GameController = {
             .where("time", ">=", startOfDay)
             .where("time", "<=", endOfDay);
         }
-
-        result = await query.limit(20);
+        result = (await query.where('shopId', shopId).orderBy('gameNumber', 'desc'));
       }
 
       res.status(200).json(result);
