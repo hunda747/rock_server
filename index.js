@@ -66,5 +66,5 @@ app.use(errorHandler)
 // app.listen(port, () => {
 //   console.log(`Server is running at http://localhost:${port}`);
 // });
-
-module.exports.handler = serverless(app)
+module.exports = app;
+// module.exports.handler = serverless(app)
