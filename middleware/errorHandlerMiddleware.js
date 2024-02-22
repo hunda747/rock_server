@@ -18,7 +18,7 @@ function errorHandlerMiddleware(err, req, res, next) {
   }
 
   // Ensure the error is propagated to the next middleware or caught by serverless-http
-  next(err);
+  return next(err);
   // res.status(500).json({ error: 'Internal Server Error' });
 }
 

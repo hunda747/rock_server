@@ -130,7 +130,7 @@ class ShopOwnerController {
       }
 
       req.shopOwnerId = decoded.shopOwnerId;
-      next();
+      return next();
     });
   }
 

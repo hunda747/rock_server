@@ -24,7 +24,7 @@ const GameController = {
       const games = await Game.query();
       res.json(games);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   },
 
@@ -37,7 +37,7 @@ const GameController = {
       }
       res.json(game);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   },
 
@@ -49,7 +49,7 @@ const GameController = {
       const newGame = await Game.query().insert(gameData);
       res.send(newGame);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   },
 
@@ -90,7 +90,7 @@ const GameController = {
       }
       res.json(updatedGame);
     } catch (error) {
-      next(error);
+      return next(error);
     }
   },
 
@@ -103,7 +103,7 @@ const GameController = {
       }
       res.status(204).end();
     } catch (error) {
-      next(error);
+      return next(error);
     }
   },
 

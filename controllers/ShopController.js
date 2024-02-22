@@ -82,7 +82,7 @@ class ShopController {
       res.json(newShop);
     } catch (error) {
       // console.error(error);
-      next(error);
+      return next(error);
       // res.status(500).json({ error: "Internal Server Error" });
     }
   }

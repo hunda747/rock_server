@@ -326,7 +326,7 @@ class CashierController {
       }
 
       req.cashierId = decoded.cashierId;
-      next();
+      return next();
     });
   }
 

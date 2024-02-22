@@ -66,7 +66,7 @@ class AdminController {
       }
 
       req.adminId = decoded.adminId;
-      next();
+      return next();
     });
   }
 

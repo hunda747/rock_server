@@ -266,7 +266,7 @@ const verifyAccessToken = (req, res, next) => {
     }
 
     req.adminId = decoded.adminId;
-    next();
+    return next();
   });
 };
 
