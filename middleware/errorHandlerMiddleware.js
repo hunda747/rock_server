@@ -17,9 +17,9 @@ function errorHandlerMiddleware(err, req, res, next) {
     // Add more conditions for other UniqueViolationError constraints if needed
   }
 
-  // Handle other common errors if needed
-
-  res.status(500).json({ error: 'Internal Server Error' });
+  // Ensure the error is propagated to the next middleware or caught by serverless-http
+  next(err);
+  // res.status(500).json({ error: 'Internal Server Error' });
 }
 
 module.exports = errorHandlerMiddleware;
