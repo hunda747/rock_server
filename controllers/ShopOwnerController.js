@@ -1,6 +1,6 @@
 // controllers/ShopOwnerController.js
 const ShopOwner = require("../models/ShopOwner");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
 const AuthController = require("./AuthController");
@@ -81,7 +81,7 @@ class ShopOwnerController {
   }
 
   async changeOwnPassword(req, res) {
-    const {id} = req.params;
+    const { id } = req.params;
     const { oldPassword, newPassword } = req.body;
     console.log(id);
     try {

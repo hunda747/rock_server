@@ -1,5 +1,5 @@
 // controllers/AuthController.js
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 class AuthController {
   constructor() {
@@ -8,7 +8,7 @@ class AuthController {
 
   // Function to change password
   async changePassword(req, res) {
-    const {id} = req.params;
+    const { id } = req.params;
     const { oldPassword, newPassword } = req.body;
 
     try {

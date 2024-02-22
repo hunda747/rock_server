@@ -1,7 +1,7 @@
 // subAgentController.js
 const SubAgent = require("../models/subAgent"); // Import your SubAgent model
 const SubAgentShop = require("../models/subAgentShop"); // Import your SubAgent model
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
 const AuthController = require("./AuthController");
@@ -203,8 +203,8 @@ const login = async (req, res) => {
     if (!admin || !(await bcrypt.compare(password, admin.password))) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
-    
-    if(!admin.status){
+
+    if (!admin.status) {
       return res.status(401).json({ error: "Sub agent is Blocked!" });
     }
 

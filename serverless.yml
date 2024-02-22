@@ -11,7 +11,7 @@
 #
 # Happy Coding!
 
-service: rockapi
+service: rockpick
 
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
@@ -20,15 +20,15 @@ frameworkVersion: "3"
 provider:
   name: aws
   runtime: nodejs18.x
-  memorySize: 2048
+  memorySize: 3008
   # stage: testing
   stage: dev
   timeout: 15
   region: eu-central-1
 
 # you can define service wide environment variables here
-#  environment:
-#    variable1: value1
+environment:
+  NPM_FLAG: false
 
 # you can add packaging information here
 #package:
@@ -46,13 +46,13 @@ functions:
       - http: ANY /
     #    Define function environment variables here
     environment:
+      NPM_FLAG: 0
       DATABASE: rockgatr_remote
       DATABASE_USER: rockgatr_remote
       DATABASE_PASSWORD: VNDSLFiLqNL6
       DATABASE_HOST: rockgamesretail.com
-
-plugins:
-  - serverless-bundle
+# plugins:
+#   - serverless-bundle
 # you can add CloudFormation resource templates here
 #resources:
 #  Resources:

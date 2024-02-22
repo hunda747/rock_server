@@ -1,7 +1,7 @@
 // controllers/ShopController.js
 const Shop = require("../models/shop");
 const Cashier = require("../models/cashier");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 
 class ShopController {
   async getAll(req, res) {

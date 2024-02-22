@@ -1,6 +1,6 @@
 // controllers/AdminController.js
 const Admin = require('../models/admin');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const AuthController = require('./AuthController');
