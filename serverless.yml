@@ -47,10 +47,14 @@ functions:
     #    Define function environment variables here
     environment:
       NPM_FLAG: 0
-      DATABASE: rockgatr_remote
-      DATABASE_USER: rockgatr_remote
-      DATABASE_PASSWORD: VNDSLFiLqNL6
-      DATABASE_HOST: rockgamesretail.com
+      # DATABASE: rockgatr_remote
+      # DATABASE_USER: rockgatr_remote
+      # DATABASE_PASSWORD: VNDSLFiLqNL6
+      # DATABASE_HOST: rockgamesretail.com
+      DATABASE: rock_games
+      DATABASE_USER: rockadmin
+      DATABASE_PASSWORD: sandadmin+
+      DATABASE_HOST: mysqlsand.czkomaucy8qk.eu-central-1.rds.amazonaws.com
 # plugins:
 #   - serverless-bundle
 # you can add CloudFormation resource templates here
