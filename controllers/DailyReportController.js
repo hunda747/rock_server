@@ -153,6 +153,131 @@ const generateDailyReport = async (reportDate, res) => {
   }
 };
 
+const generateDailyReportForShop = async (reportDate, shopId) => {
+  try {
+    // Fetch all cashiers
+    const cashiers = await Cashier.query().where("shopId", shopId)
+      .select("id", "shopId")
+      .withGraphFetched("shop");
+    const startOfDay = new Date(reportDate);
+    startOfDay.setHours(0, 0, 0, 0);
+    // console.log(cashiers);
+    const endOfDay = new Date(reportDate);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    // Loop through each cashier and generate a report
+    const dailyReports = await Promise.all(
+      cashiers.map(async (cashier) => {
+        const existingReport = await DailyReport.query()
+          .where({
+            reportDate,
+            cashierId: cashier.id,
+          })
+          .first();
+
+        const cashierReport = await Cashier.query()
+          .findById(cashier.id)
+          .withGraphFetched("[slips]")
+          .modifyGraph("slips", (builder) => {
+            builder.where("created_at", ">=", startOfDay);
+            builder.where("created_at", "<=", endOfDay);
+            builder.select(
+              Slip.raw("COUNT(*) as tickets"),
+              Slip.raw("SUM(totalStake) as stake"),
+              Slip.raw(
+                'SUM(CASE WHEN status = "redeemed" THEN netWinning ELSE 0 END) as payout'
+              ),
+              Slip.raw(
+                'COUNT(CASE WHEN status = "redeemed" AND netWinning > 0 THEN 1 END) as payoutCount'
+              ),
+              Slip.raw(
+                'SUM(CASE WHEN status = "redeem" THEN netWinning ELSE 0 END) as unclaimed'
+              ),
+              Slip.raw(
+                'COUNT(CASE WHEN status = "redeem" AND netWinning > 0 THEN 1 END) as unclaimedCount'
+              ),
+              Slip.raw(
+                'SUM(CASE WHEN status = "canceled" THEN totalStake ELSE 0 END) as revoked'
+              ),
+              Slip.raw(
+                'COUNT(CASE WHEN status = "canceled" THEN 1 END) as revokedCount'
+              )
+            );
+          });
+        // Extract the relevant data from the cashier report
+        // console.log('report: ', cashierReport.slips[0]);
+        const {
+          tickets = 0,
+          stake = 0,
+          payout = 0,
+          payoutCount = 0,
+          unclaimed = 0,
+          unclaimedCount = 0,
+          revoked = 0,
+          revokedCount = 0,
+        } = cashierReport.slips[0] || {}; // Assuming there is always one slip entry
+
+        if (existingReport) {
+          const updateDailyReport = await DailyReport.query().patchAndFetchById(
+            existingReport.id,
+            {
+              reportDate,
+              cashierId: cashier.id,
+              shopId: cashier.shopId,
+              shopOwnerId: cashier.shop.shopOwnerId,
+              totalTickets: tickets,
+              active: parseInt(tickets) > 0,
+              totalStake: stake,
+              totalPayout: payout,
+              totalPayoutCount: payoutCount,
+              totalUnclaimed: unclaimed,
+              totalUnclaimedCount: unclaimedCount,
+              totalRevoked: revoked,
+              totalRevokedCount: revokedCount,
+              totalGGR: parseInt(stake) - parseInt(payout) - parseInt(unclaimed) - parseInt(revoked),
+              totalNetBalance:
+                parseInt(stake) -
+                parseInt(payout) -
+                parseInt(revoked),
+            }
+          );
+
+          return updateDailyReport;
+          // return res.status(400).json({ error: "The report for this date is already generated! " })
+        } else {
+          // Create an entry in the 'daily_reports' table
+          const newDailyReport = await DailyReport.query().insert({
+            reportDate,
+            cashierId: cashier.id,
+            shopId: cashier.shopId,
+            shopOwnerId: cashier.shop.shopOwnerId,
+            totalTickets: tickets,
+            active: parseInt(tickets) > 0,
+            totalStake: stake,
+            totalPayout: payout,
+            totalPayoutCount: payoutCount,
+            totalUnclaimed: unclaimed,
+            totalUnclaimedCount: unclaimedCount,
+            totalRevoked: revoked,
+            totalRevokedCount: revokedCount,
+            totalGGR: parseInt(stake) - parseInt(payout) - parseInt(unclaimed) - parseInt(revoked),
+            totalNetBalance:
+              parseInt(stake) -
+              parseInt(payout) -
+              parseInt(revoked),
+          });
+          return newDailyReport;
+        }
+      })
+    );
+
+    return dailyReports;
+  } catch (error) {
+    console.error(error);
+    throw error; // Rethrow the error for handling at a higher level
+  }
+};
+
 const reportForCashier = async (cashier, reportDate) => {
   const startOfDay = new Date(reportDate);
   startOfDay.setHours(0, 0, 0, 0);
@@ -489,6 +614,61 @@ const generateShopReport = async (req, res) => {
   }
 };
 
+const getTodayShopReport = async (startDate, endDate, shopId) => {
+  // Check if the current date should be included
+  if (!shopId) {
+    return res.status(400).json({ error: 'shop id is missing.' })
+  }
+  console.log(startDate, endDate, shopId);
+  const todayData = await generateDailyReportForShop(getCurrentDate(), shopId);
+
+  try {
+    let query = DailyReport.query().select(
+      "shopId",
+      "shopOwnerId",
+      DailyReport.raw("SUM(totalTickets) as totalTickets"),
+      DailyReport.raw("SUM(totalStake) as totalStake"),
+      DailyReport.raw("COUNT(DISTINCT CASE WHEN active THEN cashierId END) as activeShops"),
+      DailyReport.raw("SUM(totalPayout) as totalPayout"),
+      DailyReport.raw("SUM(totalPayoutCount) as totalPayoutCount"),
+      DailyReport.raw("SUM(totalUnclaimed) as totalUnclaimed"),
+      DailyReport.raw("SUM(totalUnclaimedCount) as totalUnclaimedCount"),
+      DailyReport.raw("SUM(totalRevoked) as totalRevoked"),
+      DailyReport.raw("SUM(totalRevokedCount) as totalRevokedCount"),
+      DailyReport.raw("SUM(totalGGR) as totalGGR"),
+      DailyReport.raw("SUM(totalNetBalance) as totalNetBalance")
+    );
+
+    // Add conditions based on optional parameters
+    if (startDate) {
+      const startOfDayTime = new Date(startDate);
+      startOfDayTime.setHours(0, 0, 0, 0);
+      query = query.where("reportDate", ">=", startOfDayTime);
+    }
+
+    if (endDate) {
+      const endOfDayTime = new Date(endDate);
+      endOfDayTime.setHours(23, 59, 59, 999);
+      query = query.where("reportDate", "<=", endOfDayTime);
+    }
+
+    if (shopId && shopId.length) {
+      // Assuming there is a relationship between DailyReport and Shop
+      query = query.where("shopId", shopId);
+    }
+
+    const shopReports = await query
+      .groupBy("shopId").where("shopId", shopId)
+      .withGraphFetched("shop")
+      .withGraphFetched("shopOwner").first();
+    // console.log(shopReports);
+    return ({ ggr: shopReports.totalGGR, stake: shopReports.totalStake });
+  } catch (error) {
+    console.error(error);
+    throw error; // Rethrow the error for handling at a higher level
+  }
+};
+
 const generateShopAgentReport = async (req, res) => {
   const { startDate, endDate, shopId, subAgentId } = req.body;
   // Check if the current date should be included
@@ -569,6 +749,7 @@ module.exports = {
   createDailyReport,
   getDailyReportById,
   generateShopReport,
+  getTodayShopReport,
   generateDailyReport,
   generateCashierReport,
   generateSubAgentCashierReport,
