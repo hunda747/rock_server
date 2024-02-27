@@ -1,5 +1,7 @@
 // controllers/AuthController.js
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const Admin = require('../models/admin');
 
 class AuthController {
   constructor() {
@@ -8,7 +10,7 @@ class AuthController {
 
   // Function to change password
   async changePassword(req, res) {
-    const {id} = req.params;
+    const { id } = req.params;
     const { oldPassword, newPassword } = req.body;
 
     try {
@@ -38,6 +40,29 @@ class AuthController {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   }
+  async generateAccessToken(user, role) {
+    // console.log('k', process.env.ACCESS_TOKEN_SECRET)
+    return jwt.sign({ id: user.id, username: user.username, role: role }, process.env.ACCESS_TOKEN_SECRET, {
+      expiresIn: '1m',
+    });
+  }
+
+  async generateRefreshToken(user) {
+    return jwt.sign({ id: user.id, username: user.username }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '3m' });
+  }
+
+  async generateNewAccessToken(refreshToken) {
+    const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+    console.log('id', decoded.id);
+    // Assuming you have a User model with findById method
+    const user = await Admin.findById(decoded.id);
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    return generateAccessToken(user, 'admin');
+  };
 }
 
 module.exports = new AuthController();
