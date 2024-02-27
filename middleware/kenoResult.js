@@ -43,7 +43,7 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId, res) => {
       picks.push(newpick);
     }
   }
-  const currentRatio = ((parseInt(currentData.ggr) / parseInt(currentData.stake)) * 100).toFixed(2)
+  const currentRatio = parseInt(currentData.stake) ? ((parseInt(currentData.ggr) / parseInt(currentData.stake)) * 100).toFixed(2) : 0
   console.log('currenration', currentRatio);
   console.log('rtp', rtp);
   const scalingFactor = rtp / 100;
@@ -84,7 +84,7 @@ function calculateDynamicScalingFactor(currentRatio, targetRatio) {
   } else if (currentRatio > targetRatio + middleTolerance && currentRatio <= targetRatio + largeTolerance) {
     return 0.001;
   } else if (currentRatio > targetRatio + largeTolerance) {
-    return 0.0001;  // Adjust as needed
+    return 0.0;  // Adjust as needed
   } else if (currentRatio < 0) {
     return 0.3;
   } else if (currentRatio < targetRatio && currentRatio >= targetRatio - tolerance) {
