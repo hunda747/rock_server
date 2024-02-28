@@ -104,7 +104,7 @@ function calculateDynamicScalingFactor(currentRatio, targetRatio) {
 
 function drawTwoUniqueNumbers(weights, num = 20) {
   const drawnNumbers = new Set();
-  // console.log("weight", weights);
+  console.log("weight", weights);
   while (drawnNumbers.size < num) {
     const candidateNumber = weightedRandom(weights);
 
