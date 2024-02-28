@@ -186,14 +186,6 @@ const deleteSubAgentById = async (req, res) => {
   }
 };
 
-function generateAccessToken(adminId) {
-  return jwt.sign({ adminId }, "your_access_secret_key", { expiresIn: "15m" });
-}
-
-function generateRefreshToken() {
-  return uuidv4();
-}
-
 const login = async (req, res) => {
   const { username, password } = req.body;
 
@@ -203,14 +195,14 @@ const login = async (req, res) => {
     if (!admin || !(await bcrypt.compare(password, admin.password))) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
-    
-    if(!admin.status){
+
+    if (!admin.status) {
       return res.status(401).json({ error: "Sub agent is Blocked!" });
     }
 
     // Generate tokens upon successful login
-    const accessToken = generateAccessToken(admin.id);
-    const refreshToken = generateRefreshToken();
+    const accessToken = await AuthController.generateAccessToken(admin, 'subagent');
+    const refreshToken = await AuthController.generateRefreshToken(admin, 'subagent');
 
     // Store the refresh token (you may want to store it securely in a database)
     // For demonstration purposes, we're just attaching it to the response header
@@ -222,6 +214,26 @@ const login = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+const refreshToken = async (req, res) => {
+  const decodedRefreshToken = req.user;
+
+  try {
+    if (!decodedRefreshToken) {
+      return res.status(401).json({ error: "Invalid refresh token" });
+    }
+
+    // Generate a new access token
+    const newAccessToken = await AuthController.generateAccessToken(
+      decodedRefreshToken, 'subagent'
+    );
+
+    res.json({ accessToken: newAccessToken });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+}
 
 const changeOwnPassword = (req, res) => {
   req.model = SubAgent; // Set the model for the AuthController
@@ -294,4 +306,5 @@ module.exports = {
   changePassword,
   changeOwnPassword,
   login,
+  refreshToken
 };

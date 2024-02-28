@@ -184,7 +184,6 @@ class CashierController {
           .status(400)
           .json({ error: "Incorrect Password", status: "error" });
       }
-
       if (!cashier.status) {
         return res
           .status(403)
@@ -195,7 +194,6 @@ class CashierController {
           .status(403)
           .json({ error: "Change password", status: "new", id: cashier.id });
       }
-
       if (cashier.shop.status === "inactive") {
         return res
           .status(403)
@@ -209,7 +207,6 @@ class CashierController {
           .status(403)
           .json({ error: "Shop owner is Inactive", status: "error" });
       }
-
       // if (cashier.cashierLimit < await (generateReport(cashier.id))) {
       if (cashier.cashierLimit < cashier.netWinning) {
         return res
@@ -220,11 +217,9 @@ class CashierController {
           });
       }
 
-      // console.log('found', cashier);
-
       // Generate tokens upon successful login
-      const accessToken = this.generateAccessToken(cashier.id);
-      const refreshToken = this.generateRefreshToken();
+      const accessToken = await AuthController.generateAccessToken(cashier, 'cashier');
+      const refreshToken = await AuthController.generateRefreshToken(cashier, 'cashier');
 
       // Store the refresh token (you may want to store it securely in a database)
       // For demonstration purposes, we're just attaching it to the response header
@@ -332,20 +327,18 @@ class CashierController {
 
   // controllers/CashierController.js
   async refreshToken(req, res) {
-    const { refreshToken } = req.body;
+    const decodedRefreshToken = req.user;
 
     try {
       // Verify the refresh token
-      const decodedRefreshToken = this.verifyRefreshToken(refreshToken);
+      // const decodedRefreshToken = this.verifyRefreshToken(refreshToken);
 
       if (!decodedRefreshToken) {
         return res.status(401).json({ error: "Invalid refresh token" });
       }
 
       // Generate a new access token
-      const newAccessToken = this.generateAccessToken(
-        decodedRefreshToken.cashierId
-      );
+      const newAccessToken = await AuthController.generateAccessToken(decodedRefreshToken, 'cashier');
 
       res.json({ accessToken: newAccessToken });
     } catch (error) {

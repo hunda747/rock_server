@@ -40,8 +40,8 @@ class ShopOwnerController {
       }
 
       // Generate tokens upon successful login
-      const accessToken = this.generateAccessToken(shopOwner.id);
-      const refreshToken = this.generateRefreshToken();
+      const accessToken = await AuthController.generateAccessToken(shopOwner, 'shopowner');
+      const refreshToken = await AuthController.generateRefreshToken(shopOwner, 'shopowner');
 
       // Store the refresh token (you may want to store it securely in a database)
       // For demonstration purposes, we're just attaching it to the response header
@@ -81,7 +81,7 @@ class ShopOwnerController {
   }
 
   async changeOwnPassword(req, res) {
-    const {id} = req.params;
+    const { id } = req.params;
     const { oldPassword, newPassword } = req.body;
     console.log(id);
     try {
@@ -147,19 +147,19 @@ class ShopOwnerController {
   }
 
   async refreshToken(req, res) {
-    const { refreshToken } = req.body;
+    const decodedRefreshToken = req.user;
 
     try {
       // Verify the refresh token
-      const decodedRefreshToken = this.verifyRefreshToken(refreshToken);
+      // const decodedRefreshToken = this.verifyRefreshToken(refreshToken);
 
       if (!decodedRefreshToken) {
         return res.status(401).json({ error: "Invalid refresh token" });
       }
 
       // Generate a new access token
-      const newAccessToken = this.generateAccessToken(
-        decodedRefreshToken.shopOwnerId
+      const newAccessToken = await AuthController.generateAccessToken(
+        decodedRefreshToken, 'shopowner'
       );
 
       res.json({ accessToken: newAccessToken });

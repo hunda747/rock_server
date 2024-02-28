@@ -40,15 +40,15 @@ class AuthController {
       res.status(500).json({ error: 'Internal Server Error' });
     }
   }
+
   async generateAccessToken(user, role) {
     // console.log('k', process.env.ACCESS_TOKEN_SECRET)
     return jwt.sign({ id: user.id, username: user.username, role: role }, process.env.ACCESS_TOKEN_SECRET, {
       expiresIn: '1m',
     });
   }
-
-  async generateRefreshToken(user) {
-    return jwt.sign({ id: user.id, username: user.username }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '3m' });
+  async generateRefreshToken(user, role) {
+    return jwt.sign({ id: user.id, username: user.username, role: role }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '3m' });
   }
 
   async generateNewAccessToken(refreshToken) {

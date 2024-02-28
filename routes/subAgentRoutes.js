@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const subAgentController = require('../controllers/SubAgentController');
+const { authenticateToken, checkUserRole, authenticateRefreshToken } = require('../middleware/authHandler');
 
 // Routes for sub-agents
 router.post('/', subAgentController.createSubAgent);
@@ -11,6 +12,7 @@ router.post('/changeOwnPassword', subAgentController.changeOwnPassword);
 router.get('/', subAgentController.getAllSubAgents);
 router.get('/:id', subAgentController.getSubAgentById);
 router.put('/:id', subAgentController.updateSubAgentById);
+router.post('/refresh', authenticateRefreshToken, checkUserRole(['subagent']), subAgentController.refreshToken);
 router.get('/getCashiers/:subAgentId', subAgentController.getCashierssBySubAgentId);
 router.delete('/:id', subAgentController.deleteSubAgentById);
 
