@@ -131,10 +131,10 @@ const generateSpinRandomNumbers = async (gameNumber, rtp, shopId) => {
   }
 
   const currentRatio = parseInt(currentData.stake) ? ((parseInt(currentData.ggr) / parseInt(currentData.stake)) * 100).toFixed(2) : 0;
-  const expectPayout = (rtp / 100) * parseInt(currentData.stake);
-  const difPayout = parseInt(currentData.ggr) - expectPayout;
+  const expectPayout = (rtp / 100) * (parseInt(currentData.stake) + parseInt(activespin));
+  const difPayout = parseInt(currentData.ggr) - expectPayout + parseInt(activespin);
   console.log(difPayout);
-  const actialwin = (parseInt(activespin) + parseInt(difPayout)) * rtp / 100;
+  const actialwin = parseInt(difPayout);
   console.log('want', actialwin);
   const coinsSum = {};
   for (let i = 0; i <= 36; i++) {
@@ -147,7 +147,7 @@ const generateSpinRandomNumbers = async (gameNumber, rtp, shopId) => {
     });
   });
 
-  console.log('ick', coinsSum);
+  // console.log('ick', coinsSum);
   const winchoos = getClosestEntryRandomly(coinsSum, actialwin > 0 ? actialwin : 0);
   console.log('true winner', winchoos);
 
@@ -157,8 +157,8 @@ const generateSpinRandomNumbers = async (gameNumber, rtp, shopId) => {
   // const weight = calculateWeights(picks, scalingFactor);
   // console.log(weight);
   // const drawnnumber = drawNumber(weight, currentData, rtp);
-  console.log((winchoos));
-  console.log((winchoos.value));
+  // console.log((winchoos));
+  // console.log((winchoos.value));
   const drawnnumber = (winchoos.index);
   // console.log("ወኢግህት", drawnnumber);
 

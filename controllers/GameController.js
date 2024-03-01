@@ -710,15 +710,13 @@ const calculateSlipWiningNumbers = async (
 
     for (const pick of ticketPicks) {
       const numberOfSelections = pick.val.length;
-      // console.log("nums:", pick.val);
-      // console.log("nums:", pick.val[0]);
       // Retrieve the odds table for the specific selection
       if (pick.market === "OddEven") {
-        if (pick?.val[0] === winner?.oddEven) {
+        if (pick?.val[0] == winner?.oddEven) {
           ticketWin += pick.stake * pick.odd;
         }
       } else if (pick.market === "Color") {
-        if (pick?.val[0] === winner?.color) {
+        if (pick.val[0] == winner?.color) {
           ticketWin += pick.stake * pick.odd;
         }
       } else {
@@ -814,21 +812,21 @@ function determineWinningColors(drawnNumber) {
 // Function to determine winners for all groups based on the drawn number
 function determineAllWinners(drawnNumber) {
   const allWinners = {};
-
   // Check win option
   allWinners.win = drawnNumber;
 
   // Check color option
   const drawnColors = determineWinningColors(drawnNumber);
-  allWinners.color = drawnColors[0];
+  allWinners.color = drawnNumber === '0' ? '-' : drawnColors[0];
 
   // Check oddEven option
-  allWinners.oddEven = drawnNumber % 2 === 0 ? "EVN" : "ODD";
+  allWinners.oddEven = drawnNumber == '0' ? '-' : drawnNumber % 2 === 0 ? "EVN" : "ODD";
 
   return allWinners;
 }
 
 const numberToColorMap = {
+  0: ["", ""],
   1: ["RED", "purple"],
   2: ["BLK", "orange"],
   3: ["RED", "white"],
