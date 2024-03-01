@@ -126,16 +126,16 @@ const generateDailyReport = async (reportDate, res) => {
             cashierId: cashier.id,
             shopId: cashier.shopId,
             shopOwnerId: cashier.shop.shopOwnerId,
-            totalTickets: tickets,
+            totalTickets: parseInt(tickets) - parseInt(revokedCount),
             active: parseInt(tickets) > 0,
-            totalStake: stake,
+            totalStake: parseInt(stake) - parseInt(unclaimed),
             totalPayout: payout,
             totalPayoutCount: payoutCount,
             totalUnclaimed: unclaimed,
             totalUnclaimedCount: unclaimedCount,
             totalRevoked: revoked,
             totalRevokedCount: revokedCount,
-            totalGGR: parseInt(stake) - parseInt(payout) - parseInt(unclaimed) - parseInt(revoked),
+            totalGGR: parseInt(stake) - parseInt(payout) + parseInt(unclaimed) - parseInt(revoked),
             totalNetBalance:
               parseInt(stake) -
               parseInt(payout) -
