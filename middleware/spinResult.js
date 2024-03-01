@@ -134,7 +134,7 @@ const generateSpinRandomNumbers = async (gameNumber, rtp, shopId) => {
   const expectPayout = (rtp / 100) * parseInt(currentData.stake);
   const difPayout = parseInt(currentData.ggr) - expectPayout;
   console.log(difPayout);
-  const actialwin = parseInt(activespin * rtp / 100) + parseInt(difPayout);
+  const actialwin = (parseInt(activespin) + parseInt(difPayout)) * rtp / 100;
   console.log('want', actialwin);
   const coinsSum = {};
   for (let i = 0; i <= 36; i++) {
