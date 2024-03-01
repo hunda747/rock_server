@@ -226,7 +226,7 @@ const GameController = {
       let drawnNumber;
       if (!currentGame.pickedNumbers) {
         // Assume you have a function to draw the number and update the database
-        const numbers = await generateRandomNumbersKeno(gameNumber, findshop.rtp);
+        const numbers = await generateRandomNumbersKeno(gameNumber, findshop.rtp, shopId, res);
         drawnNumber = numbers;
 
         let headsCount = 0;
