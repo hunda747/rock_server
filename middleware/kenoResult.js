@@ -77,14 +77,14 @@ function calculateDynamicScalingFactor(currentRatio, targetRatio) {
 
   if (currentRatio === targetRatio) {
     return targetRatio / 100;
-  } else if (currentRatio > targetRatio && currentRatio <= targetRatio + tolerance) {
+  } else if (currentRatio > targetRatio && currentRatio <= targetRatio + middleTolerance) {
     return targetRatio / 100;
-  } else if (currentRatio > targetRatio + tolerance && currentRatio <= targetRatio + middleTolerance) {
-    return 0.01;
+  // } else if (currentRatio > targetRatio + tolerance && currentRatio <= targetRatio + middleTolerance) {
+  //   return 0.01;
   } else if (currentRatio > targetRatio + middleTolerance && currentRatio <= targetRatio + largeTolerance) {
-    return 0.001;
+    return 0.01;
   } else if (currentRatio > targetRatio + largeTolerance) {
-    return 0.0;  // Adjust as needed
+    return 0.00001;  // Adjust as needed
   } else if (currentRatio < 0) {
     return 0.3;
   } else if (currentRatio < targetRatio && currentRatio >= targetRatio - tolerance) {
@@ -166,7 +166,6 @@ function generateUniqueWeightedNumbers(data, numNumbers, maxPoolSize = 10 * numN
   return Array.from(generatedNumbers);
 }
 
-
 function calculateWeights(players, scalingFactor) {
   // Create an array to store all possible numbers
   const allNumbers = Array.from({ length: 80 }, (_, i) => i + 1);
@@ -184,7 +183,7 @@ function calculateWeights(players, scalingFactor) {
   players.forEach((player) => {
     player.selectedNumbers.forEach((number, index) => {
       // console.log(index);
-      if (!((player.selectedNumbers.length > 1 && index === 0) || (player.selectedNumbers.length > 3 && index === player.selectedNumbers.length - 1))) {
+      if (!((player.selectedNumbers.length > 2 && index === 0) || (player.selectedNumbers.length > 3 && index === player.selectedNumbers.length - 1))) {
         coinsSum[number] = (coinsSum[number] || 0) + player.coinsPlaced;
       }
     });
