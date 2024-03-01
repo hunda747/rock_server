@@ -196,13 +196,12 @@ const generateDailyReportForShop = async (reportDate, shopId) => {
                 'SUM(CASE WHEN status = "redeem" AND netWinning > 0 THEN netWinning ELSE 0 END) as unclaimed'
               ),
               Slip.raw(
-                'SUM(CASE WHEN status = "redeem" AND netWinning <= 0 THEN totalStake ELSE 0 END) as redeem'
-              ),
-              Slip.raw(
                 'SUM(CASE WHEN status = "canceled" THEN totalStake ELSE 0 END) as revoked'
               ),
             );
           });
+
+
         // Extract the relevant data from the cashier report
         // console.log('report: ', cashierReport.slips[0]);
         const {
@@ -211,12 +210,12 @@ const generateDailyReportForShop = async (reportDate, shopId) => {
           revoked = 0,
           payout = 0,
           unclaimed = 0,
-          redeem = 0,
         } = cashierReport.slips[0] || {}; // Assuming there is always one slip entry
-        console.log(payout, unclaimed, redeem);
+        // console.log(payout, unclaimed, redeem);
         const updateDailyReport = {
           totalStake: parseInt(stake) - parseInt(revoked) - parseInt(active),
           totalGGR: parseInt(stake) - parseInt(active) - parseInt(payout) - parseInt(unclaimed) - parseInt(revoked),
+          totalActive: parseInt(active)
         }
 
         return updateDailyReport;
@@ -230,6 +229,26 @@ const generateDailyReportForShop = async (reportDate, shopId) => {
     throw error; // Rethrow the error for handling at a higher level
   }
 };
+
+const findActiveTickets = async (gameId, shopId) => {
+  try {
+    const result = await Slip.query()
+      .select([
+        'slips.totalStake',
+      ])
+      .sum('slips.totalStake as total')
+      .where('slips.gameId', gameId)
+      .andWhere('slips.shopId', shopId)
+      .andWhere('slips.gameType', 'spin')
+      .andWhere('slips.status', 'active')
+      .first();
+
+    return result.total;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
 
 const reportForCashier = async (cashier, reportDate) => {
   const startOfDay = new Date(reportDate);
@@ -572,14 +591,17 @@ const getTodayShopReport = async (startDate, endDate, shopId) => {
   if (!shopId) {
     return res.status(400).json({ error: 'shop id is missing.' })
   }
-  console.log(startDate, endDate, shopId);
-  const todayData = await generateDailyReportForShop(getCurrentDate(), shopId);
-  console.log(todayData);
-  const totalStake =
-    todayData.reduce((sum, slip) => sum + parseInt(slip.totalStake), 0)
-  const totalGGR =
-    todayData.reduce((sum, slip) => sum + parseInt(slip.totalGGR), 0)
   try {
+    console.log(startDate, endDate, shopId);
+    const todayData = await generateDailyReportForShop(getCurrentDate(), shopId);
+    console.log(todayData);
+    const totalStake =
+      todayData.reduce((sum, slip) => sum + parseInt(slip.totalStake), 0)
+    const totalGGR =
+      todayData.reduce((sum, slip) => sum + parseInt(slip.totalGGR), 0)
+    const totalActive =
+      todayData.reduce((sum, slip) => sum + parseInt(slip.totalActive), 0)
+
     // let query = DailyReport.query().select(
     //   "shopId",
     //   "shopOwnerId",
@@ -619,7 +641,7 @@ const getTodayShopReport = async (startDate, endDate, shopId) => {
     //   .withGraphFetched("shop")
     //   .withGraphFetched("shopOwner").first();
     // console.log(shopReports);
-    return ({ ggr: totalGGR, stake: totalStake });
+    return ({ ggr: totalGGR, stake: totalStake, active: totalActive });
   } catch (error) {
     console.error(error);
     throw error; // Rethrow the error for handling at a higher level
@@ -708,6 +730,7 @@ module.exports = {
   generateShopReport,
   getTodayShopReport,
   generateDailyReport,
+  findActiveTickets,
   generateCashierReport,
   generateSubAgentCashierReport,
   generateShopAgentReport,

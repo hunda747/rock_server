@@ -408,11 +408,11 @@ const GameController = {
       let drawnNumber;
       if (!currentGame.pickedNumbers) {
         // Assume you have a function to draw the number and update the database
-        drawnNumber = await generateSpinRandomNumbers(gameNumber, findshop.rtp)
-        console.log('ddraw', drawnNumber);
+        drawnNumber = await generateSpinRandomNumbers(gameNumber, findshop.rtp, shopId)
+        // console.log('ddraw', drawnNumber);
 
         const winners = determineAllWinners(drawnNumber);
-        console.log(winners);
+        // console.log(winners);
         // Update the pickedNumbers field with the drawn number
         await currentGame.$query().patch({
           pickedNumbers: JSON.stringify({ selection: drawnNumber }),
@@ -710,7 +710,7 @@ const calculateSlipWiningNumbers = async (
 
     for (const pick of ticketPicks) {
       const numberOfSelections = pick.val.length;
-      console.log("nums:", pick.val);
+      // console.log("nums:", pick.val);
       // console.log("nums:", pick.val[0]);
       // Retrieve the odds table for the specific selection
       if (pick.market === "OddEven") {
@@ -722,7 +722,7 @@ const calculateSlipWiningNumbers = async (
           ticketWin += pick.stake * pick.odd;
         }
       } else {
-        console.log("numbers", winningNumbers);
+        // console.log("numbers", winningNumbers);
         // if(pick.val.includes(winningNumbers)){
         if (pick.val.map(Number).includes(winningNumbers)) {
           ticketWin += pick.stake * pick.odd;
