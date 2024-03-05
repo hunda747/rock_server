@@ -594,7 +594,7 @@ const getTodayShopReport = async (startDate, endDate, shopId) => {
   try {
     console.log(startDate, endDate, shopId);
     const todayData = await generateDailyReportForShop(getCurrentDate(), shopId);
-    console.log(todayData);
+    // console.log(todayData);
     const totalStake =
       todayData.reduce((sum, slip) => sum + parseInt(slip.totalStake), 0)
     const totalGGR =

@@ -14,21 +14,22 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId, res) => {
   endOfDay.setHours(23, 59, 59, 999);
 
   const currentData = await getTodayShopReport(startOfDay, endOfDay, shopId);
-  console.log('ggr:', currentData);
+  // console.log('ggr:', currentData);
 
   const picks = [];
 
   if (!tickets.length) {
-    const drawnnumber = [];
+    const drawnnumber = drawNumbersWindow(1, 80, 20);
+    // const drawnnumber = [];
 
-    while (drawnnumber.length < 20) {
-      const randomNum = Math.floor(Math.random() * 80) + 1;
+    // while (drawnnumber.length < 20) {
+    //   const randomNum = Math.floor(Math.random() * 80) + 1;
 
-      // Ensure the number is not already in the array
-      if (!drawnnumber.includes(randomNum)) {
-        drawnnumber.push(randomNum);
-      }
-    }
+    //   // Ensure the number is not already in the array
+    //   if (!drawnnumber.includes(randomNum)) {
+    //     drawnnumber.push(randomNum);
+    //   }
+    // }
     return drawnnumber;
   }
 
@@ -51,9 +52,9 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId, res) => {
   const actualScall = calculateDynamicScalingFactor(currentRatio, rtp)
   console.log('actual scall ', actualScall);
   // console.log("code", picks);
-  const weight = calculateWeights(picks, actualScall);
-  // const drawnnumber = generateUniqueWeightedNumbers(weight, 20);
-  const drawnnumber = drawTwoUniqueNumbers(weight, 20);
+  const weight = calculateWeights(picks, scalingFactor);
+  const drawnnumber = generateUniqueWeightedNumbers(weight, 20);
+  // const drawnnumber = drawTwoUniqueNumbers(weight, 20);
   console.log("ወኢግህት", drawnnumber);
 
   // const drawnnumber = [];
@@ -70,6 +71,33 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId, res) => {
   return drawnnumber;
 };
 
+function drawNumbersWindow(min, max, count) {
+  // Validate input parameters
+  if (count > max - min + 1 || count <= 0) {
+    throw new Error("Invalid parameter(s).");
+  }
+
+  const drawnNumbers = [];
+  while (drawnNumbers.length < count) {
+    const randomNumber = _generatePseudoRandomInt(min, max);
+
+    // Check if the randomly generated number is already present in our list
+    if (!drawnNumbers.includes(randomNumber)) {
+      drawnNumbers.push(randomNumber);
+    }
+  }
+
+  return drawnNumbers;
+}
+
+function _generatePseudoRandomInt(min, max) {
+  const buf = crypto.randomBytes(4);
+  const intValue = buf.readUInt32BE();
+
+  return intValue % (max - min + 1) + min;
+}
+
+
 function calculateDynamicScalingFactor(currentRatio, targetRatio) {
   const tolerance = 3; // 5%
   const middleTolerance = 6; // 7.5%
@@ -79,8 +107,8 @@ function calculateDynamicScalingFactor(currentRatio, targetRatio) {
     return targetRatio / 100;
   } else if (currentRatio > targetRatio && currentRatio <= targetRatio + middleTolerance) {
     return targetRatio / 100;
-  // } else if (currentRatio > targetRatio + tolerance && currentRatio <= targetRatio + middleTolerance) {
-  //   return 0.01;
+    // } else if (currentRatio > targetRatio + tolerance && currentRatio <= targetRatio + middleTolerance) {
+    //   return 0.01;
   } else if (currentRatio > targetRatio + middleTolerance && currentRatio <= targetRatio + largeTolerance) {
     return 0.01;
   } else if (currentRatio > targetRatio + largeTolerance) {
@@ -100,7 +128,6 @@ function calculateDynamicScalingFactor(currentRatio, targetRatio) {
   // Default case, return a neutral scaling factor
   return 1.0;
 }
-
 
 function drawTwoUniqueNumbers(weights, num = 20) {
   const drawnNumbers = new Set();
@@ -139,6 +166,7 @@ function generateUniqueWeightedNumbers(data, numNumbers, maxPoolSize = 10 * numN
   }
 
   // Shuffle the pool to further increase randomness (optional)
+  console.log('weight', data);
   // shuffle(pool); // Replace with your chosen shuffling algorithm
 
   // Ensure pool size is not larger than maxPoolSize
@@ -179,14 +207,26 @@ function calculateWeights(players, scalingFactor) {
 
   // Initialize empty object to store total coins placed
   const coinsSum = {};
+  // console.log(players);
   // Iterate through players and count their bets
-  players.forEach((player) => {
-    player.selectedNumbers.forEach((number, index) => {
-      // console.log(index);
-      if (!((player.selectedNumbers.length > 2 && index === 0) || (player.selectedNumbers.length > 3 && index === player.selectedNumbers.length - 1))) {
-        coinsSum[number] = (coinsSum[number] || 0) + player.coinsPlaced;
+  players.forEach((player, index) => {
+    if (player.selectedNumbers.length === 2) {
+      // Iterate through the selectedNumbersLengthTwo array
+      // Log in an alternating fashion
+      const numbers = player.selectedNumbers;
+      if (index % 2 === 0) {
+        coinsSum[numbers[0]] = (coinsSum[numbers[0]] || 0) + (player.coinsPlaced * 2);
+      } else {
+        coinsSum[numbers[1]] = (coinsSum[numbers[1]] || 0) + (player.coinsPlaced * 2);
       }
-    });
+    } else {
+      player.selectedNumbers.forEach((number, index) => {
+        // console.log(index);
+        if (!((player.selectedNumbers.length > 2 && index === 0) || (player.selectedNumbers.length > 3 && index === player.selectedNumbers.length - 1))) {
+          coinsSum[number] = (coinsSum[number] || 0) + player.coinsPlaced;
+        }
+      });
+    }
   });
   console.log(coinsSum);
 

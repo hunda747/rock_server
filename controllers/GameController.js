@@ -613,7 +613,7 @@ const calculateCashierWinnings = async (gameNumber, tickets) => {
 
     const existingNetWinning = (
       await Cashier.query().select("netWinning").where("id", cashierId)
-    )[0].netWinning;
+    )[0]?.netWinning || 0;
 
     // Calculate the updated netWinning value
     const updatedNetWinning =
