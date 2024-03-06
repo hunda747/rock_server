@@ -343,7 +343,7 @@ const slipController = {
       // }
 
       const updatedSlip = await Slip.query().findById(id).where('shopId', shop);
-      console.log("slip", updatedSlip);
+      // console.log("slip", updatedSlip);
       // if (updatedSlip) {
       if (updatedSlip.status == "active") {
         res.status(404).json({ err: "false", error: "Game not Done" });

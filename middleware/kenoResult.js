@@ -93,13 +93,30 @@ function calculateWeights(players, scalingFactor) {
   // Initialize empty object to store total coins placed
   const coinsSum = {};
   // Iterate through players and count their bets
-  players.forEach((player) => {
-    player.selectedNumbers.forEach((number, index) => {
-      console.log(index);
-      if (!((player.selectedNumbers.length > 2 && index === 0) || (player.selectedNumbers.length > 3 && index === player.selectedNumbers.length - 1))) {
-        coinsSum[number] = (coinsSum[number] || 0) + player.coinsPlaced;
+  // players.forEach((player) => {
+  //   player.selectedNumbers.forEach((number, index) => {
+  //     console.log(index);
+  //     if (!((player.selectedNumbers.length > 2 && index === 0) || (player.selectedNumbers.length > 3 && index === player.selectedNumbers.length - 1))) {
+  //       coinsSum[number] = (coinsSum[number] || 0) + player.coinsPlaced;
+  //     }
+  //   });
+  // });
+  players.forEach((player, index) => {
+    if (player.selectedNumbers.length === 2) {
+      const numbers = player.selectedNumbers;
+      if (index % 2 === 0) {
+        coinsSum[numbers[0]] = (coinsSum[numbers[0]] || 0) + (player.coinsPlaced * 2);
+      } else {
+        coinsSum[numbers[1]] = (coinsSum[numbers[1]] || 0) + (player.coinsPlaced * 2);
       }
-    });
+    } else {
+      player.selectedNumbers.forEach((number, index) => {
+        // console.log(index);
+        if (!((player.selectedNumbers.length > 2 && index === 0) || (player.selectedNumbers.length > 3 && index === player.selectedNumbers.length - 1))) {
+          coinsSum[number] = (coinsSum[number] || 0) + player.coinsPlaced;
+        }
+      });
+    }
   });
   console.log(coinsSum);
 
