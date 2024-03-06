@@ -73,7 +73,7 @@ const slipController = {
 
   getSlipByGamenumber: async (req, res, next) => {
     const { code } = req.query;
-    console.log("code", code);
+    // console.log("code", code);
     try {
       const slip = await Slip.query()
         .where("id", code)
@@ -343,7 +343,7 @@ const slipController = {
       // }
 
       const updatedSlip = await Slip.query().findById(id).where('shopId', shop);
-      console.log("slip", updatedSlip);
+      // console.log("slip", updatedSlip);
       // if (updatedSlip) {
       if (updatedSlip.status == "active") {
         res.status(404).json({ err: "false", error: "Game not Done" });
