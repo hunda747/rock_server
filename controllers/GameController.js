@@ -817,16 +817,16 @@ function determineAllWinners(drawnNumber) {
 
   // Check color option
   const drawnColors = determineWinningColors(drawnNumber);
-  allWinners.color = drawnNumber === '0' ? '-' : drawnColors[0];
+  allWinners.color = (drawnNumber === '0') ? '-' : drawnColors[0];
 
   // Check oddEven option
-  allWinners.oddEven = drawnNumber == '0' ? '-' : drawnNumber % 2 === 0 ? "EVN" : "ODD";
+  allWinners.oddEven = (drawnNumber == '0') ? '-' : drawnNumber % 2 === 0 ? "EVN" : "ODD";
 
   return allWinners;
 }
 
 const numberToColorMap = {
-  0: ["", ""],
+  0: ["-", "-"],
   1: ["RED", "purple"],
   2: ["BLK", "orange"],
   3: ["RED", "white"],

@@ -140,7 +140,7 @@ const generateSpinRandomNumbers = async (gameNumber, rtp, shopId) => {
 
   const currentRatio = parseInt(currentData.stake) ? ((parseInt(currentData.ggr) / parseInt(currentData.stake)) * 100).toFixed(2) : 0;
   const expectPayout = (rtp / 100) * (parseInt(currentData.stake) + parseInt(activespin));
-  const difPayout = parseInt(currentData.ggr) - expectPayout + parseInt(activespin);
+  const difPayout = parseInt(currentData.ggr) - expectPayout + (parseInt(activespin));
   console.log(difPayout);
   const actialwin = parseInt(difPayout);
   console.log('want', actialwin);
