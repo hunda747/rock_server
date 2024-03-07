@@ -34,12 +34,20 @@ const generateDailyReport = async (reportDate, res) => {
     const cashiers = await Cashier.query()
       .select("id", "shopId")
       .withGraphFetched("shop");
-    const startOfDay = new Date(reportDate);
-    startOfDay.setHours(0, 0, 0, 0);
-    // console.log(cashiers);
-    const endOfDay = new Date(reportDate);
-    endOfDay.setHours(23, 59, 59, 999);
 
+    const timezoneOffset = 0; // Set the time zone offset to 0 for UTC
+
+    const startOfDay = new Date(`${reportDate}T00:00:00.000Z`);
+    startOfDay.setMinutes(startOfDay.getMinutes() - timezoneOffset);
+
+    const endOfDay = new Date(`${reportDate}T23:59:59.999Z`);
+    endOfDay.setMinutes(endOfDay.getMinutes() - timezoneOffset);
+
+    // const startOfDay = moment(reportDate).startOf("day").toDate();
+    // const endOfDay = moment(reportDate).endOf("day").toDate();
+    console.log(reportDate);
+    console.log(startOfDay);
+    console.log(endOfDay);
     // Loop through each cashier and generate a report
     const dailyReports = await Promise.all(
       cashiers.map(async (cashier) => {
@@ -152,6 +160,95 @@ const generateDailyReport = async (reportDate, res) => {
     throw error; // Rethrow the error for handling at a higher level
   }
 };
+
+const generateDailyReportForShop = async (reportDate, shopId) => {
+  try {
+    // Fetch all cashiers
+    const cashiers = await Cashier.query().where("shopId", shopId)
+      .select("id", "shopId")
+      .withGraphFetched("shop");
+    const timezoneOffset = 0; // Set the time zone offset to 0 for UTC
+
+    const startOfDay = new Date(`${reportDate}T00:00:00.000Z`);
+    startOfDay.setMinutes(startOfDay.getMinutes() - timezoneOffset);
+
+    const endOfDay = new Date(`${reportDate}T23:59:59.999Z`);
+    endOfDay.setMinutes(endOfDay.getMinutes() - timezoneOffset);
+
+    // Loop through each cashier and generate a report
+    const dailyReports = await Promise.all(
+      cashiers.map(async (cashier) => {
+        const cashierReport = await Cashier.query()
+          .findById(cashier.id)
+          .withGraphFetched("[slips]")
+          .modifyGraph("slips", (builder) => {
+            builder.where("created_at", ">=", startOfDay);
+            builder.where("created_at", "<=", endOfDay);
+            builder.select(
+              Slip.raw("SUM(totalStake) as stake"),
+              Slip.raw(
+                'SUM(CASE WHEN status = "active" THEN totalStake ELSE 0 END) as active'
+              ),
+              Slip.raw(
+                'SUM(CASE WHEN status = "redeemed" THEN netWinning ELSE 0 END) as payout'
+              ),
+              Slip.raw(
+                'SUM(CASE WHEN status = "redeem" AND netWinning > 0 THEN netWinning ELSE 0 END) as unclaimed'
+              ),
+              Slip.raw(
+                'SUM(CASE WHEN status = "canceled" THEN totalStake ELSE 0 END) as revoked'
+              ),
+            );
+          });
+
+
+        // Extract the relevant data from the cashier report
+        // console.log('report: ', cashierReport.slips[0]);
+        const {
+          stake = 0,
+          active = 0,
+          revoked = 0,
+          payout = 0,
+          unclaimed = 0,
+        } = cashierReport.slips[0] || {}; // Assuming there is always one slip entry
+        // console.log(payout, unclaimed, redeem);
+        const updateDailyReport = {
+          totalStake: parseInt(stake) - parseInt(revoked) - parseInt(active),
+          totalGGR: parseInt(stake) - parseInt(active) - parseInt(payout) - parseInt(unclaimed) - parseInt(revoked),
+          totalActive: parseInt(active)
+        }
+
+        return updateDailyReport;
+      })
+    );
+    // console.log(dailyReports);
+
+    return dailyReports;
+  } catch (error) {
+    console.error(error);
+    throw error; // Rethrow the error for handling at a higher level
+  }
+};
+
+const findActiveTickets = async (gameId, shopId) => {
+  try {
+    const result = await Slip.query()
+      .select([
+        'slips.totalStake',
+      ])
+      .sum('slips.totalStake as total')
+      .where('slips.gameId', gameId)
+      .andWhere('slips.shopId', shopId)
+      .andWhere('slips.gameType', 'spin')
+      .andWhere('slips.status', 'active')
+      .first();
+
+    return result.total;
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
 
 const reportForCashier = async (cashier, reportDate) => {
   const startOfDay = new Date(reportDate);
@@ -489,6 +586,68 @@ const generateShopReport = async (req, res) => {
   }
 };
 
+const getTodayShopReport = async (startDate, endDate, shopId) => {
+  // Check if the current date should be included
+  if (!shopId) {
+    return res.status(400).json({ error: 'shop id is missing.' })
+  }
+  try {
+    console.log(startDate, endDate, shopId);
+    const todayData = await generateDailyReportForShop(getCurrentDate(), shopId);
+    // console.log(todayData);
+    const totalStake =
+      todayData.reduce((sum, slip) => sum + parseInt(slip.totalStake), 0)
+    const totalGGR =
+      todayData.reduce((sum, slip) => sum + parseInt(slip.totalGGR), 0)
+    const totalActive =
+      todayData.reduce((sum, slip) => sum + parseInt(slip.totalActive), 0)
+
+    // let query = DailyReport.query().select(
+    //   "shopId",
+    //   "shopOwnerId",
+    //   DailyReport.raw("SUM(totalTickets) as totalTickets"),
+    //   DailyReport.raw("SUM(totalStake) as totalStake"),
+    //   DailyReport.raw("COUNT(DISTINCT CASE WHEN active THEN cashierId END) as activeShops"),
+    //   DailyReport.raw("SUM(totalPayout) as totalPayout"),
+    //   DailyReport.raw("SUM(totalPayoutCount) as totalPayoutCount"),
+    //   DailyReport.raw("SUM(totalUnclaimed) as totalUnclaimed"),
+    //   DailyReport.raw("SUM(totalUnclaimedCount) as totalUnclaimedCount"),
+    //   DailyReport.raw("SUM(totalRevoked) as totalRevoked"),
+    //   DailyReport.raw("SUM(totalRevokedCount) as totalRevokedCount"),
+    //   DailyReport.raw("SUM(totalGGR) as totalGGR"),
+    //   DailyReport.raw("SUM(totalNetBalance) as totalNetBalance")
+    // );
+
+    // // Add conditions based on optional parameters
+    // if (startDate) {
+    //   const startOfDayTime = new Date(startDate);
+    //   startOfDayTime.setHours(0, 0, 0, 0);
+    //   query = query.where("reportDate", ">=", startOfDayTime);
+    // }
+
+    // if (endDate) {
+    //   const endOfDayTime = new Date(endDate);
+    //   endOfDayTime.setHours(23, 59, 59, 999);
+    //   query = query.where("reportDate", "<=", endOfDayTime);
+    // }
+
+    // if (shopId && shopId.length) {
+    //   // Assuming there is a relationship between DailyReport and Shop
+    //   query = query.where("shopId", shopId);
+    // }
+
+    // const shopReports = await query
+    //   .groupBy("shopId").where("shopId", shopId)
+    //   .withGraphFetched("shop")
+    //   .withGraphFetched("shopOwner").first();
+    // console.log(shopReports);
+    return ({ ggr: totalGGR, stake: totalStake, active: totalActive });
+  } catch (error) {
+    console.error(error);
+    throw error; // Rethrow the error for handling at a higher level
+  }
+};
+
 const generateShopAgentReport = async (req, res) => {
   const { startDate, endDate, shopId, subAgentId } = req.body;
   // Check if the current date should be included
@@ -569,7 +728,9 @@ module.exports = {
   createDailyReport,
   getDailyReportById,
   generateShopReport,
+  getTodayShopReport,
   generateDailyReport,
+  findActiveTickets,
   generateCashierReport,
   generateSubAgentCashierReport,
   generateShopAgentReport,

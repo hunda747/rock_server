@@ -73,7 +73,7 @@ const slipController = {
 
   getSlipByGamenumber: async (req, res, next) => {
     const { code } = req.query;
-    console.log("code", code);
+    // console.log("code", code);
     try {
       const slip = await Slip.query()
         .where("id", code)
