@@ -1,5 +1,6 @@
 const { getTodayShopReport, findActiveTickets } = require('../controllers/DailyReportController');
 const Ticket = require('../models/slip');
+const crypto = require('crypto')
 
 const redNums = [
   "1",
@@ -88,6 +89,12 @@ const generateSpinRandomNumbers = async (gameNumber, rtp, shopId) => {
     .where("gameId", gameNumber)
     .whereNot("status", "canceled");
 
+  if (!tickets.length) {
+    const drawnnumber = getRandomNumber();
+
+    return drawnnumber;
+  }
+
   const picks = [];
 
   const reportDate = new Date();
@@ -147,7 +154,7 @@ const generateSpinRandomNumbers = async (gameNumber, rtp, shopId) => {
     });
   });
 
-  // console.log('ick', coinsSum);
+  console.log('ick', coinsSum);
   const winchoos = getClosestEntryRandomly(coinsSum, actialwin > 0 ? actialwin : 0);
   console.log('true winner', winchoos);
 
@@ -226,6 +233,21 @@ function getClosestEntryRandomly(inputArray, x) {
   return { index: possibleEntries[randomIndex][0], value: inputArray[possibleEntries[randomIndex][0]] };
 }
 
+function getRandomNumber() {
+  // Create a Uint32Array to store 32 bits of random data
+  const randomArray = new Uint32Array(1);
+
+  // Use crypto.getRandomValues to fill the array with random data
+  crypto.getRandomValues(randomArray);
+
+  // Extract the random value from the array
+  const randomNumber = randomArray[0];
+
+  // Scale the random value to fit the range [0, 36]
+  const scaledNumber = randomNumber % 37;
+
+  return scaledNumber;
+}
 
 function drawNumber(weights) {
   const totalWeight = weights.reduce((sum, { weight }) => sum + weight, 0);
