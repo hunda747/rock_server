@@ -715,6 +715,7 @@ function determineAllWinners(drawnNumber) {
 }
 
 const numberToColorMap = {
+  0: ["-", "-"],
   1: ["RED", "purple"],
   2: ["BLK", "orange"],
   3: ["RED", "white"],
