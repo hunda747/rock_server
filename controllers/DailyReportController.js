@@ -161,7 +161,7 @@ const generateDailyReport = async (reportDate, res) => {
   }
 };
 
-const generateDailyReportForShop = async (reportDate, shopId) => {
+const generateDailyReportForShop = async (reportDate, shopId, gameType) => {
   try {
     // Fetch all cashiers
     const cashiers = await Cashier.query().where("shopId", shopId)
@@ -184,6 +184,7 @@ const generateDailyReportForShop = async (reportDate, shopId) => {
           .modifyGraph("slips", (builder) => {
             builder.where("created_at", ">=", startOfDay);
             builder.where("created_at", "<=", endOfDay);
+            builder.where("gameType", gameType);
             builder.select(
               Slip.raw("SUM(totalStake) as stake"),
               Slip.raw(
@@ -586,14 +587,14 @@ const generateShopReport = async (req, res) => {
   }
 };
 
-const getTodayShopReport = async (startDate, endDate, shopId) => {
+const getTodayShopReport = async (startDate, endDate, shopId, gameType) => {
   // Check if the current date should be included
   if (!shopId) {
     return res.status(400).json({ error: 'shop id is missing.' })
   }
   try {
     console.log(startDate, endDate, shopId);
-    const todayData = await generateDailyReportForShop(getCurrentDate(), shopId);
+    const todayData = await generateDailyReportForShop(getCurrentDate(), shopId, gameType);
     // console.log(todayData);
     const totalStake =
       todayData.reduce((sum, slip) => sum + parseInt(slip.totalStake), 0)

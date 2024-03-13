@@ -13,7 +13,7 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId, res) => {
   const endOfDay = new Date(reportDate);
   endOfDay.setHours(23, 59, 59, 999);
 
-  const currentData = await getTodayShopReport(startOfDay, endOfDay, shopId);
+  const currentData = await getTodayShopReport(startOfDay, endOfDay, shopId, 'keno');
   // console.log('ggr:', currentData);
 
   const picks = [];

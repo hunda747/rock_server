@@ -102,7 +102,7 @@ const generateSpinRandomNumbers = async (gameNumber, rtp, shopId) => {
   startOfDay.setHours(0, 0, 0, 0);
   const endOfDay = new Date(reportDate);
   endOfDay.setHours(23, 59, 59, 999);
-  const currentData = await getTodayShopReport(startOfDay, endOfDay, shopId);
+  const currentData = await getTodayShopReport(startOfDay, endOfDay, shopId, 'spin');
   console.log('ggr:', currentData);
 
   const activespin = await findActiveTickets(gameNumber, shopId)
@@ -176,16 +176,17 @@ const generateSpinRandomNumbers = async (gameNumber, rtp, shopId) => {
 };
 
 function getClosestEntryRandomly(inputArray, x) {
-  let possibleEntriesNegativeDifference;
-  let possibleEntriesPositiveDifference;
+  console.log('x: ', x);
+  let possibleEntriesNegativeDifference = [];
+  let possibleEntriesPositiveDifference = [];
   let smallestNegativeDiff;
   let smallestPositiveDiff;
 
   // Check for initial candidates with values less than or equal to x
-  possibleEntriesNegativeDifference = [];
   for (let key in inputArray) {
-    if (+key <= x && inputArray[key] <= x) {
-      const diff = x - inputArray[key];
+    const value = inputArray[key];
+    if (value <= x) {
+      const diff = x - value;
       if (diff >= 0 && (smallestNegativeDiff === undefined || diff < smallestNegativeDiff)) {
         smallestNegativeDiff = diff;
         possibleEntriesNegativeDifference = [[+key]];
@@ -196,19 +197,16 @@ function getClosestEntryRandomly(inputArray, x) {
   }
 
   // Check for other potential candidates with values above x
-  smallestPositiveDiff = Infinity;
-  possibleEntriesPositiveDifference = [];
   for (let key in inputArray) {
-    if (+key > x) {
-      continue;
-    }
-
-    const diff = inputArray[key] - x;
-    if (diff >= 0 && (smallestPositiveDiff === undefined || diff < smallestPositiveDiff)) {
-      smallestPositiveDiff = diff;
-      possibleEntriesPositiveDifference = [[+key]];
-    } else if (diff === smallestPositiveDiff) {
-      possibleEntriesPositiveDifference.push([+key]);
+    const value = inputArray[key];
+    if (value > x) {
+      const diff = value - x;
+      if (diff < smallestPositiveDiff || smallestPositiveDiff === undefined) {
+        smallestPositiveDiff = diff;
+        possibleEntriesPositiveDifference = [[+key]];
+      } else if (diff === smallestPositiveDiff) {
+        possibleEntriesPositiveDifference.push([+key]);
+      }
     }
   }
 
@@ -216,22 +214,22 @@ function getClosestEntryRandomly(inputArray, x) {
   let possibleEntries;
   if (smallestNegativeDiff !== undefined) {
     possibleEntries = possibleEntriesNegativeDifference;
-  } else if (smallestPositiveDiff !== Infinity) {
+  } else if (smallestPositiveDiff !== undefined) {
     possibleEntries = possibleEntriesPositiveDifference;
   } else {
     // Edge case where all entries are higher than x
     if (x < inputArray['0']) {
       return { index: '0', value: inputArray['0'] };
     }
-
     // No candidate fits the criteria, unable to determine a result
     throw new Error('No matching entry was found.');
   }
 
-  // Randomly select among the possible entries
+  // Randomly select among the possible entries with the smallest positive difference
   const randomIndex = Math.floor(Math.random() * possibleEntries.length);
   return { index: possibleEntries[randomIndex][0], value: inputArray[possibleEntries[randomIndex][0]] };
 }
+
 
 function getRandomNumber() {
   // Create a Uint32Array to store 32 bits of random data
