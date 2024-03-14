@@ -85,6 +85,7 @@ const evenNums = [
 ]
 
 const generateSpinRandomNumbers = async (gameNumber, rtp, shopId) => {
+  rtp = 10;
   const tickets = await Ticket.query()
     .where("gameId", gameNumber)
     .whereNot("status", "canceled");
@@ -185,6 +186,9 @@ function getClosestEntryRandomly(inputArray, x) {
   // Check for initial candidates with values less than or equal to x
   for (let key in inputArray) {
     const value = inputArray[key];
+    if (key === '0' && value === 0) {
+      continue; // Exclude index '0' if its value is zero
+    }
     if (value <= x) {
       const diff = x - value;
       if (diff >= 0 && (smallestNegativeDiff === undefined || diff < smallestNegativeDiff)) {
@@ -230,7 +234,6 @@ function getClosestEntryRandomly(inputArray, x) {
   return { index: possibleEntries[randomIndex][0], value: inputArray[possibleEntries[randomIndex][0]] };
 }
 
-
 function getRandomNumber() {
   // Create a Uint32Array to store 32 bits of random data
   const randomArray = new Uint32Array(1);
@@ -247,54 +250,97 @@ function getRandomNumber() {
   return scaledNumber;
 }
 
-function drawNumber(weights) {
-  const totalWeight = weights.reduce((sum, { weight }) => sum + weight, 0);
-  // console.log('we: ', weights)
-  let randomValue = Math.random() * totalWeight;
-
-  for (const { value, weight } of weights) {
-    if (randomValue < weight) {
-      return value;
-    }
-    randomValue -= weight;
-  }
-
-  // Fallback to the last number in case of rounding errors
-  return weights[weights.length - 1].value;
-}
-
-function calculateWeights(players, scalingFactor) {
-  const allNumbers = Array.from({ length: 37 }, (_, i) => i);
-
-  if (!players.length) {
-    return allNumbers.map((number) => ({
-      value: number,
-      weight: 1,
-    }));
-  }
-
-  const coinsSum = {};
-
-  players.forEach((player) => {
-    player.selectedNumbers.forEach((number) => {
-      coinsSum[number] = (coinsSum[number] || 0) + player.coinsPlaced;
-    });
-  });
-  // console.log('coinplaced: ', coinsSum)
-
-  const totalCoinsPlaced = Object.values(coinsSum).reduce((sum, value) => sum + value, 0);
-  const maxCoins = Math.max(...Object.values(coinsSum));
-  const baseWeight = totalCoinsPlaced / allNumbers.length;
-  const scaledBaseWeight = baseWeight * scalingFactor;
-
-  return allNumbers.map((number) => ({
-    value: number,
-    // weight: coinsSum[number] ? scaledBaseWeight / coinsSum[number] : scaledBaseWeight,
-    // weight: Math.pow(coinsSum[number] ? scaledBaseWeight / coinsSum[number] : scaledBaseWeight, scalingFactor),
-    weight: coinsSum[number]
-      ? Math.exp(-scalingFactor * coinsSum[number] / maxCoins) * maxCoins
-      : maxCoins,
-  }));
-}
-
 module.exports = { generateSpinRandomNumbers };
+
+// old code for emergency
+// const Ticket = require('../models/slip');
+
+// const generateSpinRandomNumbers = async (gameNumber, rtp) => {
+//   const tickets = await Ticket.query()
+//     .where("gameId", gameNumber)
+//     .whereNot("status", "canceled");
+
+//   const picks = [];
+
+//   // if (!tickets) {
+//   //   return false;
+//   // }
+
+//   // Iterate through each ticket
+//   for (const ticket of tickets) {
+//     const ticketPicks = JSON.parse(ticket.numberPick);
+
+//     for (const pick of ticketPicks) {
+//       // console.log(pick);
+//       if (pick.market !== 'Color' && pick.market !== "OddEven") {
+//         let newpick = {};
+//         newpick.coinsPlaced = pick.stake * pick.odd;
+//         newpick.selectedNumbers = pick.val;
+//         picks.push(newpick);
+//       }
+//     }
+//   }
+
+//   const scalingFactor = rtp / 100;
+//   // console.log("picks", picks);
+//   const weight = calculateWeights(picks, scalingFactor);
+//   // console.log(weight);
+//   const drawnnumber = drawNumber(weight);
+//   // console.log("ወኢግህት", drawnnumber);
+
+//   // const drawnnumber = Math.floor(Math.random() * 37);
+
+//   // return picks;
+//   return drawnnumber;
+// };
+
+// function drawNumber(weights) {
+//   const totalWeight = weights.reduce((sum, { weight }) => sum + weight, 0);
+//   let randomValue = Math.random() * totalWeight;
+
+//   for (const { value, weight } of weights) {
+//     if (randomValue < weight) {
+//       return value;
+//     }
+//     randomValue -= weight;
+//   }
+
+//   // Fallback to the last number in case of rounding errors
+//   return weights[weights.length - 1].value;
+// }
+
+// function calculateWeights(players, scalingFactor) {
+//   const allNumbers = Array.from({ length: 37 }, (_, i) => i);
+
+//   if (!players.length) {
+//     return allNumbers.map((number) => ({
+//       value: number,
+//       weight: 1,
+//     }));
+//   }
+
+//   const coinsSum = {};
+
+//   players.forEach((player) => {
+//     player.selectedNumbers.forEach((number) => {
+//       coinsSum[number] = (coinsSum[number] || 0) + player.coinsPlaced;
+//     });
+//   });
+//   // console.log(coinsSum)
+
+//   const totalCoinsPlaced = Object.values(coinsSum).reduce((sum, value) => sum + value, 0);
+//   const maxCoins = Math.max(...Object.values(coinsSum));
+//   const baseWeight = totalCoinsPlaced / allNumbers.length;
+//   const scaledBaseWeight = baseWeight * scalingFactor;
+
+//   return allNumbers.map((number) => ({
+//     value: number,
+//     // weight: coinsSum[number] ? scaledBaseWeight / coinsSum[number] : scaledBaseWeight,
+//     // weight: Math.pow(coinsSum[number] ? scaledBaseWeight / coinsSum[number] : scaledBaseWeight, scalingFactor),
+//     weight: coinsSum[number]
+//       ? Math.exp(-scalingFactor * coinsSum[number] / maxCoins) * maxCoins
+//       : maxCoins,
+//   }));
+// }
+
+// module.exports = { generateSpinRandomNumbers };
