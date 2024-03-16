@@ -7,14 +7,14 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId, res) => {
     .where("gameId", gameNumber)
     .whereNot("status", "canceled");
 
-  // const reportDate = new Date();
-  // const startOfDay = new Date(reportDate);
-  // startOfDay.setHours(0, 0, 0, 0);
-  // const endOfDay = new Date(reportDate);
-  // endOfDay.setHours(23, 59, 59, 999);
+  const reportDate = new Date();
+  const startOfDay = new Date(reportDate);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(reportDate);
+  endOfDay.setHours(23, 59, 59, 999);
 
-  // const currentData = await getTodayShopReport(startOfDay, endOfDay, shopId, 'keno');
-  // // console.log('ggr:', currentData);
+  const currentData = await getTodayShopReport(startOfDay, endOfDay, shopId, 'keno');
+  // console.log('ggr:', currentData);
 
   if (!tickets.length) {
     const drawnnumber = drawNumbersWindow(1, 80, 20);
@@ -45,16 +45,16 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId, res) => {
     }
   }
 
-  // const currentRatio = parseInt(currentData.stake) ? ((parseInt(currentData.ggr) / parseInt(currentData.stake)) * 100).toFixed(2) : 0
-  // console.log('currenration', currentRatio);
+  const currentRatio = parseInt(currentData.stake) ? ((parseInt(currentData.ggr) / parseInt(currentData.stake)) * 100).toFixed(2) : 0
+  console.log('currenration', currentRatio);
   // console.log('rtp', rtp);
   console.log("picks", picks);
-  // const actualScall = calculateDynamicScalingFactor(currentRatio, rtp)
-  // console.log('actual scall ', actualScall);
+  const actualScall = calculateDynamicScalingFactor(currentRatio, rtp)
+  console.log('actual scall ', actualScall);
   // console.log("code", picks);
 
   const scalingFactor = rtp / 100;
-  const weight = calculateWeights(picks, scalingFactor);
+  const weight = calculateWeights(picks, actualScall);
   const drawnnumber = generateUniqueWeightedNumbers(weight, 20);
   // const drawnnumber = drawTwoUniqueNumbers(weight, 20);
   console.log("ወኢግህት", drawnnumber);
