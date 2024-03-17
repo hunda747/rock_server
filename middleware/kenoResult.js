@@ -46,8 +46,8 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId) => {
   // console.log('rtp', rtp);
   // console.log("picks", picks);
   // const actualScall = calculateDynamicScalingFactor(currentRatio, rtp)
-  // const actualScall = calculateDynamicScalingFactorTarget(currentRatio, rtp, currentData.stake)
-  const actualScall = calculateDynamicScalingSimple(currentRatio, rtp, currentData.stake)
+  const actualScall = calculateDynamicScalingFactorTarget(currentRatio, rtp, currentData.stake)
+  // const actualScall = calculateDynamicScalingSimple(currentRatio, rtp, currentData.stake)
   console.log('actual scall ', actualScall);
   // console.log("code", picks);
 
