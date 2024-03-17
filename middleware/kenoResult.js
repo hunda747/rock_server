@@ -48,8 +48,9 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId, res) => {
   const currentRatio = parseInt(currentData.stake) ? ((parseInt(currentData.ggr) / parseInt(currentData.stake)) * 100).toFixed(2) : 0
   console.log('currenration', currentRatio);
   // console.log('rtp', rtp);
-  console.log("picks", picks);
-  const actualScall = calculateDynamicScalingFactor(currentRatio, rtp)
+  // console.log("picks", picks);
+  // const actualScall = calculateDynamicScalingFactor(currentRatio, rtp)
+  const actualScall = calculateDynamicScalingFactorTarget(currentRatio, rtp, currentData.stake)
   console.log('actual scall ', actualScall);
   // console.log("code", picks);
 
@@ -114,7 +115,7 @@ function calculateDynamicScalingFactor(currentRatio, targetRatio) {
   } else if (currentRatio > targetRatio + middleTolerance && currentRatio <= targetRatio + largeTolerance) {
     return 0.01;
   } else if (currentRatio > targetRatio + largeTolerance) {
-    return 0.00001;  // Adjust as needed
+    return 0;  // Adjust as needed
   } else if (currentRatio < 0) {
     return 0.3;
   } else if (currentRatio < targetRatio && currentRatio >= targetRatio - tolerance) {
@@ -129,6 +130,40 @@ function calculateDynamicScalingFactor(currentRatio, targetRatio) {
 
   // Default case, return a neutral scaling factor
   return 1.0;
+}
+function calculateDynamicScalingFactorTarget(currentRatio, targetRatio, stake) {
+  const tolerance = 5; // 5%
+  const middleTolerance = 15; // 7.5%
+  const largeTolerance = 20; // 10%
+  // targetRatio 20 10
+  console.log('cc', currentRatio);
+  console.log('cc', targetRatio);
+  if (currentRatio < 0) {
+    return 0.4;
+  } else if (stake < 1500) {
+    return targetRatio / 100;  // 0.2
+  } else if (currentRatio === targetRatio) {
+    return targetRatio / 100;  // 0.2
+  } else if (currentRatio > targetRatio && currentRatio <= targetRatio + tolerance) {
+    return targetRatio / 100; // 10-15  0.2
+  } else if (currentRatio > targetRatio + tolerance && currentRatio <= targetRatio + middleTolerance) {
+    return (targetRatio - 5) / 100;  // 15-25  0.05
+  } else if (currentRatio > targetRatio + middleTolerance && currentRatio <= targetRatio + largeTolerance) {
+    return ((targetRatio - 10) / 100) ? (targetRatio - 10) / 100 : 0.03;  //25-30  0.1
+  } else if (currentRatio > targetRatio + largeTolerance) {  //34 > 25
+    return 0.01;  // Adjust as needed  > 25
+  } else if (currentRatio < targetRatio && currentRatio >= targetRatio - tolerance) {
+    return (targetRatio + 5) / 100; // 20-15 0.25
+  } else if (currentRatio < targetRatio - tolerance && currentRatio >= targetRatio - middleTolerance) {
+    return (targetRatio + 10) / 100; // 15-10 0.3
+  } else if (currentRatio < targetRatio - middleTolerance && currentRatio >= targetRatio - largeTolerance) {
+    return (targetRatio + 15) / 100;  // 10-5 0.3
+  } else if (currentRatio < targetRatio - largeTolerance) {
+    return (targetRatio + 20) / 100; // 0-5 0.4
+  }
+
+  // Default case, return a neutral scaling factor
+  return 0.7;
 }
 
 function drawTwoUniqueNumbers(weights, num = 20) {
@@ -230,7 +265,7 @@ function calculateWeights(players, scalingFactor) {
       });
     }
   });
-  console.log(coinsSum);
+  // console.log(coinsSum);
 
   // Calculate total coins placed
   const totalCoinsPlaced = Object.values(coinsSum).reduce(
