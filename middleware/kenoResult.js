@@ -7,15 +7,6 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId, res) => {
     .where("gameId", gameNumber)
     .whereNot("status", "canceled");
 
-  const reportDate = new Date();
-  const startOfDay = new Date(reportDate);
-  startOfDay.setHours(0, 0, 0, 0);
-  const endOfDay = new Date(reportDate);
-  endOfDay.setHours(23, 59, 59, 999);
-
-  const currentData = await getTodayShopReport(startOfDay, endOfDay, shopId, 'keno');
-  // console.log('ggr:', currentData);
-
   if (!tickets.length) {
     const drawnnumber = drawNumbersWindow(1, 80, 20);
     // const drawnnumber = [];
@@ -45,12 +36,22 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId, res) => {
     }
   }
 
+  const reportDate = new Date();
+  const startOfDay = new Date(reportDate);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(reportDate);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  const currentData = await getTodayShopReport(startOfDay, endOfDay, shopId, 'keno');
+  // console.log('ggr:', currentData);
+
   const currentRatio = parseInt(currentData.stake) ? ((parseInt(currentData.ggr) / parseInt(currentData.stake)) * 100).toFixed(2) : 0
   console.log('currenration', currentRatio);
   // console.log('rtp', rtp);
   // console.log("picks", picks);
   // const actualScall = calculateDynamicScalingFactor(currentRatio, rtp)
-  const actualScall = calculateDynamicScalingFactorTarget(currentRatio, rtp, currentData.stake)
+  // const actualScall = calculateDynamicScalingFactorTarget(currentRatio, rtp, currentData.stake)
+  const actualScall = calculateDynamicScalingSimple(currentRatio, rtp, currentData.stake)
   console.log('actual scall ', actualScall);
   // console.log("code", picks);
 
@@ -126,6 +127,29 @@ function calculateDynamicScalingFactor(currentRatio, targetRatio) {
     return 0.2;  // Adjust as needed
   } else if (currentRatio < targetRatio - largeTolerance) {
     return 0.25;
+  }
+
+  // Default case, return a neutral scaling factor
+  return 1.0;
+}
+
+function calculateDynamicScalingSimple(currentRatio, targetRatio, stake) {
+  const tolerance = 3; // 5%
+  const middleTolerance = 6; // 7.5%
+  const largeTolerance = 20; // 10%
+
+  if (currentRatio < 0) {
+    return 0.4;
+  } else if (stake < 1000) {
+    return targetRatio / 100;  // 0.2
+  } else if (currentRatio >= 0 && currentRatio < targetRatio) {
+    return (targetRatio + 5) / 100;
+  } else if (currentRatio === targetRatio) {
+    return targetRatio / 100;
+    // } else if (currentRatio > targetRatio && currentRatio <= targetRatio + largeTolerance) {
+    //   return targetRatio / 100;
+  } else if (currentRatio > targetRatio + largeTolerance) {
+    return (targetRatio - 5) / 100;
   }
 
   // Default case, return a neutral scaling factor
