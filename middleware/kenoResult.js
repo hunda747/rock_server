@@ -33,26 +33,28 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId) => {
     }
   }
 
-  // const reportDate = new Date();
-  // const startOfDay = new Date(reportDate);
-  // startOfDay.setHours(0, 0, 0, 0);
-  // const endOfDay = new Date(reportDate);
-  // endOfDay.setHours(23, 59, 59, 999);
-  // const currentData = await getTodayShopReport(startOfDay, endOfDay, shopId, 'keno');
-  // // console.log('ggr:', currentData);
+  const reportDate = new Date();
+  const startOfDay = new Date(reportDate);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(reportDate);
+  endOfDay.setHours(23, 59, 59, 999);
+  const currentData = await getTodayShopReport(startOfDay, endOfDay, shopId, 'keno');
+  // console.log('ggr:', currentData);
 
-  // const currentRatio = parseInt(currentData.stake) ? ((parseInt(currentData.ggr) / parseInt(currentData.stake)) * 100).toFixed(2) : 0
-  // console.log('currenration', currentRatio);
-  // // console.log('rtp', rtp);
-  // // console.log("picks", picks);
-  // // const actualScall = calculateDynamicScalingFactor(currentRatio, rtp)
-  // // const actualScall = calculateDynamicScalingFactorTarget(currentRatio, rtp, currentData.stake)
+  const currentRatio = parseInt(currentData.stake) ? ((parseInt(currentData.ggr) / parseInt(currentData.stake)) * 100).toFixed(2) : 0
+  console.log('currenration', currentRatio);
+  // console.log('rtp', rtp);
+  // console.log("picks", picks);
+  // const actualScall = calculateDynamicScalingFactor(currentRatio, rtp)
+  const actualScall = calculateDynamicScalingFactorTarget(currentRatio, rtp, currentData.stake)
   // const actualScall = calculateDynamicScalingSimple(currentRatio, rtp, currentData.stake)
-  // console.log('actual scall ', actualScall);
+  console.log('actual scall ', actualScall);
   // console.log("code", picks);
 
   const scalingFactor = rtp / 100;
-  const weight = calculateWeights(picks, scalingFactor);
+  const weight = calculateWeights(picks, actualScall);
+  // const weight = calculateWeights(picks, scalingFactor);
+
   // const drawnnumber = generateUniqueWeightedNumbers(weight, 20);
   const drawnnumber = drawTwoUniqueNumbers(weight, 20);
   console.log("ወኢግህት", drawnnumber);
@@ -156,27 +158,27 @@ function calculateDynamicScalingFactorTarget(currentRatio, targetRatio, stake) {
   const tolerance = 5; // 5%
   const middleTolerance = 15; // 7.5%
   const largeTolerance = 20; // 10%
-  // targetRatio 20 10
+  // targetRatio 15
   console.log('cc', currentRatio);
   console.log('cc', targetRatio);
   if (currentRatio < 0) {
     return 0.4;
-  } else if (stake < 1500) {
-    return targetRatio / 100;  // 0.2
+  } else if (stake < 1000) {
+    return targetRatio / 100;  // 0.15
   } else if (currentRatio === targetRatio) {
-    return targetRatio / 100;  // 0.2
+    return targetRatio / 100;  // 0.15
   } else if (currentRatio > targetRatio && currentRatio <= targetRatio + tolerance) {
-    return targetRatio / 100; // 10-15  0.2
+    return targetRatio / 100; // 15-20  0.15
   } else if (currentRatio > targetRatio + tolerance && currentRatio <= targetRatio + middleTolerance) {
-    return (targetRatio - 5) / 100;  // 15-25  0.05
+    return (targetRatio - 5) / 100;  // 20-30  0.1
   } else if (currentRatio > targetRatio + middleTolerance && currentRatio <= targetRatio + largeTolerance) {
-    return ((targetRatio - 10) / 100) ? (targetRatio - 10) / 100 : 0.03;  //25-30  0.1
-  } else if (currentRatio > targetRatio + largeTolerance) {  //34 > 25
+    return ((targetRatio - 10) / 100) ? (targetRatio - 10) / 100 : 0.03;  // 30-35  0.05
+  } else if (currentRatio > targetRatio + largeTolerance) {  //35 > 25
     return 0.01;  // Adjust as needed  > 25
   } else if (currentRatio < targetRatio && currentRatio >= targetRatio - tolerance) {
-    return (targetRatio + 5) / 100; // 20-15 0.25
+    return (targetRatio + 5) / 100; // 15-10 0.2
   } else if (currentRatio < targetRatio - tolerance && currentRatio >= targetRatio - middleTolerance) {
-    return (targetRatio + 10) / 100; // 15-10 0.3
+    return (targetRatio + 10) / 100; // 10-(-5) 0.25
   } else if (currentRatio < targetRatio - middleTolerance && currentRatio >= targetRatio - largeTolerance) {
     return (targetRatio + 15) / 100;  // 10-5 0.3
   } else if (currentRatio < targetRatio - largeTolerance) {
