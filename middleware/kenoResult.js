@@ -45,14 +45,52 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId) => {
   console.log('currenration', currentRatio);
   // console.log('rtp', rtp);
   // console.log("picks", picks);
+
+  if (!picks.length) {
+    const drawnnumber = [];
+
+    while (drawnnumber.length < 20) {
+      const randomNum = Math.floor(Math.random() * 80) + 1;
+
+      // Ensure the number is not already in the array
+      if (!drawnnumber.includes(randomNum)) {
+        drawnnumber.push(randomNum);
+      }
+    }
+    return drawnnumber;
+  }
+  // Initialize empty object to store total coins placed
+  const coinsSum = {};
+
+  picks.forEach((player, index) => {
+    if (player.selectedNumbers.length === 2) {
+      const numbers = player.selectedNumbers;
+      if (index % 2 === 0) {
+        coinsSum[numbers[0]] = (coinsSum[numbers[0]] || 0) + (player.coinsPlaced * 2);
+      } else {
+        coinsSum[numbers[1]] = (coinsSum[numbers[1]] || 0) + (player.coinsPlaced * 2);
+      }
+    } else {
+      player.selectedNumbers.forEach((number, index) => {
+        // console.log(index);
+        if (!((player.selectedNumbers.length > 2 && index === 0) || (player.selectedNumbers.length > 3 && index === player.selectedNumbers.length - 1))) {
+          coinsSum[number] = (coinsSum[number] || 0) + player.coinsPlaced;
+        }
+      });
+    }
+  });
   // const actualScall = calculateDynamicScalingFactor(currentRatio, rtp)
-  const actualScall = calculateDynamicScalingFactorTarget(currentRatio, rtp, currentData.stake)
-  // const actualScall = calculateDynamicScalingSimple(currentRatio, rtp, currentData.stake)
+  // const actualScall = calculateDynamicScalingFactorTarget(currentRatio, rtp, currentData.stake)
+
+  const lengthOfObject = Object.keys(coinsSum).length;
+  console.log("picks", lengthOfObject);
+
+  const actualScall = calculateDynamicScalingSimple(currentRatio, rtp, currentData.stake, lengthOfObject)
   console.log('actual scall ', actualScall);
   // console.log("code", picks);
 
   const scalingFactor = rtp / 100;
-  const weight = calculateWeights(picks, actualScall);
+  const weight = calculateWeights(coinsSum, actualScall);
   // const weight = calculateWeights(picks, scalingFactor);
 
   // const drawnnumber = generateUniqueWeightedNumbers(weight, 20);
@@ -131,24 +169,36 @@ function calculateDynamicScalingFactor(currentRatio, targetRatio) {
   return 1.0;
 }
 
-function calculateDynamicScalingSimple(currentRatio, targetRatio, stake) {
+function calculateDynamicScalingSimple(currentRatio, targetRatio, stake, lengthOfObject) {
   const tolerance = 3; // 5%
   const middleTolerance = 6; // 7.5%
   const largeTolerance = 20; // 10%
-  20.19
-
-  if (currentRatio < 0) {
+  // *        |  5   | 10   | 15   | 20   | 30
+  // <0%      | 0.40 | 0.40 | 0.40 | 0.40 | 0.40
+  // 0-x%     | 0.10 | 0.15 | 0.20 | 0.25 | 0.35
+  // x%       | 0.05 | 0.10 | 0.15 | 0.20 | 0.30
+  // x-(x+y)% | 0.05 | 0.10 | 0.15 | 0.20 | 0.30
+  // (x+y)?%  | 0.01 | 0.05 | 0.10 | 0.15 | 0.25
+  if (currentRatio < 0) { // < 0
     return 0.4;
-  } else if (stake < 1000) {
-    return targetRatio / 100;  // 0.2
-  } else if (currentRatio >= 0 && currentRatio < targetRatio) {
-    return (targetRatio + 5) / 100;
-  } else if (currentRatio === targetRatio) {
-    return targetRatio / 100;
-  } else if (currentRatio > targetRatio && currentRatio <= targetRatio + largeTolerance) {
-    return targetRatio / 100;
-  } else if (currentRatio > targetRatio + largeTolerance) {
-    return (targetRatio - 5) / 100;
+  } else if (lengthOfObject >= 45) {
+    if (currentRatio < targetRatio)
+      return 0.4
+    else
+      return 0.3
+  } else if (stake < 1000) { // 2
+    if (stake > 500 && currentRatio > 50)
+      return (targetRatio - 5) / 100 > 0 ? (targetRatio - 5) / 100 : 0.02;  // 0.05 - 0.15 - 0.2 - 0.3
+    else
+      return targetRatio / 100;  // 0.05 - 0.15 - 0.2 - 0.3
+  } else if (currentRatio >= 0 && currentRatio < targetRatio) { // 0 < 5 < 15 < 20 < 30
+    return (targetRatio + 10) / 100; // 0.1 - 0.2 - 0.25 - 0.35
+  } else if (currentRatio === targetRatio) { // 0 = 5 = 15 = 20 = 30
+    return (targetRatio + 5) / 100; // 0.05 - 0.15 - 0.2 - 0.3
+  } else if (currentRatio > targetRatio && currentRatio <= targetRatio + largeTolerance) { //5> 25 <35 <40 <50
+    return targetRatio / 100; // 0.05 - 0.15 - 0.2 - 0.3
+  } else if (currentRatio > targetRatio + largeTolerance) { // > 25 > 30 > 40 > 50
+    return (targetRatio - 5) / 100 > 0 ? (targetRatio - 5) / 100 : 0.02; // 0.0 - 0.1 - 0.15 - 0.25
   }
 
   // Default case, return a neutral scaling factor
@@ -188,6 +238,24 @@ function calculateDynamicScalingFactorTarget(currentRatio, targetRatio, stake) {
   // Default case, return a neutral scaling factor
   return 0.7;
 }
+function calculateDynamicScalingGPT(currentRatio, stake) {
+  if (currentRatio < 0) {
+    return 0.4;
+  } else if (stake < 1000) {
+    return 0.2;
+  } else if (currentRatio > 0.3) { // greater than 30%
+    return 0.01;
+  } else if (currentRatio > 0.2) { // greater than 20%
+    return 0.05;
+  } else if (currentRatio < 0.1) { // less than 10%
+    return 0.3;
+  } else if (currentRatio < 0.2) { // less than 20%
+    return 0.2;
+  }
+
+  // Default case, return a neutral scaling factor
+  return 0.2; // You mentioned 0.2 for the default case, feel free to adjust if needed
+}
 
 function drawTwoUniqueNumbers(weights, num = 20) {
   const drawnNumbers = new Set();
@@ -216,19 +284,19 @@ function weightedRandom(weights) {
   }
 }
 
-function calculateWeights(players, scalingFactor) {
+function calculateWeights(coinsSum, scalingFactor) {
   // Create an array to store all possible numbers
   const allNumbers = Array.from({ length: 80 }, (_, i) => i + 1);
 
-  if (!players.length) {
-    return allNumbers.map((number) => ({
-      value: number,
-      weight: 1, // Lower weight for selected numbers
-    }));
-  }
+  // if (!players.length) {
+  //   return allNumbers.map((number) => ({
+  //     value: number,
+  //     weight: 1, // Lower weight for selected numbers
+  //   }));
+  // }
 
   // Initialize empty object to store total coins placed
-  const coinsSum = {};
+  // const coinsSum = {};
   // Iterate through players and count their bets
   // players.forEach((player) => {
   //   player.selectedNumbers.forEach((number, index) => {
@@ -238,23 +306,23 @@ function calculateWeights(players, scalingFactor) {
   //     }
   //   });
   // });
-  players.forEach((player, index) => {
-    if (player.selectedNumbers.length === 2) {
-      const numbers = player.selectedNumbers;
-      if (index % 2 === 0) {
-        coinsSum[numbers[0]] = (coinsSum[numbers[0]] || 0) + (player.coinsPlaced * 2);
-      } else {
-        coinsSum[numbers[1]] = (coinsSum[numbers[1]] || 0) + (player.coinsPlaced * 2);
-      }
-    } else {
-      player.selectedNumbers.forEach((number, index) => {
-        // console.log(index);
-        if (!((player.selectedNumbers.length > 2 && index === 0) || (player.selectedNumbers.length > 3 && index === player.selectedNumbers.length - 1))) {
-          coinsSum[number] = (coinsSum[number] || 0) + player.coinsPlaced;
-        }
-      });
-    }
-  });
+  // players.forEach((player, index) => {
+  //   if (player.selectedNumbers.length === 2) {
+  //     const numbers = player.selectedNumbers;
+  //     if (index % 2 === 0) {
+  //       coinsSum[numbers[0]] = (coinsSum[numbers[0]] || 0) + (player.coinsPlaced * 2);
+  //     } else {
+  //       coinsSum[numbers[1]] = (coinsSum[numbers[1]] || 0) + (player.coinsPlaced * 2);
+  //     }
+  //   } else {
+  //     player.selectedNumbers.forEach((number, index) => {
+  //       // console.log(index);
+  //       if (!((player.selectedNumbers.length > 2 && index === 0) || (player.selectedNumbers.length > 3 && index === player.selectedNumbers.length - 1))) {
+  //         coinsSum[number] = (coinsSum[number] || 0) + player.coinsPlaced;
+  //       }
+  //     });
+  //   }
+  // });
   // console.log(coinsSum);
 
   // Calculate total coins placed
