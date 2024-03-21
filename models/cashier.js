@@ -5,7 +5,7 @@ class Cashier extends Model {
   static get tableName() {
     return 'cashiers';
   }
-  
+
   static get relationMappings() {
     const Shop = require('./shop');
     const Slip = require('./slip');
