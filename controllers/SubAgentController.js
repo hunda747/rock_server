@@ -203,8 +203,8 @@ const login = async (req, res) => {
     if (!admin || !(await bcrypt.compare(password, admin.password))) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
-    
-    if(!admin.status){
+
+    if (!admin.status) {
       return res.status(401).json({ error: "Sub agent is Blocked!" });
     }
 

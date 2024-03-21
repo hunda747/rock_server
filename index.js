@@ -23,6 +23,9 @@ const adminController = require('./controllers/AdminController');
 const CashierController = require('./controllers/CashierController');
 const errorHandler = require('./middleware/errorHandlerMiddleware');
 
+// Use this
+const logger = require('./logger');
+
 const https = require('https');
 const fs = require('fs');
 
@@ -70,7 +73,6 @@ app.use('/dailyReport', dailyReportRoutes);
 
 app.use(errorHandler)
 
-// Start the server
 // app.listen(port, () => {
 //   console.log(`Server is running at http://localhost:${port}`);
 // });
@@ -80,4 +82,5 @@ const PORT = process.env.PORT || 443;
 const server = https.createServer(options, app);
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+  logger.info(`Server is running on port http://localhost:${port}`);
 });
