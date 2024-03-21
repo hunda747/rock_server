@@ -1,5 +1,6 @@
 // middleware/errorHandlerMiddleware.js
 const { UniqueViolationError } = require('objection');
+const logger = require('../logger');
 
 function errorHandlerMiddleware(err, req, res, next) {
   console.log('handlingt');
@@ -18,7 +19,7 @@ function errorHandlerMiddleware(err, req, res, next) {
   }
 
   // Handle other common errors if needed
-
+  logger.error(err);
   res.status(500).json({ error: 'Internal Server Error' });
 }
 

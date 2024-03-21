@@ -1,0 +1,11 @@
+{"level":"info","message":"Server is running on port http://localhost:5500","service":"your-service-name"}
+{"level":"info","message":"Server is running on port http://localhost:5500","service":"your-service-name"}
+{"level":"info","message":"Server is running on port http://localhost:5500","service":"your-service-name"}
+{"level":"info","message":"Server is running on port http://localhost:5500","service":"your-service-name"}
+{"level":"info","message":"Server is running on port http://localhost:5500","service":"your-service-name","timestamp":"2024-03-20T08:55:46.552Z"}
+{"level":"info","message":"Server is running on port http://localhost:5500","service":"your-service-name","timestamp":"2024-03-20T08:59:59.644Z"}
+{"level":"info","message":"Server is running on port http://localhost:5500","service":"your-service-name","timestamp":"2024-03-20T09:00:20.346Z"}
+{"level":"info","message":"Server is running on port http://localhost:5500","service":"your-service-name","timestamp":"2024-03-20T09:01:19.527Z"}
+{"level":"info","message":"Server is running on port http://localhost:5500","service":"your-service-name","timestamp":"2024-03-20T09:01:45.679Z"}
+{"level":"info","message":"Server is running on port http://localhost:5500","service":"your-service-name","timestamp":"2024-03-20T10:47:31.527Z"}
+{"code":"ENOTFOUND","errno":-3008,"fatal":true,"hostname":"rookmatetech.com","level":"error","service":"your-service-name","syscall":"getaddrinfo","timestamp":"2024-03-20T10:47:35.156Z"}

@@ -23,7 +23,7 @@ class AdminController {
     return uuidv4();
   }
 
-  async login(req, res) {
+  async login(req, res, next) {
     const { username, password } = req.body;
 
     try {
@@ -44,7 +44,8 @@ class AdminController {
       res.json({ accessToken, refreshToken });
     } catch (error) {
       console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      next(error);
+      // res.status(500).json({ error: 'Internal Server Error' });
     }
   }
 
@@ -103,17 +104,18 @@ class AdminController {
     }
   }
 
-  async getAll(req, res) {
+  async getAll(req, res, next) {
     try {
       const admins = await Admin.query();
       res.json(admins);
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      // console.error(error);
+      next(error);
+      // res.status(500).json({ error: 'Internal Server Error' });
     }
   }
 
-  async getById(req, res) {
+  async getById(req, res, next) {
     const { id } = req.params;
     try {
       const admin = await Admin.query().findById(id);
@@ -123,12 +125,13 @@ class AdminController {
         res.status(404).json({ error: 'Shop Owner not found' });
       }
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      next(error);
+      // console.error(error);
+      // res.status(500).json({ error: 'Internal Server Error' });
     }
   }
 
-  async create(req, res) {
+  async create(req, res, next) {
     const adminData = req.body;
 
     // Hash the password before storing it
@@ -139,12 +142,13 @@ class AdminController {
       const newAdmin = await Admin.query().insert(adminData);
       res.json(newAdmin);
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      next(error);
+      // console.error(error);
+      // res.status(500).json({ error: 'Internal Server Error' });
     }
   }
 
-  async update(req, res) {
+  async update(req, res, next) {
     const { id } = req.params;
     const updatedData = req.body;
     try {
@@ -155,12 +159,13 @@ class AdminController {
         res.status(404).json({ error: 'Shop Owner not found' });
       }
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      next(error);
+      // console.error(error);
+      // res.status(500).json({ error: 'Internal Server Error' });
     }
   }
 
-  async delete(req, res) {
+  async delete(req, res, next) {
     const { id } = req.params;
     try {
       const deletedCount = await Admin.query().deleteById(id);
@@ -170,8 +175,9 @@ class AdminController {
         res.status(404).json({ error: 'Shop Owner not found' });
       }
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      next(error);
+      // console.error(error);
+      // res.status(500).json({ error: 'Internal Server Error' });
     }
   }
 }
