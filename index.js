@@ -23,6 +23,9 @@ const adminController = require('./controllers/AdminController');
 const CashierController = require('./controllers/CashierController');
 const errorHandler = require('./middleware/errorHandlerMiddleware');
 
+// Use this
+const logger = require('./logger');
+
 var schedule = require('node-schedule');
 const { generateDailyReport, getCurrentDate } = require('./controllers/DailyReportController');
 
@@ -64,4 +67,5 @@ app.use(errorHandler)
 // Start the server
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
+  logger.info(`Server is running on port http://localhost:${port}`);
 });

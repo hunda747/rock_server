@@ -1,0 +1,1 @@
+{"code":"ENOTFOUND","errno":-3008,"fatal":true,"hostname":"rookmatetech.com","level":"error","service":"your-service-name","syscall":"getaddrinfo","timestamp":"2024-03-20T10:47:35.156Z"}
