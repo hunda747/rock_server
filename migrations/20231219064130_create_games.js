@@ -12,7 +12,7 @@ exports.up = function (knex) {
     table.integer('gameNumber', 20).notNullable();
     table.string('gameType', 20).notNullable();
     table.jsonb('pickedNumbers');
-    table.enu('winner', ['evens', 'heads', 'tails']);
+    table.string('winner');
     table.timestamp('time');
     table.enu('status', ['playing', 'done', 'error']).defaultTo('playing');
 

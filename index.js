@@ -2,7 +2,7 @@
 
 const express = require('express');
 const app = express();
-const port = 5500;
+// const port = 5500;
 
 const bet = require('./routes/bet');
 const cors = require('cors');
@@ -25,6 +25,15 @@ const errorHandler = require('./middleware/errorHandlerMiddleware');
 
 // Use this
 const logger = require('./logger');
+
+const https = require('https');
+const fs = require('fs');
+
+const options = {
+  key: fs.readFileSync('/root/a74fb_701b5_5736dbd729c291724b6a1d08f0995c64.key'),
+  cert: fs.readFileSync('/root/logic_rookmatetech_com_a74fb_701b5_1718755199_80fab4015b234552a7ff7bc8f8acb967.crt')
+};
+
 
 var schedule = require('node-schedule');
 const { generateDailyReport, getCurrentDate } = require('./controllers/DailyReportController');
@@ -64,8 +73,14 @@ app.use('/dailyReport', dailyReportRoutes);
 
 app.use(errorHandler)
 
-// Start the server
-app.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`);
+// app.listen(port, () => {
+//   console.log(`Server is running at http://localhost:${port}`);
+// });
+
+// Create HTTPS server
+const PORT = process.env.PORT || 443;
+const server = https.createServer(options, app);
+server.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
   logger.info(`Server is running on port http://localhost:${port}`);
 });
