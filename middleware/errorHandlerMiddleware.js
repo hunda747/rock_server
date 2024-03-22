@@ -3,7 +3,7 @@ const { UniqueViolationError } = require('objection');
 const logger = require('../logger');
 
 function errorHandlerMiddleware(err, req, res, next) {
-  console.log('handlingt');
+  // console.log('handlingt');
   console.error(err);
   if (err instanceof UniqueViolationError) {
     if (err.constraint === 'shop_owners_username_unique') {

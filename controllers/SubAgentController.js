@@ -19,8 +19,8 @@ const createSubAgent = async (req, res) => {
 
     const subAgent = await SubAgent.query().insert(adminData);
     shops && shops.map(async (item) => {
-      console.log(item);
-      console.log("fetch", item);
+      // console.log(item);
+      // console.log("fetch", item);
       const subAgentShop = await SubAgentShop.query().insert({
         shopId: item,
         subAgentId: subAgent.id,
@@ -142,9 +142,9 @@ const getCashierssBySubAgentId = async (req, res) => {
 const updateSubAgentById = async (req, res) => {
   const { id } = req.params;
   const { name, username, shops, status } = req.body;
-  console.log(shops);
-  console.log(shops?.length);
-  console.log(shops && shops?.length);
+  // console.log(shops);
+  // console.log(shops?.length);
+  // console.log(shops && shops?.length);
   try {
     const subAgent = await SubAgent.query().patchAndFetchById(id, {
       name: name,
@@ -153,8 +153,8 @@ const updateSubAgentById = async (req, res) => {
     });
     shops &&
       shops.map(async (item) => {
-        console.log(item);
-        console.log("fetch", item);
+        // console.log(item);
+        // console.log("fetch", item);
         const subAgentShop = await SubAgentShop.query().insert({
           shopId: item,
           subAgentId: subAgent.id,

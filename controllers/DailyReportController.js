@@ -45,9 +45,9 @@ const generateDailyReport = async (reportDate, res) => {
 
     // const startOfDay = moment(reportDate).startOf("day").toDate();
     // const endOfDay = moment(reportDate).endOf("day").toDate();
-    console.log(reportDate);
-    console.log(startOfDay);
-    console.log(endOfDay);
+    // console.log(reportDate);
+    // console.log(startOfDay);
+    // console.log(endOfDay);
     // Loop through each cashier and generate a report
     const dailyReports = await Promise.all(
       cashiers.map(async (cashier) => {
@@ -289,7 +289,7 @@ const reportForCashier = async (cashier, reportDate) => {
     });
 
   // Extract the relevant data from the cashier report
-  console.log(cashierReport.slips[0]);
+  // console.log(cashierReport.slips[0]);
   return cashierReport.slips[0];
 };
 
@@ -351,8 +351,8 @@ const generateShopCount = async (req, res) => {
 
   const startOfDayTime = moment(currentDate).startOf("day").toDate();
   const endOfDayTime = moment(currentDate).endOf("day").toDate();
-  console.log(startOfDayTime.toLocaleString());
-  console.log(endOfDayTime.toLocaleString());
+  // console.log(startOfDayTime.toLocaleString());
+  // console.log(endOfDayTime.toLocaleString());
   const activeshops = await Slip.query()
     .where("created_at", ">=", startOfDayTime)
     .andWhere("created_at", "<", endOfDayTime)
@@ -387,7 +387,7 @@ const generateCashierReport = async (req, res) => {
     endDate &&
     currentDate >= new Date(startDate).setHours(0, 0, 0, 0) &&
     currentDate <= new Date(endDate).setHours(23, 59, 59, 999);
-  console.log("uinc: ", currentDayIncluded);
+  // console.log("uinc: ", currentDayIncluded);
   // If the current date should be included, generate the daily report for today
   if (currentDayIncluded) {
     const todayData = await generateDailyReport(getCurrentDate());
@@ -456,7 +456,7 @@ const generateSubAgentCashierReport = async (req, res) => {
     endDate &&
     currentDate >= new Date(startDate).setHours(0, 0, 0, 0) &&
     currentDate <= new Date(endDate).setHours(23, 59, 59, 999);
-  console.log("uinc: ", currentDayIncluded);
+  // console.log("uinc: ", currentDayIncluded);
   // If the current date should be included, generate the daily report for today
   if (currentDayIncluded) {
     const todayData = await generateDailyReport(getCurrentDate());
@@ -527,7 +527,7 @@ const generateShopReport = async (req, res) => {
     endDate &&
     currentDate >= new Date(startDate).setHours(0, 0, 0, 0) &&
     currentDate <= new Date(endDate).setHours(23, 59, 59, 999);
-  console.log("uinc: ", currentDayIncluded);
+  // console.log("uinc: ", currentDayIncluded);
   // If the current date should be included, generate the daily report for today
   if (currentDayIncluded) {
     const todayData = await generateDailyReport(getCurrentDate());
@@ -593,7 +593,7 @@ const getTodayShopReport = async (startDate, endDate, shopId, gameType) => {
     return res.status(400).json({ error: 'shop id is missing.' })
   }
   try {
-    console.log(startDate, endDate, shopId);
+    // console.log(startDate, endDate, shopId);
     const todayData = await generateDailyReportForShop(getCurrentDate(), shopId, gameType);
     // console.log(todayData);
     const totalStake =

@@ -53,7 +53,7 @@ class AuthController {
 
   async generateNewAccessToken(refreshToken) {
     const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
-    console.log('id', decoded.id);
+    // console.log('id', decoded.id);
     // Assuming you have a User model with findById method
     const user = await Admin.findById(decoded.id);
 

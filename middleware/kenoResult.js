@@ -83,7 +83,7 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId) => {
   // const actualScall = calculateDynamicScalingFactorTarget(currentRatio, rtp, currentData.stake)
 
   const lengthOfObject = Object.keys(coinsSum).length;
-  console.log("picks", lengthOfObject);
+  // console.log("picks", lengthOfObject);
 
   const actualScall = calculateDynamicScalingSimple(currentRatio, rtp, currentData.stake, lengthOfObject)
   console.log('actual scall ', actualScall);
@@ -95,7 +95,7 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId) => {
 
   // const drawnnumber = generateUniqueWeightedNumbers(weight, 20);
   const drawnnumber = drawTwoUniqueNumbers(weight, 20);
-  console.log("ወኢግህት", drawnnumber);
+  // console.log("ወኢግህት", drawnnumber);
 
   // const drawnnumber = [];
 
@@ -209,8 +209,8 @@ function calculateDynamicScalingFactorTarget(currentRatio, targetRatio, stake) {
   const middleTolerance = 15; // 7.5%
   const largeTolerance = 20; // 10%
   // targetRatio 15
-  console.log('cc', currentRatio);
-  console.log('cc', targetRatio);
+  // console.log('cc', currentRatio);
+  // console.log('cc', targetRatio);
   if (currentRatio < 0) {
     return 0.4;
   } else if (stake < 1000) {
@@ -259,7 +259,7 @@ function calculateDynamicScalingGPT(currentRatio, stake) {
 
 function drawTwoUniqueNumbers(weights, num = 20) {
   const drawnNumbers = new Set();
-  console.log("weight", weights);
+  // console.log("weight", weights);
   while (drawnNumbers.size < num) {
     const candidateNumber = weightedRandom(weights);
 

@@ -173,7 +173,7 @@ class CashierController {
 
   async login(req, res) {
     const { username, password } = req.body;
-    console.log(username, password);
+    // console.log(username, password);
     try {
       const cashier = await Cashier.query()
         .findOne({ username })
@@ -405,7 +405,7 @@ class CashierController {
 
 const generateReport = async (id) => {
   const currentDate = moment.utc();
-  console.log(currentDate);
+  // console.log(currentDate);
   const startOfDay = moment(currentDate).startOf("day").toDate();
   const endOfDay = moment(currentDate).endOf("day").toDate();
   // const startOfDay = new Date(currentDate);

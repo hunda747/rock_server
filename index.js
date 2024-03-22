@@ -48,9 +48,9 @@ app.use(cors({ origin: '*' }));
 // schedule.scheduleJob('0 44 23 * * * ', async function (){
 schedule.scheduleJob({ hour: 23, minute: 44, second: 0, tz: 'Africa/Nairobi' }, async function () {
   // schedule.scheduleJob({ hour: 22, minute: 52, second: 0, tz: 'Africa/Nairobi' }, async function () {
-  console.log('The answer to life, the universe, and everything!');
+  // console.log('The answer to life, the universe, and everything!');
   const todayData = await generateDailyReport(getCurrentDate());
-  console.log('Today report is generated!');
+  logger.info(`Today report is generated! ${new Date().toLocaleString()}`);
   const resetAll = await CashierController.resetCashierLimit()
 });
 

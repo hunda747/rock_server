@@ -36,7 +36,7 @@ class AdminController {
       // Generate tokens upon successful login
       const accessToken = await AuthController.generateAccessToken(admin, 'admin');
       const refreshToken = await AuthController.generateRefreshToken(admin);
-      console.log(accessToken);
+      // console.log(accessToken);
       // Store the refresh token (you may want to store it securely in a database)
       // For demonstration purposes, we're just attaching it to the response header
       res.header('Refresh-Token', refreshToken);
@@ -85,7 +85,7 @@ class AdminController {
 
   async refreshToken(req, res) {
     const { refreshToken } = req.body;
-    console.log('refresh:', refreshToken);
+    // console.log('refresh:', refreshToken);
     try {
       // Verify the refresh token
       const decodedRefreshToken = this.verifyRefreshToken(refreshToken);

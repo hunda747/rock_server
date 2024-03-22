@@ -43,9 +43,9 @@ const GameController = {
   },
 
   createGame: async (req, res, next) => {
-    console.log("ss");
+    // console.log("ss");
     const gameData = req.body;
-    console.log(gameData);
+    // console.log(gameData);
     try {
       const newGame = await Game.query().insert(gameData);
       res.send(newGame);
@@ -532,7 +532,7 @@ const GameController = {
       }
 
       const drawnNumber = JSON.parse(currentGame?.pickedNumbers)?.selection;
-      console.log('dd', drawnNumber);
+      // console.log('dd', drawnNumber);
       if (!drawnNumber || !(drawnNumber)) {
         return res.status(500).json({ message: "Invalid drawn numbers." });
       }
@@ -547,7 +547,7 @@ const GameController = {
 
       let resultObject = null;
       if (!Array.isArray(drawn)) {
-        console.log("draw", drawn);
+        // console.log("draw", drawn);
         resultObject = {
           err: "false",
           0: currentGame.gameType,
@@ -559,7 +559,7 @@ const GameController = {
           22: currentGame.gameNumber, // Assuming gameId is what you want for "21" and "22"
         };
       } else {
-        console.log("draw", drawnNumber);
+        // console.log("draw", drawnNumber);
         const winc = determineAllWinners(drawnNumber);
         resultObject = {
           err: 'false',

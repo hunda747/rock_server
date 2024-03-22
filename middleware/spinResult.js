@@ -129,7 +129,7 @@ const generateSpinRandomNumbers = async (gameNumber, rtp, shopId) => {
         newpick.selectedNumbers = pick.val[0] === "BLK" ? blkNums : redNums;
         picks.push(newpick);
       } else if (pick.market == 'OddEven') {
-        console.log('even', pick.val[0]);
+        // console.log('even', pick.val[0]);
         let newpick = {};
         newpick.coinsPlaced = pick.stake * pick.odd;
         newpick.selectedNumbers = pick.val[0] === "ODD" ? oddNums : evenNums;
@@ -141,9 +141,9 @@ const generateSpinRandomNumbers = async (gameNumber, rtp, shopId) => {
   const currentRatio = parseInt(currentData.stake) ? ((parseInt(currentData.ggr) / parseInt(currentData.stake)) * 100).toFixed(2) : 0;
   const expectPayout = (rtp / 100) * (parseInt(currentData.stake) + parseInt(activespin));
   const difPayout = parseInt(currentData.ggr) - expectPayout + parseInt(activespin);
-  console.log(difPayout);
+  // console.log(difPayout);
   const actialwin = parseInt(difPayout);
-  console.log('want', actialwin);
+  // console.log('want', actialwin);
   const coinsSum = {};
   for (let i = 0; i <= 36; i++) {
     coinsSum[i] = 0;
@@ -155,7 +155,7 @@ const generateSpinRandomNumbers = async (gameNumber, rtp, shopId) => {
     });
   });
 
-  console.log('ick', coinsSum);
+  // console.log('ick', coinsSum);
   const winchoos = getClosestEntryRandomly(coinsSum, actialwin > 0 ? actialwin : 0);
   console.log('true winner', winchoos);
 
@@ -177,7 +177,7 @@ const generateSpinRandomNumbers = async (gameNumber, rtp, shopId) => {
 };
 
 function getClosestEntryRandomly(inputArray, x) {
-  console.log('x: ', x);
+  // console.log('x: ', x);
   let possibleEntriesNegativeDifference = [];
   let possibleEntriesPositiveDifference = [];
   let smallestNegativeDiff;

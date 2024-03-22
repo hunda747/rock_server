@@ -371,7 +371,7 @@ const slipController = {
                 winnerPick.push(pick);
               }
             } else {
-              console.log("numbers", winningNumbers);
+              // console.log("numbers", winningNumbers);
               if (pick.val.map(Number).includes(winningNumbers)) {
                 winnerPick.push(pick);
               }
@@ -466,7 +466,7 @@ const slipController = {
     const formatDate = (date) => format(date, "yyyy-MM-dd HH:mm:ss");
 
     const getReportData = async (date) => {
-      console.log("data", date);
+      // console.log("data", date);
       // const formattedStartDate = formatDate(date);
       // const formattedEndDate = formatDate(subDays(date, -1));
       // Set to the beginning of the day (00:00:00)
@@ -474,8 +474,8 @@ const slipController = {
 
       // Set to the end of the day (23:59:59)
       const formattedEndDate = formatDate(endOfDay(date));
-      console.log(formattedStartDate);
-      console.log(formattedEndDate);
+      // console.log(formattedStartDate);
+      // console.log(formattedEndDate);
       const getDepostiResult = async () => {
         return await Slip.query()
           .where("cashierId", cashierId)
@@ -615,8 +615,8 @@ const slipController = {
     const formattedStartDate = formatDate(startOfDay(date));
     // Set to the end of the day (23:59:59)
     const formattedEndDate = formatDate(endOfDay(date));
-    console.log(formattedStartDate);
-    console.log(formattedEndDate);
+    // console.log(formattedStartDate);
+    // console.log(formattedEndDate);
 
     const result = await Slip.query()
       .where("cashierId", cashierId)
