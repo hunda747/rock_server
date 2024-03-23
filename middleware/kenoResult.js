@@ -1,5 +1,6 @@
 const { getTodayShopReport } = require("../controllers/DailyReportController");
 const Ticket = require("../models/slip");
+const crypto = require("crypto");
 const generateRandomNumbersKeno = async (gameNumber, rtp, shopId) => {
   const tickets = await Ticket.query()
     .where("gameId", gameNumber)
@@ -73,8 +74,8 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId) => {
     } else {
       player.selectedNumbers.forEach((number, index) => {
         // console.log(index);
-        if (!((player.selectedNumbers.length > 2 && index === 0) || (player.selectedNumbers.length > 3 && index === player.selectedNumbers.length - 1))) {
-          coinsSum[number] = (coinsSum[number] || 0) + player.coinsPlaced;
+        if (!((player.selectedNumbers.length > 2 && index === 0) || (player.selectedNumbers.length > 3 && player.selectedNumbers.length < 6 && index === player.selectedNumbers.length - 1))) {
+          coinsSum[number] = (coinsSum[number] || 0) + (player.coinsPlaced * 2);
         }
       });
     }
@@ -87,14 +88,15 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId) => {
 
   const actualScall = calculateDynamicScalingSimple(currentRatio, rtp, currentData.stake, lengthOfObject)
   console.log('actual scall ', actualScall);
+  console.log("coin sum", coinsSum);
   // console.log("code", picks);
 
   const scalingFactor = rtp / 100;
   const weight = calculateWeights(coinsSum, actualScall);
   // const weight = calculateWeights(picks, scalingFactor);
 
-  // const drawnnumber = generateUniqueWeightedNumbers(weight, 20);
-  const drawnnumber = drawTwoUniqueNumbers(weight, 20);
+  const drawnnumber = generateUniqueWeightedNumbers(weight, 20);
+  // const drawnnumber = drawTwoUniqueNumbers(weight, 20);
   // console.log("ወኢግህት", drawnnumber);
 
   // const drawnnumber = [];
@@ -137,6 +139,43 @@ function _generatePseudoRandomInt(min, max) {
   return intValue % (max - min + 1) + min;
 }
 
+function generateUniqueWeightedNumbers(data, numNumbers, maxPoolSize = 10 * numNumbers, maxConsecutive = 2) {
+  // Create a larger pool of values with repeated elements based on weights
+  const pool = [];
+  for (const item of data) {
+    for (let i = 0; i < item.weight; i++) {
+      pool.push(item.value);
+    }
+  }
+
+  // Shuffle the pool to further increase randomness (optional)
+  // console.log('weight', data);
+  // shuffle(pool); // Replace with your chosen shuffling algorithm
+
+  // Ensure pool size is not larger than maxPoolSize
+  if (pool.length > maxPoolSize) {
+    pool.length = maxPoolSize;
+  }
+
+  const totalWeight = pool.length;
+  const generatedNumbers = new Set();
+
+  while (generatedNumbers.size < numNumbers) {
+    const randomValue = Math.floor(crypto.randomInt(0, totalWeight));
+
+    let valid = true;
+    if (generatedNumbers.size > 0) {
+      const lastNumber = Array.from(generatedNumbers)[generatedNumbers.size - 1];
+      valid = Math.abs(lastNumber - pool[randomValue]) > maxConsecutive;
+    }
+
+    if (valid && !generatedNumbers.has(pool[randomValue])) {
+      generatedNumbers.add(pool[randomValue]);
+    }
+  }
+
+  return Array.from(generatedNumbers);
+}
 
 function calculateDynamicScalingFactor(currentRatio, targetRatio) {
   const tolerance = 3; // 5%
@@ -204,6 +243,7 @@ function calculateDynamicScalingSimple(currentRatio, targetRatio, stake, lengthO
   // Default case, return a neutral scaling factor
   return targetRatio / 100;
 }
+
 function calculateDynamicScalingFactorTarget(currentRatio, targetRatio, stake) {
   const tolerance = 5; // 5%
   const middleTolerance = 15; // 7.5%
@@ -238,6 +278,7 @@ function calculateDynamicScalingFactorTarget(currentRatio, targetRatio, stake) {
   // Default case, return a neutral scaling factor
   return 0.7;
 }
+
 function calculateDynamicScalingGPT(currentRatio, stake) {
   if (currentRatio < 0) {
     return 0.4;

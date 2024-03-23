@@ -54,16 +54,17 @@ class ShopController {
     // }
 
     try {
+      const hashedCashPassword = await bcrypt.hash("123456", 10);
       const newShop = await Shop.query().insert({
         shopOwnerId: shopData.shopOwnerId,
         name: shopData.name,
         username: shopData.username,
         location: shopData.location,
-        cashierLimit: 10000
+        cashierLimit: 10000,
+        password: hashedCashPassword
         // shopOwnerId shopData
       });
 
-      const hashedCashPassword = await bcrypt.hash("123456", 10);
       for (let index = 0; index < shopData.cashNo; index++) {
         try {
           const newCashier = await Cashier.query().insert({
