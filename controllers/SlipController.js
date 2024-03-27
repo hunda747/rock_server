@@ -333,7 +333,11 @@ const slipController = {
   },
 
   redeemSlip: async (req, res, next) => {
-    const { id, shop } = req.params;
+    const { id, shop, cashId } = req.params;
+
+    if (!id || !shop || !cashId) {
+      return res.status(404).json({ error: 'please provide all the info!' })
+    }
 
     try {
       // const currentGame = await Game.query().where("id", gameNumber).where("status", 'done').first();
@@ -352,6 +356,8 @@ const slipController = {
       } else if (updatedSlip.status == "redeem") {
         const updateSlip = await Slip.query().patchAndFetchById(id, {
           status: "redeemed",
+          redeemCashierId: cashId,
+          redeemDate: new Date()
         });
         const game = await Game.query().findById(updatedSlip.gameId);
         const ticketPicks = JSON.parse(updateSlip.numberPick);
@@ -505,9 +511,9 @@ const slipController = {
       };
       const getQueryRedeemed = async (status) => {
         return await Slip.query()
-          .where("cashierId", cashierId)
-          .andWhere("created_at", ">=", formattedStartDate)
-          .andWhere("created_at", "<", formattedEndDate)
+          .where("redeemCashierId", cashierId)
+          .andWhere("redeemDate", ">=", formattedStartDate)
+          .andWhere("redeemDate", "<", formattedEndDate)
           .andWhere("status", status)
           .select(
             Slip.raw("COALESCE(SUM(netWinning), 0) as amount"),

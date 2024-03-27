@@ -67,11 +67,19 @@ const generateDailyReport = async (reportDate, res) => {
             builder.select(
               Slip.raw("COUNT(*) as tickets"),
               Slip.raw("SUM(totalStake) as stake"),
+              // Slip.raw(
+              //   'SUM(CASE WHEN status = "redeemed" THEN netWinning ELSE 0 END) as payout'
+              // ),
+              // Slip.raw(
+              //   'COUNT(CASE WHEN status = "redeemed" AND netWinning > 0 THEN 1 END) as payoutCount'
+              // ),
               Slip.raw(
-                'SUM(CASE WHEN status = "redeemed" THEN netWinning ELSE 0 END) as payout'
+                'SUM(CASE WHEN status = "redeemed" AND redeemCashierId = ? THEN netWinning ELSE 0 END) as payout',
+                cashier.id
               ),
               Slip.raw(
-                'COUNT(CASE WHEN status = "redeemed" AND netWinning > 0 THEN 1 END) as payoutCount'
+                'COUNT(CASE WHEN status = "redeemed" AND redeemCashierId = ? AND netWinning > 0 THEN 1 END) as payoutCount',
+                cashier.id
               ),
               Slip.raw(
                 'SUM(CASE WHEN status = "redeem" THEN netWinning ELSE 0 END) as unclaimed'
@@ -89,7 +97,12 @@ const generateDailyReport = async (reportDate, res) => {
           });
         // Extract the relevant data from the cashier report
         // console.log('report: ', cashierReport.slips[0]);
-        const {
+
+        const redem = await getQueryRedeemed(cashier.id, startOfDay, endOfDay);
+        // const redem = await getQueryRedeemed(3, startOfDay, endOfDay);
+        // console.log(redem);
+
+        let {
           tickets = 0,
           stake = 0,
           payout = 0,
@@ -99,7 +112,8 @@ const generateDailyReport = async (reportDate, res) => {
           revoked = 0,
           revokedCount = 0,
         } = cashierReport.slips[0] || {}; // Assuming there is always one slip entry
-
+        payoutCount = redem.number;
+        payout = redem.amount;
         if (existingReport) {
           const updateDailyReport = await DailyReport.query().patchAndFetchById(
             existingReport.id,
@@ -159,6 +173,21 @@ const generateDailyReport = async (reportDate, res) => {
     console.error(error);
     throw error; // Rethrow the error for handling at a higher level
   }
+};
+const getQueryRedeemed = async (id, startOfDay, endOfDay) => {
+  return await Slip.query()
+    .where("redeemCashierId", id)
+    // .where("cashierId", id)
+    .andWhere("redeemDate", ">=", startOfDay)
+    .andWhere("redeemDate", "<", endOfDay)
+    .andWhere("status", 'redeemed')
+    .select(
+      Slip.raw("COALESCE(SUM(netWinning), 0) as amount"),
+      Slip.raw("COALESCE(COUNT(*), 0) as number")
+    )
+    // .sum('totalStake as amount')
+    // .count('id as number')
+    .first();
 };
 
 const generateDailyReportForShop = async (reportDate, shopId, gameType) => {

@@ -409,7 +409,7 @@ const GameController = {
     let { gameNumber, shopId } = req.body;
 
     // Acquire the mutex to protect the critical section of code
-    // const release = await gameMutex.acquire();
+    const release = await gameMutex.acquire();
     try {
       const release = await acquireLockWithTimeout(gameMutex, 5000);
       try {
