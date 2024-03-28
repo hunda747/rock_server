@@ -77,3 +77,4 @@
 {"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-03-23T00:06:18.318Z"}
 {"level":"error","service":"your-service-name","timestamp":"2024-03-23T01:11:04.348Z"}
 {"level":"error","service":"your-service-name","timestamp":"2024-03-23T01:11:48.672Z"}
+{"level":"info","message":"Today report is generated! 3/28/2024, 9:12:10 AM","service":"your-service-name","timestamp":"2024-03-28T06:12:12.509Z"}

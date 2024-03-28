@@ -37,6 +37,7 @@ router.post('/getInitial', gameController.getLastPlayedGame);
 router.post('/getResult', gameController.getCurrentGameResult);
 router.post('/spinOpen', gameController.getLastPlayedGameSpin);
 router.post('/spinResult', gameController.getCurrentGameResultSpin);
+router.post('/resetGameNumber', gameController.resetGameNumber);
 router.get('/getPreviousResult/:gameNumber/:shop', gameController.getGameRusult);
 // router.post('/calculate/:gameNumber', gameController.calculateWiningNumbers);
 router.put('/:id', gameController.updateGame);

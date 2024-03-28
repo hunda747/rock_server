@@ -179,7 +179,7 @@ const GameController = {
           .returning("*");
       }
       // Retrieve the open game (next game)
-      // console.log("json", lastPlayedGame.pickedNumbers);
+      console.log("json", lastPlayedGame.pickedNumbers);
       // console.log("json", lastPlayedGame.pickedNumbers.selection);
       // Construct the response in the specified format
       const response = {
@@ -207,10 +207,8 @@ const GameController = {
   getCurrentGameResult: async (req, res) => {
     let { gameNumber, shopId } = req.body;
 
-    // Acquire the mutex to protect the critical section of code
-    // const release = await gameMutex.acquire();
     try {
-
+      // const release = await gameMutex.acquire();
       const release = await acquireLockWithTimeout(gameMutex, 5000);
       try {
         if (!shopId) {
@@ -409,7 +407,7 @@ const GameController = {
     let { gameNumber, shopId } = req.body;
 
     // Acquire the mutex to protect the critical section of code
-    const release = await gameMutex.acquire();
+    // const release = await gameMutex.acquire();
     try {
       const release = await acquireLockWithTimeout(gameMutex, 5000);
       try {
@@ -429,6 +427,7 @@ const GameController = {
             .where("id", gameNumber)
             .andWhere("shopId", shopId)
             .andWhere("gameType", "spin")
+            .orderBy("id", "desc")
             .first();
 
           if (!currentGame) {
@@ -438,7 +437,7 @@ const GameController = {
           let drawnNumber;
           if (!currentGame.pickedNumbers) {
             // Assume you have a function to draw the number and update the database
-            drawnNumber = await generateSpinRandomNumbers(gameNumber, findshop.rtp, shopId)
+            drawnNumber = await generateSpinRandomNumbers(gameNumber, findshop.spinRtp, shopId)
             // console.log('ddraw', drawnNumber);
 
             const winners = determineAllWinners(drawnNumber);
@@ -510,6 +509,90 @@ const GameController = {
       // Handle other errors
       throw error;
     }
+  },
+
+  resetGameNumber: async (req, res) => {
+    const shops = await Shop.query();
+
+    shops.map(async (shop) => {
+      const currentGame = await Game.query().where("status", "playing").andWhere('gameType', 'keno').andWhere('shopId', shop.id).orderBy("id", "desc").first();
+
+      if (currentGame) {
+        const numbers = await generateRandomNumbersKeno(currentGame.id, shop.rtp, shop.id, res);
+
+        let headsCount = 0;
+        let tailsCount = 0;
+        let evenCount = 0;
+
+        for (const num of numbers) {
+          if (num <= 40) {
+            evenCount++;
+            // Assuming heads for even numbers, tails for odd numbers
+            headsCount++;
+          } else {
+            tailsCount++;
+          }
+        }
+        // const drawnNumber = this.generateRandomNumbers();
+        const winner =
+          headsCount > tailsCount
+            ? "heads"
+            : tailsCount > headsCount
+              ? "tails"
+              : "evens";
+        // Update the pickedNumbers field with the drawn number
+        await currentGame.$query().patch({
+          pickedNumbers: JSON.stringify({ selection: numbers }),
+          status: "done",
+          winner: winner,
+        });
+        // console.log('keno', currentGame);
+
+        calculateWiningNumbers(currentGame.id, numbers, winner);
+      } else {
+        console.log('No game');
+      }
+
+      const openGame = await Game.query()
+        .insert({
+          gameType: "keno",
+          gameNumber: shop.kenoStartNumber,
+          shopId: shop.id
+          // Add other fields as needed based on your table structure
+          // Example: pickedNumbers, winner, time, status, etc.
+        })
+
+      const currentGameSpin = await Game.query().where("status", "playing").andWhere('gameType', 'spin').andWhere('shopId', shop.id).orderBy("id", "desc").first();
+
+      if (currentGameSpin) {
+        const drawnNumber = await generateSpinRandomNumbers(currentGameSpin.id, shop.spinRtp, shop.id)
+        // console.log('ddraw', drawnNumber);
+
+        const winners = determineAllWinners(drawnNumber);
+        // console.log(winners);
+        // Update the pickedNumbers field with the drawn number
+        await currentGameSpin.$query().patch({
+          pickedNumbers: JSON.stringify({ selection: drawnNumber }),
+          status: "done",
+        });
+        // console.log('spinres', cu);
+
+        calculateSlipWiningNumbers(currentGame.id, drawnNumber, winners);
+      } else {
+        console.log(" no smin game");
+      }
+
+      const openGameSpin = await Game.query()
+        .insert({
+          gameType: "spin",
+          gameNumber: shop.spinStartNumber,
+          shopId: shop.id
+          // Add other fields as needed based on your table structure
+          // Example: pickedNumbers, winner, time, status, etc.
+        })
+    })
+
+    res.status(200).json({ message: 'Game Reset! ' })
   },
 
   searchGame: async (req, res) => {

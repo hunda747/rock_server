@@ -85,7 +85,7 @@ const evenNums = [
 ]
 
 const generateSpinRandomNumbers = async (gameNumber, rtp, shopId) => {
-  rtp = 10;
+
   const tickets = await Ticket.query()
     .where("gameId", gameNumber)
     .whereNot("status", "canceled");
