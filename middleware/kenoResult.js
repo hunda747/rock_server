@@ -43,7 +43,7 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId) => {
   // console.log('ggr:', currentData);
 
   const currentRatio = parseInt(currentData.stake) ? ((parseInt(currentData.ggr) / parseInt(currentData.stake)) * 100).toFixed(2) : 0
-  console.log('currenration', currentRatio);
+  // console.log('currenration', currentRatio);
   // console.log('rtp', rtp);
   // console.log("picks", picks);
 
@@ -87,16 +87,16 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId) => {
   // console.log("picks", lengthOfObject);
 
   const actualScall = calculateDynamicScalingSimple(currentRatio, rtp, currentData.stake, lengthOfObject)
-  console.log('actual scall ', actualScall);
-  console.log("coin sum", coinsSum);
+  console.log(`actual scall: ${actualScall}, currenration: ${currentRatio}, shop id: ${shopId}`);
+  // console.log("coin sum", coinsSum);
   // console.log("code", picks);
 
   const scalingFactor = rtp / 100;
   const weight = calculateWeights(coinsSum, actualScall);
   // const weight = calculateWeights(picks, scalingFactor);
-
-  const drawnnumber = generateUniqueWeightedNumbers(weight, 20);
-  // const drawnnumber = drawTwoUniqueNumbers(weight, 20);
+  console.log('draw found weight!');
+  // const drawnnumber = generateUniqueWeightedNumbers(weight, 20);
+  const drawnnumber = drawTwoUniqueNumbers(weight, 20);
   // console.log("ወኢግህት", drawnnumber);
 
   // const drawnnumber = [];
@@ -109,7 +109,7 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId) => {
   //     drawnnumber.push(randomNum);
   //   }
   // }
-
+  console.log('send result!');
   return drawnnumber;
 };
 
@@ -138,9 +138,7 @@ function _generatePseudoRandomInt(min, max) {
 
   return intValue % (max - min + 1) + min;
 }
-
 function generateUniqueWeightedNumbers(data, numNumbers, maxPoolSize = 10 * numNumbers, maxConsecutive = 2) {
-  // Create a larger pool of values with repeated elements based on weights
   const pool = [];
   for (const item of data) {
     for (let i = 0; i < item.weight; i++) {
@@ -148,33 +146,34 @@ function generateUniqueWeightedNumbers(data, numNumbers, maxPoolSize = 10 * numN
     }
   }
 
-  // Shuffle the pool to further increase randomness (optional)
-  // console.log('weight', data);
-  // shuffle(pool); // Replace with your chosen shuffling algorithm
-
-  // Ensure pool size is not larger than maxPoolSize
   if (pool.length > maxPoolSize) {
     pool.length = maxPoolSize;
   }
 
   const totalWeight = pool.length;
-  const generatedNumbers = new Set();
+  const generatedNumbers = [];
 
-  while (generatedNumbers.size < numNumbers) {
-    const randomValue = Math.floor(crypto.randomInt(0, totalWeight));
+  while (generatedNumbers.length < numNumbers && pool.length > 0) {
+    const randomIndex = Math.floor(crypto.randomInt(0, pool.length));
+    const randomValue = pool[randomIndex];
 
     let valid = true;
-    if (generatedNumbers.size > 0) {
-      const lastNumber = Array.from(generatedNumbers)[generatedNumbers.size - 1];
-      valid = Math.abs(lastNumber - pool[randomValue]) > maxConsecutive;
+    if (generatedNumbers.length > 0) {
+      const lastNumber = generatedNumbers[generatedNumbers.length - 1];
+      valid = Math.abs(lastNumber - randomValue) > maxConsecutive;
     }
 
-    if (valid && !generatedNumbers.has(pool[randomValue])) {
-      generatedNumbers.add(pool[randomValue]);
+    if (valid) {
+      generatedNumbers.push(randomValue);
+      pool.splice(randomIndex, 1); // Remove selected value from the pool
     }
   }
 
-  return Array.from(generatedNumbers);
+  if (generatedNumbers.length < numNumbers) {
+    console.log("Unable to generate enough unique numbers.");
+  }
+
+  return generatedNumbers;
 }
 
 function calculateDynamicScalingFactor(currentRatio, targetRatio) {
@@ -219,12 +218,12 @@ function calculateDynamicScalingSimple(currentRatio, targetRatio, stake, lengthO
   // x-(x+y)% | 0.05 | 0.10 | 0.15 | 0.20 | 0.30
   // (x+y)?%  | 0.01 | 0.05 | 0.10 | 0.15 | 0.25
   if (currentRatio < 0) { // < 0
-    return 0.4;
+    return 0.6;
   } else if (lengthOfObject >= 45) {
     if (currentRatio < targetRatio)
-      return 0.4
+      return 0.6
     else
-      return 0.3
+      return 0.5
   } else if (stake < 1000) { // 2
     if (stake > 500 && currentRatio > 50)
       return (targetRatio - 5) / 100 > 0 ? (targetRatio - 5) / 100 : 0.02;  // 0.05 - 0.15 - 0.2 - 0.3
@@ -302,7 +301,7 @@ function drawTwoUniqueNumbers(weights, num = 20) {
   const drawnNumbers = new Set();
   // console.log("weight", weights);
   while (drawnNumbers.size < num) {
-    const candidateNumber = weightedRandom(weights);
+    const candidateNumber = weightedCryptoRandom(weights);
 
     // console.log("weight", candidateNumber);
     if (!drawnNumbers.has(candidateNumber)) {
@@ -324,6 +323,21 @@ function weightedRandom(weights) {
     }
   }
 }
+function weightedCryptoRandom(weights) {
+  const totalWeight = weights.reduce((sum, weight) => sum + weight.weight, 0);
+  const randomBytes = new Uint32Array(1);
+  crypto.getRandomValues(randomBytes);
+  const randomValue = randomBytes[0] / (0xffffffff + 1); // Normalize to [0, 1)
+
+  let cumulativeWeight = 0;
+  for (let i = 0; i < weights.length; i++) {
+    cumulativeWeight += weights[i].weight;
+    if (randomValue <= cumulativeWeight / totalWeight) {
+      return weights[i].value; // Return the selected number
+    }
+  }
+}
+
 
 function calculateWeights(coinsSum, scalingFactor) {
   // Create an array to store all possible numbers
