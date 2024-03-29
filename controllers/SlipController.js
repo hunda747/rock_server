@@ -534,7 +534,7 @@ const slipController = {
       };
 
       const bets = await getDepostiResult();
-      console.log("active", bets);
+      // console.log("active", bets);
       const redeemed = await getQueryRedeemed("redeemed");
       const canceled = await getQueryResult("canceled");
       const deposited = await getQueryResult("active"); // Implement logic for deposits

@@ -303,6 +303,7 @@ const GameController = {
               .returning("*");
           }
 
+
           // Construct the response in the specified format
           response = {
             openGame: { id: openGame.id, gameNumber: openGame.gameNumber },
@@ -311,7 +312,6 @@ const GameController = {
             lastGame: previousGame ? previousGame.gameNumber : null,
             recent: await getLast10Games(shopId),
           };
-
           release();
         })
         // Respond with the updated game data
@@ -329,7 +329,7 @@ const GameController = {
       }
     } catch (error) {
       // Handle timeout error
-      if (error instanceof TimeoutError) {
+      if (error instanceof knex.KnexTimeoutError) {
         throw new Error('Failed to acquire lock within the specified timeout');
       }
       // Handle other errors
@@ -455,6 +455,8 @@ const GameController = {
             drawnNumber = JSON.parse(currentGame?.pickedNumbers)?.selection;
           }
 
+          release()
+
           let openGame;
           // Update the current game with the drawn number
           const newGame = await Game.query()
@@ -487,8 +489,6 @@ const GameController = {
             },
             recent: await getLast100Games(shopId),
           };
-
-          release()
         })
         // Respond with the updated game data
         return res.status(200).json(response);
@@ -504,7 +504,7 @@ const GameController = {
       }
     } catch (error) {
       // Handle timeout error
-      if (error instanceof TimeoutError) {
+      if (error instanceof knex.KnexTimeoutError) {
         throw new Error('Failed to acquire lock within the specified timeout');
       }
       // Handle other errors
