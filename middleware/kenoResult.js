@@ -1,7 +1,7 @@
 const { getTodayShopReport } = require("../controllers/DailyReportController");
 const Ticket = require("../models/slip");
 const crypto = require("crypto");
-const generateRandomNumbersKeno = async (gameNumber, rtp, shopId) => {
+const generateRandomNumbersKeno = async (gameNumber, rtp, shopId, reportDate) => {
   const tickets = await Ticket.query()
     .where("gameId", gameNumber)
     .whereNot("status", "canceled");
@@ -34,13 +34,8 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId) => {
     }
   }
 
-  const reportDate = new Date();
-  const startOfDay = new Date(reportDate);
-  startOfDay.setHours(0, 0, 0, 0);
-  const endOfDay = new Date(reportDate);
-  endOfDay.setHours(23, 59, 59, 999);
-  const currentData = await getTodayShopReport(startOfDay, endOfDay, shopId, 'keno');
-  // console.log('ggr:', currentData);
+  const currentData = await getTodayShopReport(reportDate, shopId, 'keno');
+  console.log('ggr:', currentData);
 
   const currentRatio = parseInt(currentData.stake) ? ((parseInt(currentData.ggr) / parseInt(currentData.stake)) * 100).toFixed(2) : 0
   // console.log('currenration', currentRatio);
@@ -81,12 +76,12 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId) => {
     }
   });
   // const actualScall = calculateDynamicScalingFactor(currentRatio, rtp)
-  // const actualScall = calculateDynamicScalingFactorTarget(currentRatio, rtp, currentData.stake)
 
   const lengthOfObject = Object.keys(coinsSum).length;
   // console.log("picks", lengthOfObject);
 
-  const actualScall = calculateDynamicScalingSimple(currentRatio, rtp, currentData.stake, lengthOfObject)
+  const actualScall = calculateDynamicScalingFactorTarget(currentRatio, rtp, currentData.stake)
+  // const actualScall = calculateDynamicScalingSimple(currentRatio, rtp, currentData.stake, lengthOfObject)
   console.log(`actual scall: ${actualScall}, currenration: ${currentRatio}, shop id: ${shopId}`);
   // console.log("coin sum", coinsSum);
   // console.log("code", picks);
@@ -94,7 +89,7 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId) => {
   const scalingFactor = rtp / 100;
   const weight = calculateWeights(coinsSum, actualScall);
   // const weight = calculateWeights(picks, scalingFactor);
-  console.log('draw found weight!');
+  // console.log('draw found weight!');
   // const drawnnumber = generateUniqueWeightedNumbers(weight, 20);
   const drawnnumber = drawTwoUniqueNumbers(weight, 20);
   // console.log("ወኢግህት", drawnnumber);
@@ -109,7 +104,7 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId) => {
   //     drawnnumber.push(randomNum);
   //   }
   // }
-  console.log('send result!');
+  // console.log('send result!');
   return drawnnumber;
 };
 

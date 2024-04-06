@@ -11,7 +11,7 @@ const createDailyReport = async (req, res) => {
     // Modify this part based on the parameters you want to use for report generation
     // const currentDate = new Date();
     // const reportDate = currentDate.toISOString().split('T')[0]; // Extract YYYY-MM-DD
-
+    console.log(reportDate);
     // Use the report generation logic here
     const generatedReport = await generateDailyReport(reportDate, res);
 
@@ -135,6 +135,7 @@ const generateDailyReport = async (reportDate, res) => {
               totalNetBalance:
                 parseInt(stake) -
                 parseInt(payout) -
+                parseInt(unclaimed) -
                 parseInt(revoked),
             }
           );
@@ -161,6 +162,7 @@ const generateDailyReport = async (reportDate, res) => {
             totalNetBalance:
               parseInt(stake) -
               parseInt(payout) -
+              parseInt(unclaimed) -
               parseInt(revoked),
           });
           return newDailyReport;
@@ -174,6 +176,7 @@ const generateDailyReport = async (reportDate, res) => {
     throw error; // Rethrow the error for handling at a higher level
   }
 };
+
 const getQueryRedeemed = async (id, startOfDay, endOfDay) => {
   return await Slip.query()
     .where("redeemCashierId", id)
@@ -214,6 +217,7 @@ const generateDailyReportForShop = async (reportDate, shopId, gameType) => {
             builder.where("created_at", ">=", startOfDay);
             builder.where("created_at", "<=", endOfDay);
             builder.where("gameType", gameType);
+            builder.whereNot("status", "active");
             builder.select(
               Slip.raw("SUM(totalStake) as stake"),
               Slip.raw(
@@ -254,6 +258,74 @@ const generateDailyReportForShop = async (reportDate, shopId, gameType) => {
     // console.log(dailyReports);
 
     return dailyReports;
+  } catch (error) {
+    console.error(error);
+    throw error; // Rethrow the error for handling at a higher level
+  }
+};
+
+const generateDailyReportForShopTest = async (reportDate, shopId) => {
+  try {
+    const timezoneOffset = 0; // Set the time zone offset to 0 for UTC
+
+    const startOfDay = new Date(`${reportDate}T00:00:00.000Z`);
+    startOfDay.setMinutes(startOfDay.getMinutes() - timezoneOffset);
+
+    const endOfDay = new Date(`${reportDate}T23:59:59.999Z`);
+    endOfDay.setMinutes(endOfDay.getMinutes() - timezoneOffset);
+
+    // Loop through each cashier and generate a report
+    const cashierReport = await Shop.query()
+      .findById(shopId)
+      .withGraphFetched("[slips]")
+      .modifyGraph("slips", (builder) => {
+        builder.where("created_at", ">=", startOfDay);
+        builder.where("created_at", "<=", endOfDay);
+        builder.where("gameType", "keno");
+        builder.whereNot("status", "active");
+        builder.select(
+          Slip.raw("SUM(totalStake) as stake"),
+          Slip.raw("COUNT(*) as tickets"),
+          Slip.raw(
+            'SUM(CASE WHEN status = "active" THEN totalStake ELSE 0 END) as active'
+          ),
+          Slip.raw(
+            'SUM(CASE WHEN status = "redeemed" THEN netWinning ELSE 0 END) as payout'
+          ),
+          Slip.raw(
+            'COUNT(CASE WHEN status = "redeem" AND netWinning > 0 THEN 1 END) as unclaimedCount'
+          ),
+          Slip.raw(
+            'SUM(CASE WHEN status = "redeem" AND netWinning > 0 THEN netWinning ELSE 0 END) as unclaimed'
+          ),
+          Slip.raw(
+            'SUM(CASE WHEN status = "canceled" THEN totalStake ELSE 0 END) as revoked'
+          ),
+        );
+      });
+
+
+    // Extract the relevant data from the cashier report
+    // console.log('report: ', cashierReport.slips[0]);
+    const {
+      stake = 0,
+      tickets = 0,
+      active = 0,
+      revoked = 0,
+      payout = 0,
+      unclaimed = 0,
+      unclaimedCount = 0,
+    } = cashierReport.slips[0] || {}; // Assuming there is always one slip entry
+    // console.log(payout, unclaimed, redeem);
+    const updateDailyReport = {
+      totalStake: parseInt(stake) - parseInt(revoked) - parseInt(active),
+      totalGGR: parseInt(stake) - parseInt(active) - parseInt(payout) - parseInt(unclaimed) - parseInt(revoked),
+      tickets: tickets,
+      unclaimedCount: unclaimedCount
+    }
+
+    return updateDailyReport;
+    // console.log(dailyReports);
   } catch (error) {
     console.error(error);
     throw error; // Rethrow the error for handling at a higher level
@@ -616,14 +688,14 @@ const generateShopReport = async (req, res) => {
   }
 };
 
-const getTodayShopReport = async (startDate, endDate, shopId, gameType) => {
+const getTodayShopReport = async (reportDate, shopId, gameType) => {
   // Check if the current date should be included
   if (!shopId) {
     return res.status(400).json({ error: 'shop id is missing.' })
   }
   try {
-    // console.log(startDate, endDate, shopId);
-    const todayData = await generateDailyReportForShop(getCurrentDate(), shopId, gameType);
+    // console.log(reportDate, shopId);
+    const todayData = await generateDailyReportForShop(reportDate, shopId, gameType);
     // console.log(todayData);
     const totalStake =
       todayData.reduce((sum, slip) => sum + parseInt(slip.totalStake), 0)
@@ -764,4 +836,5 @@ module.exports = {
   generateCashierReport,
   generateSubAgentCashierReport,
   generateShopAgentReport,
+  generateDailyReportForShopTest
 };
