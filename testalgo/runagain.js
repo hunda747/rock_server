@@ -6,7 +6,7 @@ const { Mutex } = require('async-mutex');
 const gameMutex = new Mutex();
 const { transaction } = require('objection');
 const { calculateWiningNumbers } = require("../middleware/ticketWinnings");
-const { generateRandomNumbersKeno } = require("../middleware/kenoResult");
+const { generateRandomNumbersKeno } = require("../middleware/kenoResultyafet");
 const { generateDailyReport, generateDailyReportForShopTest } = require("../controllers/DailyReportController");
 
 // Define a function to draw the lottery results
@@ -17,8 +17,9 @@ const checkLotteryResults = async (req, res) => {
   try {
     const release = await acquireLockWithTimeout(gameMutex, 4000);
     try {
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 3; i++) {
         await transaction(Game.knex(), async (trx) => {
+          console.log('shop', shopId, 'count', (i + 1));
           const timezoneOffset = 0; // Set the time zone offset to 0 for UTC
 
           const startOfDay = new Date(`${reportDate}T00:00:00.000Z`);
@@ -28,7 +29,8 @@ const checkLotteryResults = async (req, res) => {
           endOfDay.setMinutes(endOfDay.getMinutes() - timezoneOffset);
           const activeGames = await Game.query().where("created_at", ">=", startOfDay).where("created_at", "<=", endOfDay).andWhere({ gameType: 'keno' }).andWhere({ shopId: shopId });
           console.log('game: ', activeGames.length);
-
+          console.log(startOfDay);
+          console.log(endOfDay);
           const updatedRowsCount = await Ticket.query()
             .patch({ status: 'active' })
             .where('shopId', shopId)
@@ -39,7 +41,7 @@ const checkLotteryResults = async (req, res) => {
               try {
                 const tickets = await Ticket.query()
                   .where("gameId", game.id);
-                // console.log('tuc', tickets);
+                // console.log('tuc', game.id, tickets.length);
                 if (!tickets.length) {
                   continue;
                 }
@@ -71,15 +73,6 @@ const checkLotteryResults = async (req, res) => {
                   status: "done",
                   winner: winner,
                 });
-
-                const openGame = await Game.query()
-                  .insert({
-                    gameType: "keno",
-                    gameNumber: game.gameNumber + 1,
-                    shopId: game.shopId
-                    // Add other fields as needed based on your table structure
-                    // Example: pickedNumbers, winner, time, status, etc.
-                  })
 
                 await calculateWiningNumbers(game.id, numbers, winner);
               } catch (error) {
@@ -128,8 +121,8 @@ const saveCsv = async (response) => {
   fs.access('testalgo.csv', fs.constants.F_OK, (err) => {
     if (err) {
       // If file doesn't exist, add the header row and the current response
-      const header = 'Count,Date,Total Stake,Total GGR,Tickets,Unclaimed Count,Margin\n';
-      const csvData = `${header}${response.count},${response.date},${response.totalStake},${response.totalGGR},${response.tickets},${response.unclaimedCount},${((response.totalGGR / response.totalStake) * 100).toFixed(2)}\n`;
+      const header = 'Count,Date,Shop,Total Stake,Total GGR,Tickets,Unclaimed Count,Margin\n';
+      const csvData = `${header}${response.count},${response.shopId},${response.date},${response.totalStake},${response.totalGGR},${response.tickets},${response.unclaimedCount},${((response.totalGGR / response.totalStake) * 100).toFixed(2)}\n`;
 
       fs.writeFile('testalgo.csv', csvData, (err) => {
         if (err) {
@@ -141,7 +134,7 @@ const saveCsv = async (response) => {
     }
   });
 
-  const csvData = `${response.count},${response.date},${response.totalStake},${response.totalGGR},${response.tickets},${response.unclaimedCount},${((response.totalGGR / response.totalStake) * 100).toFixed(2)}\n`;
+  const csvData = `${response.count},${response.shopId},${response.date},${response.totalStake},${response.totalGGR},${response.tickets},${response.unclaimedCount},${((response.totalGGR / response.totalStake) * 100).toFixed(2)}\n`;
 
   fs.appendFile('testalgo.csv', csvData, (err) => {
     if (err) {

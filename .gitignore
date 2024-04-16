@@ -8,3 +8,5 @@ node_modules/
 combined.log
 error.log
 ./error.log
+.sql
+*.sql

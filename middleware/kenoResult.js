@@ -1,7 +1,9 @@
 const { getTodayShopReport } = require("../controllers/DailyReportController");
 const Ticket = require("../models/slip");
 const crypto = require("crypto");
-const generateRandomNumbersKeno = async (gameNumber, rtp, shopId, reportDate) => {
+// const generateRandomNumbersKeno = async (gameNumber, rtp, shopId, reportDate) => {
+const logger = require('../logger');
+const generateRandomNumbersKeno = async (gameNumber, rtp, shopId) => {
   const tickets = await Ticket.query()
     .where("gameId", gameNumber)
     .whereNot("status", "canceled");
@@ -40,7 +42,7 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId, reportDate) =>
   const currentRatio = parseInt(currentData.stake) ? ((parseInt(currentData.ggr) / parseInt(currentData.stake)) * 100).toFixed(2) : 0
   // console.log('currenration', currentRatio);
   // console.log('rtp', rtp);
-  // console.log("picks", picks);
+  console.log("picks", picks);
 
   if (!picks.length) {
     const drawnnumber = [];
@@ -83,6 +85,7 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId, reportDate) =>
   const actualScall = calculateDynamicScalingFactorTarget(currentRatio, rtp, currentData.stake)
   // const actualScall = calculateDynamicScalingSimple(currentRatio, rtp, currentData.stake, lengthOfObject)
   console.log(`actual scall: ${actualScall}, currenration: ${currentRatio}, shop id: ${shopId}`);
+  logger.info(`actual scall: ${actualScall}, currenration: ${currentRatio}, shop id: ${shopId}`);
   // console.log("coin sum", coinsSum);
   // console.log("code", picks);
 
@@ -201,7 +204,6 @@ function calculateDynamicScalingFactor(currentRatio, targetRatio) {
   // Default case, return a neutral scaling factor
   return 1.0;
 }
-
 function calculateDynamicScalingSimple(currentRatio, targetRatio, stake, lengthOfObject) {
   const tolerance = 3; // 5%
   const middleTolerance = 6; // 7.5%
@@ -218,7 +220,7 @@ function calculateDynamicScalingSimple(currentRatio, targetRatio, stake, lengthO
     if (currentRatio < targetRatio)
       return 0.6
     else
-      return 0.5
+      return 0.3
   } else if (stake < 1000) { // 2
     if (stake > 500 && currentRatio > 50)
       return (targetRatio - 5) / 100 > 0 ? (targetRatio - 5) / 100 : 0.02;  // 0.05 - 0.15 - 0.2 - 0.3
@@ -231,13 +233,12 @@ function calculateDynamicScalingSimple(currentRatio, targetRatio, stake, lengthO
   } else if (currentRatio > targetRatio && currentRatio <= targetRatio + largeTolerance) { //5> 25 <35 <40 <50
     return targetRatio / 100; // 0.05 - 0.15 - 0.2 - 0.3
   } else if (currentRatio > targetRatio + largeTolerance) { // > 25 > 30 > 40 > 50
-    return (targetRatio - 5) / 100 > 0 ? (targetRatio - 5) / 100 : 0.02; // 0.0 - 0.1 - 0.15 - 0.25
+    return (targetRatio - 5) / 100 > 0 ? (targetRatio - 5) / 100 : 0.01; // 0.0 - 0.1 - 0.15 - 0.25
   }
 
   // Default case, return a neutral scaling factor
   return targetRatio / 100;
 }
-
 function calculateDynamicScalingFactorTarget(currentRatio, targetRatio, stake) {
   const tolerance = 5; // 5%
   const middleTolerance = 15; // 7.5%
@@ -272,7 +273,6 @@ function calculateDynamicScalingFactorTarget(currentRatio, targetRatio, stake) {
   // Default case, return a neutral scaling factor
   return 0.7;
 }
-
 function calculateDynamicScalingGPT(currentRatio, stake) {
   if (currentRatio < 0) {
     return 0.4;
@@ -318,6 +318,7 @@ function weightedRandom(weights) {
     }
   }
 }
+
 function weightedCryptoRandom(weights) {
   const totalWeight = weights.reduce((sum, weight) => sum + weight.weight, 0);
   const randomBytes = new Uint32Array(1);
@@ -332,7 +333,6 @@ function weightedCryptoRandom(weights) {
     }
   }
 }
-
 
 function calculateWeights(coinsSum, scalingFactor) {
   // Create an array to store all possible numbers
