@@ -46,7 +46,7 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId) => {
   const currentRatio = parseInt(currentData.stake) ? ((parseInt(currentData.ggr) / parseInt(currentData.stake)) * 100).toFixed(2) : 0
   // console.log('currenration', currentRatio);
   // console.log('rtp', rtp);
-  // console.log("picks", picks);
+  console.log("picks", picks);
 
   if (!picks.length) {
     const drawnnumber = [];

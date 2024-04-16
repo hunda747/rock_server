@@ -1,2 +1,4 @@
 {"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-09T03:44:46.032Z"}
 {"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-09T03:49:23.525Z"}
+{"level":"info","message":"actual scall: 0.1, currenration: 97.62, shop id: 1","service":"your-service-name","timestamp":"2024-04-16T14:02:33.296Z"}
+{"level":"info","message":"actual scall: 0.6, currenration: -258.33, shop id: 1","service":"your-service-name","timestamp":"2024-04-16T14:10:39.724Z"}

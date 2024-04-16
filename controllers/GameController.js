@@ -11,7 +11,7 @@ const { Mutex } = require('async-mutex');
 const gameMutex = new Mutex();
 
 const { generateSpinRandomNumbers } = require("../middleware/spinResult");
-const { generateRandomNumbersKeno } = require("../middleware/kenoResult");
+const { generateRandomNumbersKeno } = require("../middleware/kenoResultyafet");
 const Shop = require("../models/shop");
 const logger = require("../logger");
 const { getCurrentDate } = require("./DailyReportController");
