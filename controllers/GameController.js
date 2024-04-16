@@ -13,6 +13,8 @@ const gameMutex = new Mutex();
 const { generateSpinRandomNumbers } = require("../middleware/spinResult");
 const { generateRandomNumbersKeno } = require("../middleware/kenoResult");
 const Shop = require("../models/shop");
+const logger = require("../logger");
+const { getCurrentDate } = require("./DailyReportController");
 
 const GameController = {
   constructor: () => {
@@ -132,21 +134,30 @@ const GameController = {
 
   // Controller
   getLastPlayedGame: async (req, res) => {
+    const timezoneOffset = 0;
+    const reportDate = new Date().toISOString().substr(0, 10);
+    const startOfDay = new Date(`${reportDate}T00:00:00.000Z`);
+    startOfDay.setMinutes(startOfDay.getMinutes() - timezoneOffset);
+
+    const endOfDay = new Date(`${reportDate}T23:59:59.999Z`);
+    endOfDay.setMinutes(endOfDay.getMinutes() - timezoneOffset);
     let { shopId } = req.body;
-    if (!shopId) {
-      return res.status(404).json({ message: "No active games currently." });
-    }
-    const findshop = await Shop.query().where("username", shopId).first();
-    if (!findshop) {
-      return res.status(404).json({ message: "No active games currently." });
-    }
-    shopId = findshop.id;
     try {
+      if (!shopId) {
+        return res.status(404).json({ message: "No active games currently." });
+      }
+      const findshop = await Shop.query().where("username", shopId).first();
+      if (!findshop) {
+        return res.status(404).json({ message: "No active games currently." });
+      }
+      shopId = findshop.id;
       // Retrieve the last played game
       const lastPlayedGame = await Game.query()
         .where("status", "done")
         .andWhere("gameType", "keno")
         .andWhere("shopId", shopId)
+        .andWhere("created_at", ">=", startOfDay)
+        .andWhere("created_at", "<=", endOfDay)
         .orderBy("id", "desc")
         .first();
 
@@ -179,7 +190,7 @@ const GameController = {
           .returning("*");
       }
       // Retrieve the open game (next game)
-      console.log("json", lastPlayedGame.pickedNumbers);
+      // console.log("json", lastPlayedGame.pickedNumbers);
       // console.log("json", lastPlayedGame.pickedNumbers.selection);
       // Construct the response in the specified format
       const response = {
@@ -328,30 +339,43 @@ const GameController = {
     } catch (error) {
       // Handle timeout error
       if (error instanceof knex.KnexTimeoutError) {
-        throw new Error('Failed to acquire lock within the specified timeout');
+        // throw new Error('Failed to acquire lock within the specified timeout');
+        logger.error('Failed to acquire lock within the specified timeout');
+        return res.status(500).json({ message: "Internal server error." });
       }
       // Handle other errors
-      throw error;
+      // throw error;
+      logger.error(error);
+      return res.status(500).json({ message: "Internal server error." });
     }
   },
 
   // Controller
   getLastPlayedGameSpin: async (req, res) => {
     let { shopId } = req.body;
-    if (!shopId) {
-      return res.status(404).json({ message: "No active games currently." });
-    }
-    const findshop = await Shop.query().where("username", shopId).first();
-    if (!findshop) {
-      return res.status(404).json({ message: "No active games currently." });
-    }
-    shopId = findshop.id;
     try {
+      const timezoneOffset = 0;
+      const reportDate = new Date().toISOString().substr(0, 10);
+      const startOfDay = new Date(`${reportDate}T00:00:00.000Z`);
+      startOfDay.setMinutes(startOfDay.getMinutes() - timezoneOffset);
+
+      const endOfDay = new Date(`${reportDate}T23:59:59.999Z`);
+      endOfDay.setMinutes(endOfDay.getMinutes() - timezoneOffset);
+      if (!shopId) {
+        return res.status(404).json({ message: "No active games currently." });
+      }
+      const findshop = await Shop.query().where("username", shopId).first();
+      if (!findshop) {
+        return res.status(404).json({ message: "No active games currently." });
+      }
+      shopId = findshop.id;
       // Retrieve the last played game
       const lastPlayedGame = await Game.query()
         .where("status", "done")
         .andWhere("gameType", "spin")
         .andWhere("shopId", shopId)
+        .andWhere("created_at", ">=", startOfDay)
+        .andWhere("created_at", "<=", endOfDay)
         .orderBy("id", "desc")
         .first();
 
@@ -504,21 +528,25 @@ const GameController = {
     } catch (error) {
       // Handle timeout error
       if (error instanceof knex.KnexTimeoutError) {
-        throw new Error('Failed to acquire lock within the specified timeout');
+        logger.error('Failed to acquire lock within the specified timeout');
+        // throw new Error('Failed to acquire lock within the specified timeout');
+        return res.status(500).json({ message: "Internal server error." });
       }
       // Handle other errors
-      throw error;
+      logger.error(error);
+      // throw error;
+      return res.status(500).json({ message: "Internal server error." });
     }
   },
 
-  resetGameNumber: async (req, res) => {
+  resetGameNumber: async () => {
     const shops = await Shop.query();
 
     shops.map(async (shop) => {
       const currentGame = await Game.query().where("status", "playing").andWhere('gameType', 'keno').andWhere('shopId', shop.id).orderBy("id", "desc").first();
 
       if (currentGame) {
-        const numbers = await generateRandomNumbersKeno(currentGame.id, shop.rtp, shop.id, res);
+        const numbers = await generateRandomNumbersKeno(currentGame.id, shop.rtp, shop.id);
 
         let headsCount = 0;
         let tailsCount = 0;
@@ -592,7 +620,7 @@ const GameController = {
         })
     })
 
-    res.status(200).json({ message: 'Game Reset! ' })
+    return true;
   },
 
   searchGame: async (req, res) => {
@@ -633,11 +661,21 @@ const GameController = {
   getGameRusult: async (req, res) => {
     const { gameNumber, shop } = req.params;
     try {
+      const reportDate = getCurrentDate();
+      const timezoneOffset = 0; // Set the time zone offset to 0 for UTC
+
+      const startOfDay = new Date(`${reportDate}T00:00:00.000Z`);
+      startOfDay.setMinutes(startOfDay.getMinutes() - timezoneOffset);
+
+      const endOfDay = new Date(`${reportDate}T23:59:59.999Z`);
+      endOfDay.setMinutes(endOfDay.getMinutes() - timezoneOffset);
       // Update the current game with the drawn number
       const currentGame = await Game.query()
         .where("gameNumber", gameNumber)
         .andWhere("shopId", shop)
         .andWhere("status", "done")
+        .where("created_at", ">=", startOfDay)
+        .where("created_at", "<=", endOfDay)
         .first();
 
       if (!currentGame) {
@@ -695,6 +733,7 @@ const GameController = {
 const acquireLockWithTimeout = async (mutex, timeout) => {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
+      mutex.release();
       reject(new Error('Timeout while acquiring lock'));
     }, timeout);
 
@@ -826,7 +865,7 @@ const calculateWiningNumbers = async (gameNumber, winningNumbers, winner) => {
     console.log("total win:", ticketWin);
   }
 
-  calculateCashierWinnings(gameNumber, tickets);
+  // calculateCashierWinnings(gameNumber, tickets);
 };
 
 const calculateSlipWiningNumbers = async (
@@ -901,11 +940,20 @@ function countCorrectGuesses(userSelection, winningNumbers) {
 
 const getLast10Games = async (shopId) => {
   try {
+    const timezoneOffset = 0;
+    const reportDate = new Date().toISOString().substr(0, 10);
+    const startOfDay = new Date(`${reportDate}T00:00:00.000Z`);
+    startOfDay.setMinutes(startOfDay.getMinutes() - timezoneOffset);
+
+    const endOfDay = new Date(`${reportDate}T23:59:59.999Z`);
+    endOfDay.setMinutes(endOfDay.getMinutes() - timezoneOffset);
     const games = await Game.query()
       .select("id", "gameNumber", "status", "pickedNumbers")
       .where("status", "done")
       .andWhere("gameType", "keno")
       .andWhere('shopId', shopId)
+      .andWhere("created_at", ">=", startOfDay)
+      .andWhere("created_at", "<=", endOfDay)
       .orderBy("id", "desc")
       .limit(10);
 
@@ -927,11 +975,20 @@ const getLast10Games = async (shopId) => {
 
 const getLast100Games = async (shopId) => {
   try {
+    const timezoneOffset = 0;
+    const reportDate = new Date().toISOString().substr(0, 10);
+    const startOfDay = new Date(`${reportDate}T00:00:00.000Z`);
+    startOfDay.setMinutes(startOfDay.getMinutes() - timezoneOffset);
+
+    const endOfDay = new Date(`${reportDate}T23:59:59.999Z`);
+    endOfDay.setMinutes(endOfDay.getMinutes() - timezoneOffset);
     const games = await Game.query()
       .select("id", "gameNumber", "status", "pickedNumbers")
       .where("status", "done")
       .andWhere("gameType", "spin")
       .andWhere('shopId', shopId)
+      .andWhere("created_at", ">=", startOfDay)
+      .andWhere("created_at", "<=", endOfDay)
       .orderBy("id", "desc")
       .limit(200);
 
