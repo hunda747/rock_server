@@ -1,2 +1,80 @@
 {"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-09T03:44:46.032Z"}
 {"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-09T03:49:23.525Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T22:02:25.582Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T22:17:04.872Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T22:17:05.034Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T22:17:05.038Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T22:17:05.114Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T22:17:05.134Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T22:17:05.154Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T22:17:05.198Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T22:17:05.217Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T22:17:05.225Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T22:17:05.405Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T22:17:05.421Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T22:17:05.583Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T22:17:05.673Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T22:17:05.710Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T22:17:05.723Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T22:17:05.923Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T22:27:01.315Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T22:27:01.344Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T22:27:01.362Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T22:27:01.367Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T22:27:01.396Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T22:27:01.400Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T22:27:01.410Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T22:27:01.423Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T22:27:01.472Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T22:27:01.489Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T22:27:01.566Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T22:27:01.568Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T22:27:01.575Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T22:27:01.613Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T22:27:01.866Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T22:27:01.953Z"}
+{"level":"info","message":"actual scall: 0.1, currenration: 0, shop id: 1","service":"your-service-name","timestamp":"2024-04-16T22:37:57.936Z"}
+{"level":"info","message":"actual scall: 0.1, currenration: 0, shop id: 1","service":"your-service-name","timestamp":"2024-04-16T23:01:51.062Z"}
+{"level":"info","message":"actual scall: 0.1, currenration: 100.00, shop id: 1","service":"your-service-name","timestamp":"2024-04-16T23:02:17.791Z"}
+{"level":"info","message":"actual scall: 0.1, currenration: 100.00, shop id: 1","service":"your-service-name","timestamp":"2024-04-16T23:03:11.112Z"}
+{"level":"info","message":"actual scall: 0.05, currenration: 100.00, shop id: 1","service":"your-service-name","timestamp":"2024-04-16T23:03:25.953Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T23:09:36.747Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T23:09:36.818Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T23:09:36.826Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T23:09:37.356Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T23:09:37.369Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T23:09:37.369Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T23:09:37.393Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T23:09:37.467Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T23:09:37.497Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T23:09:37.539Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T23:09:37.554Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T23:09:37.697Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T23:09:37.703Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T23:09:37.754Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T23:09:38.156Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T23:09:38.373Z"}
+{"level":"info","message":"actual scall: 0.05, currenration: 100.00, shop id: 1","service":"your-service-name","timestamp":"2024-04-16T23:09:56.393Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T23:12:00.136Z"}
+{"level":"info","message":"actual scall: 0.05, currenration: 100.00, shop id: 1","service":"your-service-name","timestamp":"2024-04-16T23:12:18.143Z"}
+{"level":"info","message":"actual scall: 0.05, currenration: 100.00, shop id: 1","service":"your-service-name","timestamp":"2024-04-16T23:12:35.418Z"}
+{"level":"info","message":"actual scall: 0.05, currenration: 100.00, shop id: 1","service":"your-service-name","timestamp":"2024-04-16T23:13:28.419Z"}
+{"level":"info","message":"actual scall: 0.05, currenration: 80.56, shop id: 1","service":"your-service-name","timestamp":"2024-04-16T23:15:30.418Z"}
+{"level":"info","message":"actual scall: 0.05, currenration: 82.76, shop id: 1","service":"your-service-name","timestamp":"2024-04-16T23:15:56.764Z"}
+{"level":"info","message":"actual scall: 0.05, currenration: 82.74, shop id: 1","service":"your-service-name","timestamp":"2024-04-16T23:16:37.717Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T23:17:17.546Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T23:17:51.220Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-16T23:18:58.741Z"}
+{"level":"info","message":"actual scall: 0.05, currenration: 78.31, shop id: 1","service":"your-service-name","timestamp":"2024-04-16T23:23:02.238Z"}
+{"level":"info","message":"actual scall: 0.1, currenration: 0, shop id: 67","service":"your-service-name","timestamp":"2024-04-17T03:02:02.976Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-17T03:39:03.948Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-17T03:40:09.050Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-17T03:41:20.330Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-17T03:42:11.203Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-17T03:42:14.550Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-17T03:51:34.734Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-17T03:52:08.550Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-17T03:53:09.107Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-17T04:03:43.407Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-17T04:04:46.207Z"}
+{"level":"info","message":"Server is running on port http://localhost:443","service":"your-service-name","timestamp":"2024-04-17T04:07:06.298Z"}

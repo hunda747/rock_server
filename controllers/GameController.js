@@ -214,8 +214,130 @@ const GameController = {
     }
   },
 
-  // Controller
   getCurrentGameResult: async (req, res) => {
+    let { gameNumber, shopId } = req.body;
+    // console.log('game', gameNumber);
+    try {
+      // Validate input
+      if (!gameNumber || !shopId) {
+        return res.status(400).json({ message: "Invalid input data." });
+      }
+
+      // Acquire lock
+      const release = await acquireLockWithTimeout(gameMutex, 5000);
+      if (!release) {
+        return res.status(500).json({ message: "Failed to acquire lock." });
+      }
+
+      // Start transaction
+      await transaction(Game.knex(), async (trx) => {
+        // Check shop existence
+        const findShop = await Shop.query().findOne({ username: shopId });
+        if (!findShop) {
+          release();
+          return res.status(404).json({ message: "Shop not found." });
+        }
+
+        shopId = findShop.id;
+
+        // Retrieve current game
+        const currentGame = await Game.query()
+          .findOne({ id: gameNumber, gameType: 'keno', shopId })
+          // .findOne({ status: 'playing', gameType: 'keno', shopId })
+          .forUpdate();
+        // console.log('game', currentGame.id);
+        if (!currentGame) {
+          release();
+          return res.status(404).json({ message: "Game not found." });
+        }
+
+        let response;
+        if (!currentGame.pickedNumbers) {
+          // Generate random numbers securely
+          const numbers = await generateRandomNumbersKeno(gameNumber, findShop.rtp, shopId, res);
+
+          // Update game with drawn numbers
+          let headsCount = 0;
+          let tailsCount = 0;
+
+          for (const num of numbers) {
+            if (num >= 1 && num <= 40) {
+              headsCount++;
+            } else if (num >= 41 && num <= 80) {
+              tailsCount++;
+            }
+          }
+
+          const winner = headsCount > tailsCount ? "heads" : tailsCount > headsCount ? "tails" : "tails";
+
+          // Update game
+          await currentGame.$query(trx).patch({
+            pickedNumbers: JSON.stringify({ selection: numbers }),
+            status: "done",
+            winner: winner
+          });
+
+          // Calculate winning numbers
+          calculateWiningNumbers(gameNumber, numbers, winner);
+
+          // Create new game
+          const newGame = await Game.query(trx).insert({
+            gameType: "keno",
+            gameNumber: currentGame.gameNumber + 1,
+            shopId
+          }).returning("*");
+
+
+          let finalgameobject = await finalResult(currentGame, numbers)
+          const last10Result = await getLast10Games(shopId);
+          last10Result.unshift(finalgameobject);
+
+          // console.log(finalResult);
+          // console.log(last10Result);
+
+          response = {
+            openGame: { id: newGame.id, gameNumber: newGame.gameNumber },
+            game: { gameNumber: currentGame.gameNumber },
+            result: numbers.map((item) => ({ value: item })),
+            lastGame: currentGame.gameNumber,
+            recent: last10Result
+          };
+        } else {
+          let openGame = await Game.query(trx)
+            .findOne({ status: "playing", gameType: "keno", shopId });
+
+          if (!openGame) {
+            // Create new game if no open game found
+            openGame = await Game.query(trx)
+              .insert({
+                gameType: "keno",
+                gameNumber: currentGame.gameNumber + 1,
+                shopId
+              }).returning("*");
+          }
+          // If numbers already drawn, return them
+          const drawnNumber = JSON.parse(currentGame.pickedNumbers).selection;
+          response = {
+            openGame: { id: openGame.id, gameNumber: openGame.gameNumber },
+            game: { gameNumber: currentGame.gameNumber },
+            result: drawnNumber.map((item) => ({ value: item })),
+            lastGame: currentGame.gameNumber,
+            recent: await getLast10Games(shopId)
+          };
+        }
+
+        // Release lock and respond with data
+        release();
+        return res.status(200).json(response);
+      });
+    } catch (error) {
+      console.error("Error getting current game result:", error);
+      return res.status(500).json({ message: "Internal server error." });
+    }
+  },
+
+  // Controller
+  getCurrentGameResultOld: async (req, res) => {
     let { gameNumber, shopId } = req.body;
 
     try {
@@ -730,6 +852,15 @@ const GameController = {
   },
 };
 
+const finalResult = async (currentGame, numbers) => {
+  return {
+    "id": currentGame.id,
+    "gameNumber": currentGame.gameNumber,
+    "status": "done",
+    "results": numbers.map((item) => ({ value: item }))
+  }
+}
+
 const acquireLockWithTimeout = async (mutex, timeout) => {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
@@ -812,7 +943,7 @@ const calculateCashierWinnings = async (gameNumber, tickets) => {
 const calculateWiningNumbers = async (gameNumber, winningNumbers, winner) => {
   // const { gameNumber } = req.params;
   // let winningNumbers = [25, 62, 47, 8, 27, 36, 35, 10, 20, 30];
-  // console.log(nums);
+  // console.log(winner);
   const tickets = await Ticket.query()
     .where("gameId", gameNumber)
     .whereNot("status", "canceled");
@@ -826,8 +957,6 @@ const calculateWiningNumbers = async (gameNumber, winningNumbers, winner) => {
 
     // Initialize variables for each ticket
     let ticketWin = 0;
-    let ticketMinWin = 0;
-    let ticketMaxWin = 0;
 
     for (const pick of ticketPicks) {
       const numberOfSelections = pick.selection.length;
