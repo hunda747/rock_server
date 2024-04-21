@@ -70,7 +70,16 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId) => {
   }
 
   const scalingFactor = rtp / 100;
+
+  const startTime = performance.now();
+
   let main = numbersWithPerc(picks, 20);
+
+
+  const endTime = performance.now();
+  const elapsedTime = endTime - startTime;
+  console.log(`*************************************************`)
+  console.log(`Total time elapsed: ${elapsedTime} milliseconds`);
   // console.log(main);
   // const drawnnumber = [];
 

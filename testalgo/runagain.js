@@ -12,7 +12,7 @@ const { log } = require("winston");
 
 // Define a function to draw the lottery results
 const checkLotteryResults = async (req, res) => {
-  const { reportDate } = req.body;
+  const { reportDate, listShop } = req.body;
   // Your logic for drawing the lottery results goes here
   console.log('Drawing lottery results...');
   try {
@@ -34,9 +34,9 @@ const checkLotteryResults = async (req, res) => {
       // Extract shopId values from the result set
       const shopIds = uniqueShopIds.map(record => record.shopId);
       console.log("unique", shopIds);
-      res.status(200).json({ message: "Done!" })
-      for (const shopId of shopIds) {
-        for (let i = 0; i < 2; i++) {
+      res.status(200).json({ message: shopIds })
+      for (const shopId of listShop) {
+        for (let i = 0; i < 1; i++) {
           await transaction(Game.knex(), async (trx) => {
             console.log('shop', shopId, 'count', (i + 1));
 
