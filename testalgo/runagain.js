@@ -8,95 +8,110 @@ const { transaction } = require('objection');
 const { calculateWiningNumbers } = require("../middleware/ticketWinnings");
 const { generateRandomNumbersKeno } = require("../middleware/kenoResultyafet");
 const { generateDailyReport, generateDailyReportForShopTest } = require("../controllers/DailyReportController");
+const { log } = require("winston");
 
 // Define a function to draw the lottery results
 const checkLotteryResults = async (req, res) => {
-  const { reportDate, shopId } = req.body;
+  const { reportDate } = req.body;
   // Your logic for drawing the lottery results goes here
   console.log('Drawing lottery results...');
   try {
     const release = await acquireLockWithTimeout(gameMutex, 4000);
     try {
-      for (let i = 0; i < 3; i++) {
-        await transaction(Game.knex(), async (trx) => {
-          console.log('shop', shopId, 'count', (i + 1));
-          const timezoneOffset = 0; // Set the time zone offset to 0 for UTC
+      const timezoneOffset = 0; // Set the time zone offset to 0 for UTC
+      const startOfDay = new Date(`${reportDate}T00:00:00.000Z`);
+      startOfDay.setMinutes(startOfDay.getMinutes() - timezoneOffset);
+      const endOfDay = new Date(`${reportDate}T23:59:59.999Z`);
+      endOfDay.setMinutes(endOfDay.getMinutes() - timezoneOffset);
 
-          const startOfDay = new Date(`${reportDate}T00:00:00.000Z`);
-          startOfDay.setMinutes(startOfDay.getMinutes() - timezoneOffset);
+      const uniqueShopIds = await Game.query()
+        .select('shopId')
+        .where("created_at", ">=", startOfDay)
+        .where("created_at", "<=", endOfDay)
+        .andWhere({ gameType: 'keno' })
+        .distinct('shopId');
 
-          const endOfDay = new Date(`${reportDate}T23:59:59.999Z`);
-          endOfDay.setMinutes(endOfDay.getMinutes() - timezoneOffset);
-          const activeGames = await Game.query().where("created_at", ">=", startOfDay).where("created_at", "<=", endOfDay).andWhere({ gameType: 'keno' }).andWhere({ shopId: shopId });
-          console.log('game: ', activeGames.length);
-          console.log(startOfDay);
-          console.log(endOfDay);
-          const updatedRowsCount = await Ticket.query()
-            .patch({ status: 'active' })
-            .where('shopId', shopId)
-            .where("created_at", ">=", startOfDay).where("created_at", "<=", endOfDay)
-          // Assuming calculateWiningNumbers is an asynchronous function
-          async function run() {
-            for (const game of activeGames) {
-              try {
-                const tickets = await Ticket.query()
-                  .where("gameId", game.id);
-                // console.log('tuc', game.id, tickets.length);
-                if (!tickets.length) {
-                  continue;
-                }
-                const numbers = await generateRandomNumbersKeno(game.id, 15, game.shopId, reportDate);
-                // console.log(numbers);
-                let headsCount = 0;
-                let tailsCount = 0;
-                let evenCount = 0;
+      // Extract shopId values from the result set
+      const shopIds = uniqueShopIds.map(record => record.shopId);
+      console.log("unique", shopIds);
+      res.status(200).json({ message: "Done!" })
+      for (const shopId of shopIds) {
+        for (let i = 0; i < 2; i++) {
+          await transaction(Game.knex(), async (trx) => {
+            console.log('shop', shopId, 'count', (i + 1));
 
-                for (const num of numbers) {
-                  if (num <= 40) {
-                    evenCount++;
-                    // Assuming heads for even numbers, tails for odd numbers
-                    headsCount++;
-                  } else {
-                    tailsCount++;
+            const activeGames = await Game.query().where("created_at", ">=", startOfDay).where("created_at", "<=", endOfDay).andWhere({ gameType: 'keno' }).andWhere({ shopId: shopId });
+            console.log('game: ', activeGames.length);
+            console.log(startOfDay);
+            console.log(endOfDay);
+            const updatedRowsCount = await Ticket.query()
+              .patch({ status: 'active' })
+              .where('shopId', shopId)
+              .where("created_at", ">=", startOfDay).where("created_at", "<=", endOfDay)
+
+            async function run() {
+              for (const game of activeGames) {
+                try {
+                  const tickets = await Ticket.query()
+                    .where("gameId", game.id);
+                  if (!tickets.length) {
+                    continue;
                   }
+                  console.log('------------------------------------------');
+                  console.log('tuc', game.gameNumber, tickets.length);
+                  const numbers = await generateRandomNumbersKeno(game.id, 15, game.shopId, reportDate);
+                  // console.log(numbers);
+                  let headsCount = 0;
+                  let tailsCount = 0;
+                  let evenCount = 0;
+
+                  for (const num of numbers) {
+                    if (num <= 40) {
+                      evenCount++;
+                      // Assuming heads for even numbers, tails for odd numbers
+                      headsCount++;
+                    } else {
+                      tailsCount++;
+                    }
+                  }
+
+                  const winner =
+                    headsCount > tailsCount
+                      ? "heads"
+                      : tailsCount > headsCount
+                        ? "tails"
+                        : "evens";
+
+                  await game.$query().patch({
+                    pickedNumbers: JSON.stringify({ selection: numbers }),
+                    status: "done",
+                    winner: winner,
+                  });
+
+                  await calculateWiningNumbers(game.id, numbers, winner);
+                } catch (error) {
+                  console.error(`Error processing game ${game.id}:`, error);
                 }
-
-                const winner =
-                  headsCount > tailsCount
-                    ? "heads"
-                    : tailsCount > headsCount
-                      ? "tails"
-                      : "evens";
-
-                await game.$query().patch({
-                  pickedNumbers: JSON.stringify({ selection: numbers }),
-                  status: "done",
-                  winner: winner,
-                });
-
-                await calculateWiningNumbers(game.id, numbers, winner);
-              } catch (error) {
-                console.error(`Error processing game ${game.id}:`, error);
               }
             }
-          }
 
-          await run();
+            await run();
 
-          release();
-          const report = await generateDailyReportForShopTest(reportDate, shopId);
-          console.log(report);
-          report.count = i + 1;
-          report.date = reportDate;
-          report.shopId = shopId;
-          saveCsv(report);
-        })
+            release();
+            const report = await generateDailyReportForShopTest(reportDate, shopId);
+            console.log(report);
+            report.count = i + 1;
+            report.date = reportDate;
+            report.shopId = shopId;
+            saveCsv(report);
+          })
+        }
       }
 
       const generatedReport = await generateDailyReport(reportDate, res);
       // console.log(generatedReport);
       console.log("done");
-      res.status(200).json({ message: "Done!" })
+
     } catch (err) {
       console.log(err);
     } finally {

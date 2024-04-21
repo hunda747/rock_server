@@ -3,6 +3,7 @@ const Ticket = require("../models/slip");
 const crypto = require("crypto");
 const logger = require('../logger');
 const { log } = require("winston");
+const oddsTable = require("../odd/kiron");
 
 const kiron = {
   1: [{ 1: 4 }],
@@ -46,13 +47,14 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId) => {
       let newpick = {};
       newpick.coinsPlaced = parseInt(pick.stake);
       newpick.selectedNumbers = pick.selection;
+      newpick.oddType = ticket.oddType;
       picks.push(newpick);
     }
   }
 
   // console.log('currenration', currentRatio);
   // console.log('rtp', rtp);
-  console.log("picks", picks);
+  // console.log("picks", picks);
   if (!picks.length) {
     const drawnnumber = [];
 
@@ -115,8 +117,10 @@ function numbersWithPerc(users, expectedPercentage) {
         if (matchNumbers == 0) {
           return
         }
+        // console.log(user);
+        let oddObj = (oddsTable[user.oddType]);
         // console.log(user,kiron[user.selectedNumbers.length],matchNumbers)
-        const odd = kiron[user.selectedNumbers.length][matchNumbers - 1][matchNumbers]
+        const odd = oddObj[user.selectedNumbers.length][matchNumbers - 1][matchNumbers]
         const totalUserPoints = odd * user.coinsPlaced
         totalPoints += totalUserPoints
       }
@@ -125,10 +129,11 @@ function numbersWithPerc(users, expectedPercentage) {
 
     if (isRange) {
       // console.log("count is", counter)
-      // console.log("Total deposit:", totalPool);
-      // console.log("Total profit", totalPool - totalPoints);
-      // console.log("expected profit", percentage, "%")
-      // console.log("actual profit", ((totalPool - totalPoints) / totalPool) * 100, "%")
+      console.log("---------------------------------------------------------");
+      console.log("Total deposit:", totalPool);
+      console.log("Total profit", totalPool - totalPoints);
+      console.log("expected profit", percentage, "%")
+      console.log("actual profit", ((totalPool - totalPoints) / totalPool) * 100, "%")
       // console.log(numbers)
       calculatedNumbers = numbers
       return calculatedNumbers

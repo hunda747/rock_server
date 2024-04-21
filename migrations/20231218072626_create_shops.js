@@ -17,7 +17,6 @@ exports.up = function (knex) {
     table.integer('minStake').defaultTo(10);
     table.integer('maxStake').defaultTo(1000);
     table.integer('cashierLimit').defaultTo(10000);
-    // Use ENUM for the status field
     table.enu('status', ['active', 'inactive', 'pending']).defaultTo('active');
 
 
