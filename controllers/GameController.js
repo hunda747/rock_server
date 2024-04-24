@@ -171,6 +171,8 @@ const GameController = {
         .where("status", "playing")
         .andWhere("gameType", "keno")
         .andWhere("shopId", shopId)
+        .andWhere("created_at", ">=", startOfDay)
+        .andWhere("created_at", "<=", endOfDay)
         .orderBy("id", "desc")
         .first();
 
@@ -244,7 +246,7 @@ const GameController = {
 
         // Retrieve current game
         const currentGame = await Game.query()
-          .findOne({ id: gameNumber, gameType: 'keno', shopId })
+          .findOne({ id: gameNumber, gameType: 'keno', shopId, status: 'playing' })
           .forUpdate();
         // .findOne({ status: 'playing', gameType: 'keno', shopId })
         // console.log('game', currentGame.id);
