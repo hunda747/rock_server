@@ -1,0 +1,20 @@
+{"level":"error","message":"Error getting current game result: Timeout while acquiring lock","service":"your-service-name","stack":"Error: Timeout while acquiring lock\n    at Timeout.<anonymous> (/home/rockadmin/rock_server/controllers/GameController.js:880:14)\n    at listOnTimeout (node:internal/timers:573:17)\n    at process.processTimers (node:internal/timers:514:7)","timestamp":"2024-04-23T12:19:07.849Z"}
+{"level":"error","message":"Error getting current game result: Timeout while acquiring lock","service":"your-service-name","stack":"Error: Timeout while acquiring lock\n    at Timeout.<anonymous> (/home/rockadmin/rock_server/controllers/GameController.js:880:14)\n    at listOnTimeout (node:internal/timers:573:17)\n    at process.processTimers (node:internal/timers:514:7)","timestamp":"2024-04-23T12:19:08.363Z"}
+{"level":"error","message":"Error getting current game result: Timeout while acquiring lock","service":"your-service-name","stack":"Error: Timeout while acquiring lock\n    at Timeout.<anonymous> (/home/rockadmin/rock_server/controllers/GameController.js:880:14)\n    at listOnTimeout (node:internal/timers:573:17)\n    at process.processTimers (node:internal/timers:514:7)","timestamp":"2024-04-23T15:15:07.860Z"}
+{"level":"error","service":"your-service-name","timestamp":"2024-04-23T17:48:34.786Z"}
+{"level":"error","service":"your-service-name","timestamp":"2024-04-23T19:39:44.946Z"}
+{"level":"error","service":"your-service-name","timestamp":"2024-04-24T08:03:14.517Z"}
+{"level":"error","service":"your-service-name","timestamp":"2024-04-24T08:03:19.209Z"}
+{"level":"error","service":"your-service-name","timestamp":"2024-04-24T08:03:22.878Z"}
+{"level":"error","service":"your-service-name","timestamp":"2024-04-24T08:03:23.107Z"}
+{"level":"error","service":"your-service-name","timestamp":"2024-04-24T08:03:31.541Z"}
+{"level":"error","service":"your-service-name","timestamp":"2024-04-24T08:03:31.816Z"}
+{"level":"error","service":"your-service-name","timestamp":"2024-04-24T08:03:32.046Z"}
+{"level":"error","service":"your-service-name","timestamp":"2024-04-24T08:03:32.245Z"}
+{"level":"error","service":"your-service-name","timestamp":"2024-04-24T08:03:32.466Z"}
+{"level":"error","service":"your-service-name","timestamp":"2024-04-24T08:03:32.695Z"}
+{"level":"error","service":"your-service-name","timestamp":"2024-04-24T08:03:32.945Z"}
+{"level":"error","service":"your-service-name","timestamp":"2024-04-24T08:03:33.214Z"}
+{"level":"error","service":"your-service-name","timestamp":"2024-04-24T08:03:33.525Z"}
+{"level":"error","service":"your-service-name","timestamp":"2024-04-24T08:03:33.855Z"}
+{"level":"error","service":"your-service-name","timestamp":"2024-04-24T08:03:43.342Z"}

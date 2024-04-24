@@ -11,7 +11,8 @@ const { Mutex } = require('async-mutex');
 const gameMutex = new Mutex();
 
 const { generateSpinRandomNumbers } = require("../middleware/spinResult");
-const { generateRandomNumbersKeno } = require("../middleware/kenoResult");
+const { generateRandomNumbersKeno } = require("../middleware/kenoResultYaf");
+// const { generateRandomNumbersKeno } = require("../middleware/kenoResult");
 const Shop = require("../models/shop");
 const logger = require("../logger");
 const { getCurrentDate } = require("./DailyReportController");
@@ -226,6 +227,7 @@ const GameController = {
       // Acquire lock
       const release = await acquireLockWithTimeout(gameMutex, 5000);
       if (!release) {
+        logger.error(`Failed to acquire lock. for shop: ${shopId} gameNumber: ${gameNumber}`)
         return res.status(500).json({ message: "Failed to acquire lock." });
       }
 
@@ -243,8 +245,8 @@ const GameController = {
         // Retrieve current game
         const currentGame = await Game.query()
           .findOne({ id: gameNumber, gameType: 'keno', shopId })
-          // .findOne({ status: 'playing', gameType: 'keno', shopId })
           .forUpdate();
+        // .findOne({ status: 'playing', gameType: 'keno', shopId })
         // console.log('game', currentGame.id);
         if (!currentGame) {
           release();
@@ -279,11 +281,11 @@ const GameController = {
 
           // Calculate winning numbers
           calculateWiningNumbers(gameNumber, numbers, winner);
-
+          const newGameNumber = currentGame.gameNumber + 1;
           // Create new game
           const newGame = await Game.query(trx).insert({
             gameType: "keno",
-            gameNumber: currentGame.gameNumber + 1,
+            gameNumber: newGameNumber,
             shopId
           }).returning("*");
 
@@ -303,15 +305,26 @@ const GameController = {
             recent: last10Result
           };
         } else {
+          const timezoneOffset = 0;
+          const reportDate = new Date().toISOString().substr(0, 10);
+          const startOfDay = new Date(`${reportDate}T00:00:00.000Z`);
+          startOfDay.setMinutes(startOfDay.getMinutes() - timezoneOffset);
+
+          const endOfDay = new Date(`${reportDate}T23:59:59.999Z`);
+          endOfDay.setMinutes(endOfDay.getMinutes() - timezoneOffset);
+
           let openGame = await Game.query(trx)
-            .findOne({ status: "playing", gameType: "keno", shopId });
+            .findOne({ status: "playing", gameType: "keno", shopId })
+            .andWhere("created_at", ">=", startOfDay)
+            .andWhere("created_at", "<=", endOfDay);
 
           if (!openGame) {
             // Create new game if no open game found
+            const newGameNumber = currentGame.gameNumber + 1;
             openGame = await Game.query(trx)
               .insert({
                 gameType: "keno",
-                gameNumber: currentGame.gameNumber + 1,
+                gameNumber: newGameNumber,
                 shopId
               }).returning("*");
           }
@@ -331,7 +344,7 @@ const GameController = {
         return res.status(200).json(response);
       });
     } catch (error) {
-      console.error("Error getting current game result:", error);
+      logger.error("Error getting current game result:", error);
       return res.status(500).json({ message: "Internal server error." });
     }
   },
@@ -1022,7 +1035,6 @@ const calculateSlipWiningNumbers = async (
     let ticketMaxWin = 0;
 
     for (const pick of ticketPicks) {
-      const numberOfSelections = pick.val.length;
       // Retrieve the odds table for the specific selection
       if (pick.market === "OddEven") {
         if (pick?.val[0] == winner?.oddEven) {
