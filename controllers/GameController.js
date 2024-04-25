@@ -160,6 +160,7 @@ const GameController = {
         .andWhere("created_at", ">=", startOfDay)
         .andWhere("created_at", "<=", endOfDay)
         .orderBy("id", "desc")
+        .limit(1)
         .first();
 
       // if (!lastPlayedGame) {
@@ -168,20 +169,21 @@ const GameController = {
 
       // Update the current game with the drawn number
       const currentGame = await Game.query()
-        .where("status", "playing")
+        // .where("status", "playing")
         .andWhere("gameType", "keno")
-        .andWhere("shopId", shopId)
         .andWhere("created_at", ">=", startOfDay)
         .andWhere("created_at", "<=", endOfDay)
+        .andWhere("shopId", shopId)
         .orderBy("id", "desc")
+        .limit(1)
         .first();
 
       let openGame;
 
-      if (currentGame) {
+      if (currentGame.status === "playing") {
         openGame = currentGame;
       } else {
-        const gn = lastPlayedGame?.gameNumber || 3000;
+        const gn = currentGame?.gameNumber || findshop.kenoStartNumber;
         openGame = await Game.query()
           .insert({
             gameType: "keno",
@@ -307,38 +309,9 @@ const GameController = {
             recent: last10Result
           };
         } else {
-          const timezoneOffset = 0;
-          const reportDate = new Date().toISOString().substr(0, 10);
-          const startOfDay = new Date(`${reportDate}T00:00:00.000Z`);
-          startOfDay.setMinutes(startOfDay.getMinutes() - timezoneOffset);
-
-          const endOfDay = new Date(`${reportDate}T23:59:59.999Z`);
-          endOfDay.setMinutes(endOfDay.getMinutes() - timezoneOffset);
-
-          let openGame = await Game.query(trx)
-            .findOne({ status: "playing", gameType: "keno", shopId })
-            .andWhere("created_at", ">=", startOfDay)
-            .andWhere("created_at", "<=", endOfDay);
-
-          if (!openGame) {
-            // Create new game if no open game found
-            const newGameNumber = currentGame.gameNumber + 1;
-            openGame = await Game.query(trx)
-              .insert({
-                gameType: "keno",
-                gameNumber: newGameNumber,
-                shopId
-              }).returning("*");
-          }
-          // If numbers already drawn, return them
-          const drawnNumber = JSON.parse(currentGame.pickedNumbers).selection;
-          response = {
-            openGame: { id: openGame.id, gameNumber: openGame.gameNumber },
-            game: { gameNumber: currentGame.gameNumber },
-            result: drawnNumber.map((item) => ({ value: item })),
-            lastGame: currentGame.gameNumber,
-            recent: await getLast10Games(shopId)
-          };
+          release();
+          logger.error(`Game with picked number on game id: ${gameNumber}, shop id: ${shopId}`)
+          return res.status(404).json({ message: "Game not found." });
         }
 
         // Release lock and respond with data

@@ -42,10 +42,10 @@ app.use(cors({ origin: '*' }));
 
 // schedule.scheduleJob('0 50 16 * * * ', async function (){
 
-// schedule.scheduleJob({ hour: 7, minute: 55, second: 0, tz: 'Africa/Nairobi' }, async function () {
-//   const reset = await resetGameNumber();
-//   console.log('reset' + new Date().toLocaleString());
-// })
+schedule.scheduleJob({ hour: 6, minute: 5, second: 0, tz: 'Africa/Nairobi' }, async function () {
+  const reset = await resetGameNumber();
+  console.log('reset' + new Date().toLocaleString());
+})
 schedule.scheduleJob({ hour: 23, minute: 44, second: 0, tz: 'Africa/Nairobi' }, async function () {
   // schedule.scheduleJob({ hour: 22, minute: 52, second: 0, tz: 'Africa/Nairobi' }, async function () {
   // console.log('The answer to life, the universe, and everything!');
