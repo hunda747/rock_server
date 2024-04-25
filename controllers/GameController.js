@@ -157,8 +157,6 @@ const GameController = {
         .where("status", "done")
         .andWhere("gameType", "keno")
         .andWhere("shopId", shopId)
-        .andWhere("created_at", ">=", startOfDay)
-        .andWhere("created_at", "<=", endOfDay)
         .orderBy("id", "desc")
         .limit(1)
         .first();
@@ -324,10 +322,10 @@ const GameController = {
     }
   },
 
-  // Controller
+
   getCurrentGameResultOld: async (req, res) => {
     let { gameNumber, shopId } = req.body;
-
+    console.log(gameNumber);
     try {
       // const release = await gameMutex.acquire();
       const release = await acquireLockWithTimeout(gameMutex, 5000);
@@ -344,7 +342,8 @@ const GameController = {
         // Update the current game with the drawn number
         // Wrap critical operations within a transaction
         await transaction(Game.knex(), async (trx) => {
-          const currentGame = await Game.query().where("id", gameNumber).andWhere('gameType', 'keno').andWhere('shopId', shopId).first();
+          // const currentGame = await Game.query().where("id", gameNumber).andWhere('gameType', 'keno').andWhere('shopId', shopId).first();
+          const currentGame = await Game.query().where("status", "playing").andWhere('gameType', 'keno').andWhere('shopId', shopId).first();
 
           if (!currentGame) {
             return res.status(404).json({ message: "No active games currently." });
@@ -421,7 +420,6 @@ const GameController = {
               })
               .returning("*");
           }
-
 
           // Construct the response in the specified format
           response = {
