@@ -139,9 +139,9 @@ const GameController = {
     const reportDate = new Date().toISOString().substr(0, 10);
     const startOfDay = new Date(`${reportDate}T00:00:00.000Z`);
     startOfDay.setMinutes(startOfDay.getMinutes() - timezoneOffset);
-
     const endOfDay = new Date(`${reportDate}T23:59:59.999Z`);
     endOfDay.setMinutes(endOfDay.getMinutes() - timezoneOffset);
+
     let { shopId } = req.body;
     try {
       if (!shopId) {
@@ -157,6 +157,8 @@ const GameController = {
         .where("status", "done")
         .andWhere("gameType", "keno")
         .andWhere("shopId", shopId)
+        .andWhere("created_at", ">=", startOfDay)
+        .andWhere("created_at", "<=", endOfDay)
         .orderBy("id", "desc")
         .limit(1)
         .first();
@@ -321,7 +323,6 @@ const GameController = {
       return res.status(500).json({ message: "Internal server error." });
     }
   },
-
 
   getCurrentGameResultOld: async (req, res) => {
     let { gameNumber, shopId } = req.body;
