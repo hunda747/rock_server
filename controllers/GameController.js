@@ -156,9 +156,8 @@ const GameController = {
         .where("status", "done")
         .andWhere("gameType", "keno")
         .andWhere("shopId", shopId)
-        .andWhere("created_at", ">=", startOfDay)
-        .andWhere("created_at", "<=", endOfDay)
         .orderBy("id", "desc")
+        .limit(1)
         .first();
 
       // if (!lastPlayedGame) {
@@ -167,18 +166,21 @@ const GameController = {
 
       // Update the current game with the drawn number
       const currentGame = await Game.query()
-        .where("status", "playing")
+        // .where("status", "playing")
         .andWhere("gameType", "keno")
+        .andWhere("created_at", ">=", startOfDay)
+        .andWhere("created_at", "<=", endOfDay)
         .andWhere("shopId", shopId)
         .orderBy("id", "desc")
+        .limit(1)
         .first();
 
       let openGame;
 
-      if (currentGame) {
+      if (currentGame.status === "playing") {
         openGame = currentGame;
       } else {
-        const gn = lastPlayedGame?.gameNumber || 3000;
+        const gn = currentGame?.gameNumber || findshop.kenoStartNumber;
         openGame = await Game.query()
           .insert({
             gameType: "keno",
@@ -219,6 +221,13 @@ const GameController = {
   getCurrentGameResult: async (req, res) => {
     let { gameNumber, shopId } = req.body;
     console.log('game', gameNumber);
+    const timezoneOffset = 0;
+    const reportDate = new Date().toISOString().substr(0, 10);
+    const startOfDay = new Date(`${reportDate}T00:00:00.000Z`);
+    startOfDay.setMinutes(startOfDay.getMinutes() - timezoneOffset);
+
+    const endOfDay = new Date(`${reportDate}T23:59:59.999Z`);
+    endOfDay.setMinutes(endOfDay.getMinutes() - timezoneOffset);
     try {
       // Validate input
       if (!gameNumber || !shopId) {
@@ -244,17 +253,18 @@ const GameController = {
 
         // Retrieve current game
         const currentGame = await Game.query()
-          // .findOne({ id: gameNumber, gameType: 'keno', shopId })
-          .findOne({ status: 'playing', gameType: 'keno', shopId })
+          .findOne({ id: gameNumber, gameType: 'keno', shopId })
+          // .findOne({ status: 'playing', gameType: 'keno', shopId })
           .forUpdate();
 
         if (!currentGame) {
           release();
           return res.status(404).json({ message: "Game not found." });
         }
-
+        console.log(currentGame);
         let response;
         if (!currentGame.pickedNumbers) {
+          console.log('in the end');
           // Generate random numbers securely
           const numbers = await generateRandomNumbersKeno(gameNumber, findShop.rtp, shopId, res);
 
@@ -297,15 +307,26 @@ const GameController = {
             recent: await getLast10Games(shopId)
           };
         } else {
-          let openGame = await Game.query(trx)
-            .findOne({ status: "playing", gameType: "keno", shopId });
+          console.log('else thing goes far!');
+          let openGame;
+          const lastGame = await Game.query()
+            // .where("status", "playing")
+            .andWhere("gameType", "keno")
+            .andWhere("created_at", ">=", startOfDay)
+            .andWhere("created_at", "<=", endOfDay)
+            .andWhere("shopId", shopId)
+            .orderBy("id", "desc")
+            .limit(1)
+            .first();
 
-          if (!openGame) {
+          if (lastGame.status === "playing") {
+            openGame = lastGame;
+          } else {
             // Create new game if no open game found
             openGame = await Game.query(trx)
               .insert({
                 gameType: "keno",
-                gameNumber: currentGame.gameNumber + 1,
+                gameNumber: lastGame.gameNumber + 1,
                 shopId
               }).returning("*");
           }
