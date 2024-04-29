@@ -72,7 +72,7 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId) => {
   const scalingFactor = rtp / 100;
 
   const startTime = performance.now();
-  let main = numbersWithPerc(picks, 20);
+  let main = numbersWithPerc(picks, rtp);
 
   const endTime = performance.now();
   const elapsedTime = endTime - startTime;
@@ -141,6 +141,7 @@ function numbersWithPerc(users, expectedPercentage) {
       // console.log("Total profit", totalPool - totalPoints);
       // console.log("expected profit", percentage, "%")
       logger.info("actual profit", ((totalPool - totalPoints) / totalPool) * 100, "%")
+      console.log("actual profit", ((totalPool - totalPoints) / totalPool) * 100, "%")
       // console.log(numbers)
       calculatedNumbers = numbers
       return calculatedNumbers

@@ -180,10 +180,10 @@ const GameController = {
 
       let openGame;
 
-      if (currentGame.status === "playing") {
+      if (currentGame && currentGame?.status === "playing") {
         openGame = currentGame;
       } else {
-        const gn = currentGame?.gameNumber || findshop.kenoStartNumber;
+        const gn = currentGame?.gameNumber || findshop?.kenoStartNumber || 8100;
         openGame = await Game.query()
           .insert({
             gameType: "keno",
@@ -1021,7 +1021,7 @@ const calculateSlipWiningNumbers = async (
       } else {
         // console.log("numbers", winningNumbers);
         // if(pick.val.includes(winningNumbers)){
-        if (pick.val.map(Number).includes(winningNumbers)) {
+        if (pick?.val.map(Number).includes(winningNumbers)) {
           ticketWin += pick.stake * pick.odd;
         }
       }
