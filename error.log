@@ -140,3 +140,19 @@
 {"level":"error","message":"Error getting current game result: Timeout while acquiring lock","service":"your-service-name","stack":"Error: Timeout while acquiring lock\n    at Timeout.<anonymous> (/home/rockadmin/rock_server/controllers/GameController.js:855:14)\n    at listOnTimeout (node:internal/timers:573:17)\n    at process.processTimers (node:internal/timers:514:7)","timestamp":"2024-04-28T15:23:07.775Z"}
 {"level":"error","message":"Error getting current game result: Timeout while acquiring lock","service":"your-service-name","stack":"Error: Timeout while acquiring lock\n    at Timeout.<anonymous> (/home/rockadmin/rock_server/controllers/GameController.js:855:14)\n    at listOnTimeout (node:internal/timers:573:17)\n    at process.processTimers (node:internal/timers:514:7)","timestamp":"2024-04-28T15:27:08.367Z"}
 {"level":"error","message":"Error getting current game result: Timeout while acquiring lock","service":"your-service-name","stack":"Error: Timeout while acquiring lock\n    at Timeout.<anonymous> (/home/rockadmin/rock_server/controllers/GameController.js:855:14)\n    at listOnTimeout (node:internal/timers:573:17)\n    at process.processTimers (node:internal/timers:514:7)","timestamp":"2024-04-28T15:31:07.978Z"}
+{"level":"error","message":"Error getting current game result: Timeout while acquiring lock","service":"your-service-name","stack":"Error: Timeout while acquiring lock\n    at Timeout.<anonymous> (/home/rockadmin/rock_server/controllers/GameController.js:855:14)\n    at listOnTimeout (node:internal/timers:573:17)\n    at process.processTimers (node:internal/timers:514:7)","timestamp":"2024-05-01T14:51:07.541Z"}
+{"level":"error","service":"your-service-name","timestamp":"2024-05-01T15:05:14.251Z"}
+{"level":"error","message":"Error getting current game result: Timeout while acquiring lock","service":"your-service-name","stack":"Error: Timeout while acquiring lock\n    at Timeout.<anonymous> (/home/rockadmin/rock_server/controllers/GameController.js:855:14)\n    at listOnTimeout (node:internal/timers:573:17)\n    at process.processTimers (node:internal/timers:514:7)","timestamp":"2024-05-01T15:19:08.724Z"}
+{"level":"error","message":"Error getting current game result: Timeout while acquiring lock","service":"your-service-name","stack":"Error: Timeout while acquiring lock\n    at Timeout.<anonymous> (/home/rockadmin/rock_server/controllers/GameController.js:855:14)\n    at listOnTimeout (node:internal/timers:573:17)\n    at process.processTimers (node:internal/timers:514:7)","timestamp":"2024-05-01T16:07:14.137Z"}
+{"level":"error","service":"your-service-name","timestamp":"2024-05-01T16:43:00.310Z"}
+{"level":"error","service":"your-service-name","timestamp":"2024-05-01T16:43:03.163Z"}
+{"level":"error","service":"your-service-name","timestamp":"2024-05-01T18:09:36.867Z"}
+{"level":"error","service":"your-service-name","timestamp":"2024-05-01T18:09:38.541Z"}
+{"level":"error","service":"your-service-name","timestamp":"2024-05-01T18:09:38.887Z"}
+{"level":"error","service":"your-service-name","timestamp":"2024-05-01T18:09:39.100Z"}
+{"level":"error","service":"your-service-name","timestamp":"2024-05-01T18:09:39.499Z"}
+{"level":"error","service":"your-service-name","timestamp":"2024-05-01T18:09:39.748Z"}
+{"level":"error","service":"your-service-name","timestamp":"2024-05-01T18:09:39.951Z"}
+{"level":"error","service":"your-service-name","timestamp":"2024-05-01T18:09:40.176Z"}
+{"level":"error","service":"your-service-name","timestamp":"2024-05-01T18:09:40.348Z"}
+{"level":"error","service":"your-service-name","timestamp":"2024-05-01T18:09:40.547Z"}
