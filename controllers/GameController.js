@@ -152,6 +152,7 @@ const GameController = {
         return res.status(404).json({ message: "No active games currently." });
       }
       shopId = findshop.id;
+
       // Retrieve the last played game
       const lastPlayedGame = await Game.query()
         .where("status", "done")
@@ -189,8 +190,6 @@ const GameController = {
             gameType: "keno",
             gameNumber: gn + 1,
             shopId: shopId
-            // Add other fields as needed based on your table structure
-            // Example: pickedNumbers, winner, time, status, etc.
           })
           .returning("*");
       }
@@ -214,7 +213,7 @@ const GameController = {
 
       return res.status(200).json(response);
     } catch (error) {
-      console.error("Error retrieving last played game:", error);
+      logger.error("Error retrieving last played keno game:", error);
       return res.status(500).json({ message: "Internal server error." });
     }
   },
@@ -251,8 +250,9 @@ const GameController = {
           .findOne({ id: gameNumber, gameType: 'keno', shopId, status: 'playing' })
           .forUpdate();
         // .findOne({ status: 'playing', gameType: 'keno', shopId })
-        // console.log('game', currentGame.id);
+
         if (!currentGame) {
+          logger.error("current game not found keno for shop: ", shopId);
           release();
           return res.status(404).json({ message: "Game not found." });
         }
@@ -292,7 +292,6 @@ const GameController = {
             gameNumber: newGameNumber,
             shopId
           }).returning("*");
-
 
           let finalgameobject = await finalResult(currentGame, numbers)
           const last10Result = await getLast10Games(shopId);
@@ -462,31 +461,33 @@ const GameController = {
   // Controller
   getLastPlayedGameSpin: async (req, res) => {
     let { shopId } = req.body;
-    try {
-      const timezoneOffset = 0;
-      const reportDate = new Date().toISOString().substr(0, 10);
-      const startOfDay = new Date(`${reportDate}T00:00:00.000Z`);
-      startOfDay.setMinutes(startOfDay.getMinutes() - timezoneOffset);
 
-      const endOfDay = new Date(`${reportDate}T23:59:59.999Z`);
-      endOfDay.setMinutes(endOfDay.getMinutes() - timezoneOffset);
+    const timezoneOffset = 0;
+    const reportDate = new Date().toISOString().substr(0, 10);
+    const startOfDay = new Date(`${reportDate}T00:00:00.000Z`);
+    startOfDay.setMinutes(startOfDay.getMinutes() - timezoneOffset);
+    const endOfDay = new Date(`${reportDate}T23:59:59.999Z`);
+    endOfDay.setMinutes(endOfDay.getMinutes() - timezoneOffset);
+    try {
       if (!shopId) {
         return res.status(404).json({ message: "No active games currently." });
       }
+
       const findshop = await Shop.query().where("username", shopId).first();
       if (!findshop) {
         return res.status(404).json({ message: "No active games currently." });
       }
       shopId = findshop.id;
+
       // Retrieve the last played game
-      const lastPlayedGame = await Game.query()
-        .where("status", "done")
-        .andWhere("gameType", "spin")
-        .andWhere("shopId", shopId)
-        .andWhere("created_at", ">=", startOfDay)
-        .andWhere("created_at", "<=", endOfDay)
-        .orderBy("id", "desc")
-        .first();
+      // const lastPlayedGame = await Game.query()
+      //   .where("status", "done")
+      //   .andWhere("gameType", "spin")
+      //   .andWhere("shopId", shopId)
+      //   .andWhere("created_at", ">=", startOfDay)
+      //   .andWhere("created_at", "<=", endOfDay)
+      //   .orderBy("id", "desc")
+      //   .first().limit(1);
 
       // if (!lastPlayedGame) {
       //   return res.status(404).json({ message: "No games played yet." });
@@ -494,25 +495,26 @@ const GameController = {
 
       // Update the current game with the drawn number
       const currentGame = await Game.query()
-        .where("status", "playing")
+        // .where("status", "playing")
         .andWhere("gameType", "spin")
+        .andWhere("created_at", ">=", startOfDay)
+        .andWhere("created_at", "<=", endOfDay)
         .andWhere("shopId", shopId)
         .orderBy("id", "desc")
+        .limit(1)
         .first();
 
       let openGame;
 
-      if (currentGame) {
+      if (currentGame && currentGame?.status === "playing") {
         openGame = currentGame;
       } else {
-        const gm = lastPlayedGame?.gameNumber || 20000
+        const gm = currentGame?.gameNumber || findshop?.spinStartNumber || 25000;
         openGame = await Game.query()
           .insert({
             gameType: "spin",
             gameNumber: gm + 1,
             shopId: shopId
-            // Add other fields as needed based on your table structure
-            // Example: pickedNumbers, winner, time, status, etc.
           })
           .returning("*");
       }
@@ -530,7 +532,7 @@ const GameController = {
 
       return res.status(200).json(response);
     } catch (error) {
-      console.error("Error retrieving last played game:", error);
+      logger.error("Error retrieving last played spin game:", error);
       return res.status(500).json({ message: "Internal server error." });
     }
   },
@@ -542,108 +544,93 @@ const GameController = {
     // Acquire the mutex to protect the critical section of code
     // const release = await gameMutex.acquire();
     try {
+      if (!shopId || !gameNumber) {
+        return res.status(404).json({ message: "No agent username." });
+      }
+
       const release = await acquireLockWithTimeout(gameMutex, 5000);
-      try {
-        if (!shopId) {
-          return res.status(404).json({ message: "No agent username." });
-        }
-        const findshop = await Shop.query().where("username", shopId).first();
+      if (!release) {
+        logger.error(`Failed to acquire lock. for shop: ${shopId} gameNumber: ${gameNumber}`)
+        return res.status(500).json({ message: "Failed to acquire lock." });
+      }
+
+      await transaction(Game.knex(), async (trx) => {
+        // Check shop existence
+        const findshop = await Shop.query().findOne({ username: shopId });
         if (!findshop) {
+          release();
+          logger.error("Shop not found for result", shopId);
           return res.status(404).json({ message: "No shop found." });
         }
         shopId = findshop.id;
 
+        // Retrieve current game
+        const currentGame = await Game.query()
+          .findOne({ id: gameNumber, gameType: 'spin', shopId, status: 'playing' })
+          .forUpdate();
+
+        if (!currentGame) {
+          logger.error("current game not found spin for shop: ", shopId);
+          release();
+          return res.status(404).json({ message: "No active games currently." });
+        }
+
         let response;
-        await transaction(Game.knex(), async (trx) => {
-          // Update the current game with the drawn number
-          const currentGame = await Game.query()
-            .where("id", gameNumber)
-            .andWhere("shopId", shopId)
-            .andWhere("gameType", "spin")
-            .orderBy("id", "desc")
-            .first();
+        if (!currentGame.pickedNumbers) {
+          // Assume you have a function to draw the number and update the database
+          let drawnNumber = await generateSpinRandomNumbers(gameNumber, findshop.spinRtp, shopId)
+          // console.log('ddraw', drawnNumber);
 
-          if (!currentGame) {
-            return res.status(404).json({ message: "No active games currently." });
-          }
-          // console.log("result:", currentGame);
-          let drawnNumber;
-          if (!currentGame.pickedNumbers) {
-            // Assume you have a function to draw the number and update the database
-            drawnNumber = await generateSpinRandomNumbers(gameNumber, findshop.spinRtp, shopId)
-            // console.log('ddraw', drawnNumber);
+          const winners = determineAllWinners(drawnNumber);
+          // console.log(winners);
+          // Update the pickedNumbers field with the drawn number
+          await currentGame.$query().patch({
+            pickedNumbers: JSON.stringify({ selection: drawnNumber }),
+            status: "done",
+            winner: JSON.stringify(winners),
+          });
 
-            const winners = determineAllWinners(drawnNumber);
-            // console.log(winners);
-            // Update the pickedNumbers field with the drawn number
-            await currentGame.$query().patch({
-              pickedNumbers: JSON.stringify({ selection: drawnNumber }),
-              status: "done",
-              winner: JSON.stringify(winners),
-            });
+          calculateSlipWiningNumbers(gameNumber, drawnNumber, winners);
 
-            calculateSlipWiningNumbers(gameNumber, drawnNumber, winners);
-          } else {
-            drawnNumber = JSON.parse(currentGame?.pickedNumbers)?.selection;
-          }
+          const newGameNumber = currentGame.gameNumber + 1;
+          // Create new game
+          const newGame = await Game.query(trx).insert({
+            gameType: "spin",
+            gameNumber: newGameNumber,
+            shopId
+          }).returning("*");
 
-          release()
+          let finalgameobject = await formatSpinFinalResult(currentGame, drawnNumber)
+          const last100Result = await getLast100Games(shopId);
+          last100Result.unshift(finalgameobject);
 
-          let openGame;
-          // Update the current game with the drawn number
-          const newGame = await Game.query()
-            .where("status", "playing")
-            .andWhere("gameType", "spin")
-            .andWhere("shopId", shopId)
-            .orderBy("id", "desc")
-            .first();
-
-          if (newGame) {
-            openGame = newGame;
-          } else {
-            openGame = await Game.query()
-              .insert({
-                gameType: "spin",
-                gameNumber: currentGame.gameNumber + 1,
-                shopId: shopId
-                // Example: pickedNumbers, winner, time, status, etc.
-              })
-              .returning("*");
-          }
-
-          // Construct the response in the specified format
           response = {
-            openGame: { id: openGame.id, gameNumber: openGame.gameNumber },
+            openGame: { id: newGame.id, gameNumber: newGame.gameNumber },
             result: {
               gameResult: drawnNumber,
               gameNumber: currentGame.gameNumber,
               id: currentGame.id,
             },
             recent: await getLast100Games(shopId),
+            // recent: await getLast100Games(shopId),
           };
-        })
-        // Respond with the updated game data
-        return res.status(200).json(response);
-      } catch (error) {
-        console.error("Error getting current game result:", error);
-        return res.status(500).json({ message: "Internal server error." });
-      } finally {
-        if (release) {
-          release();
         } else {
-          console.log('no release');
+          release();
+          logger.error(`SPIN Game with picked number on game id: ${gameNumber}, shop id: ${shopId}`)
+          return res.status(404).json({ message: "Game not found." });
         }
-      }
+
+        release()
+        return res.status(200).json(response);
+      })
     } catch (error) {
       // Handle timeout error
       if (error instanceof knex.KnexTimeoutError) {
-        logger.error('Failed to acquire lock within the specified timeout');
-        // throw new Error('Failed to acquire lock within the specified timeout');
+        logger.error('Failed to acquire lock within the specified timeout', error);
         return res.status(500).json({ message: "Internal server error." });
       }
       // Handle other errors
-      logger.error(error);
-      // throw error;
+      logger.error('Error drawing spin result', error);
       return res.status(500).json({ message: "Internal server error." });
     }
   },
@@ -846,6 +833,9 @@ const finalResult = async (currentGame, numbers) => {
     "status": "done",
     "results": numbers.map((item) => ({ value: item }))
   }
+}
+const formatSpinFinalResult = async (currentGame, results) => {
+  return { id: currentGame.id, gameNumber: currentGame.gameNumber, status: 'done', gameResult: results };
 }
 
 const acquireLockWithTimeout = async (mutex, timeout) => {
