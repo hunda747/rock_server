@@ -16,6 +16,7 @@ const { generateRandomNumbersKeno } = require("../middleware/kenoResultYaf");
 const Shop = require("../models/shop");
 const logger = require("../logger");
 const { getCurrentDate } = require("./DailyReportController");
+const { stringify } = require("uuid");
 
 const GameController = {
   constructor: () => {
@@ -252,7 +253,7 @@ const GameController = {
         // .findOne({ status: 'playing', gameType: 'keno', shopId })
 
         if (!currentGame) {
-          logger.error("current game not found keno for shop: ", shopId);
+          logger.error(`current game not found keno for shop: ${findShop?.username}`);
           release();
           return res.status(404).json({ message: "Game not found." });
         }
@@ -283,9 +284,23 @@ const GameController = {
             winner: winner
           });
 
-          // Calculate winning numbers
-          calculateWiningNumbers(gameNumber, numbers, winner);
           const newGameNumber = currentGame.gameNumber + 1;
+          await trx.raw(`
+            CREATE TABLE IF NOT EXISTS game_lock (
+              game_number VARCHAR(255) PRIMARY KEY
+            );
+          `);
+
+          const lockAcquired = await trx.raw(`
+            INSERT INTO game_lock (game_number) VALUES ('${getTodayDate() + '_' + currentGame.gameType + '_' + shopId.toString() + '_' + (newGameNumber).toString()}');
+          `);
+
+          if (lockAcquired.length === 0) {
+            // Lock could not be acquired (handle conflict)
+            release();
+            logger.error(`Failed to acquire lock for game: ${gameNumber} in SHop: ${shopId}`);
+            return res.status(409).json({ message: "Conflict detected. Please try again." }); // Or retry logic
+          }
           // Create new game
           const newGame = await Game.query(trx).insert({
             gameType: "keno",
@@ -297,8 +312,8 @@ const GameController = {
           const last10Result = await getLast10Games(shopId);
           last10Result.unshift(finalgameobject);
 
-          // console.log(finalResult);
-          // console.log(last10Result);
+          // Calculate winning numbers
+          calculateWiningNumbers(gameNumber, numbers, winner);
 
           response = {
             openGame: { id: newGame.id, gameNumber: newGame.gameNumber },
@@ -318,7 +333,7 @@ const GameController = {
         return res.status(200).json(response);
       });
     } catch (error) {
-      logger.error("Error getting current game result:", error);
+      logger.error(`Error getting current game result: ${error}`);
       return res.status(500).json({ message: "Internal server error." });
     }
   },
@@ -541,8 +556,6 @@ const GameController = {
   getCurrentGameResultSpin: async (req, res) => {
     let { gameNumber, shopId } = req.body;
 
-    // Acquire the mutex to protect the critical section of code
-    // const release = await gameMutex.acquire();
     try {
       if (!shopId || !gameNumber) {
         return res.status(404).json({ message: "No agent username." });
@@ -567,10 +580,12 @@ const GameController = {
         // Retrieve current game
         const currentGame = await Game.query()
           .findOne({ id: gameNumber, gameType: 'spin', shopId, status: 'playing' })
+          .orderBy("id", "desc")
           .forUpdate();
+        // console.log(currentGame);
 
         if (!currentGame) {
-          logger.error("current game not found spin for shop: ", shopId);
+          logger.error(`current game not found spin for shop: ${shopId}`);
           release();
           return res.status(404).json({ message: "No active games currently." });
         }
@@ -582,7 +597,7 @@ const GameController = {
           // console.log('ddraw', drawnNumber);
 
           const winners = determineAllWinners(drawnNumber);
-          // console.log(winners);
+
           // Update the pickedNumbers field with the drawn number
           await currentGame.$query().patch({
             pickedNumbers: JSON.stringify({ selection: drawnNumber }),
@@ -590,9 +605,22 @@ const GameController = {
             winner: JSON.stringify(winners),
           });
 
-          calculateSlipWiningNumbers(gameNumber, drawnNumber, winners);
-
           const newGameNumber = currentGame.gameNumber + 1;
+          await trx.raw(`
+            CREATE TABLE IF NOT EXISTS game_lock (
+              game_number VARCHAR(255) PRIMARY KEY
+            );
+          `);
+          const lockAcquired = await trx.raw(`
+            INSERT INTO game_lock (game_number) VALUES ('${getTodayDate() + '_' + currentGame.gameType + '_' + shopId.toString() + '_' + (newGameNumber).toString()}');
+          `);
+
+          if (lockAcquired.length === 0) {
+            // Lock could not be acquired (handle conflict)
+            release();
+            logger.error(`Failed to acquire lock for game: ${gameNumber} in SHop: ${shopId}`);
+            return res.status(409).json({ message: "Conflict detected. Please try again." }); // Or retry logic
+          }
           // Create new game
           const newGame = await Game.query(trx).insert({
             gameType: "spin",
@@ -600,9 +628,7 @@ const GameController = {
             shopId
           }).returning("*");
 
-          let finalgameobject = await formatSpinFinalResult(currentGame, drawnNumber)
-          const last100Result = await getLast100Games(shopId);
-          last100Result.unshift(finalgameobject);
+          calculateSlipWiningNumbers(gameNumber, drawnNumber, winners);
 
           response = {
             openGame: { id: newGame.id, gameNumber: newGame.gameNumber },
@@ -837,6 +863,28 @@ const finalResult = async (currentGame, numbers) => {
 const formatSpinFinalResult = async (currentGame, results) => {
   return { id: currentGame.id, gameNumber: currentGame.gameNumber, status: 'done', gameResult: results };
 }
+// const gameLocks = {}; // Object to store locks for each game
+
+// // Function to acquire per-game lock
+// const acquireLockWithTimeout = async (gameNumber) => {
+//   return new Promise((resolve, reject) => {
+//     if (!gameLocks[gameNumber]) {
+//       gameLocks[gameNumber] = new Mutex();
+//     }
+
+//     const timer = setTimeout(() => {
+//       reject(new Error('Timeout while acquiring lock'));
+//     }, 5000); // Timeout value can be adjusted
+
+//     gameLocks[gameNumber].acquire().then((release) => {
+//       clearTimeout(timer);
+//       resolve(release);
+//     }).catch((error) => {
+//       clearTimeout(timer);
+//       reject(error);
+//     });
+//   });
+// };
 
 const acquireLockWithTimeout = async (mutex, timeout) => {
   return new Promise((resolve, reject) => {
@@ -854,6 +902,15 @@ const acquireLockWithTimeout = async (mutex, timeout) => {
     });
   });
 };
+
+const getTodayDate = () => {
+  var currentDate = new Date();
+
+  // Format the date into YYYYMMDD format
+  return currentDate.getFullYear() +
+    ('0' + (currentDate.getMonth() + 1)).slice(-2) +
+    ('0' + currentDate.getDate()).slice(-2);
+}
 
 const generateRandomNumbersWithNoConsq = () => {
   const numbers = [];
