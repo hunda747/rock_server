@@ -248,9 +248,10 @@ const GameController = {
 
         // Retrieve current game
         const currentGame = await Game.query()
-          .findOne({ id: gameNumber, gameType: 'keno', shopId, status: 'playing' })
+          // .findOne({ id: gameNumber, gameType: 'keno', shopId, status: 'playing' })
+          .findOne({ gameType: 'keno', shopId, status: 'playing' })
+          .orderBy("id", "desc")
           .forUpdate();
-        // .findOne({ status: 'playing', gameType: 'keno', shopId })
 
         if (!currentGame) {
           logger.error(`current game not found keno for shop: ${findShop?.username}`);
@@ -561,7 +562,7 @@ const GameController = {
         return res.status(404).json({ message: "No agent username." });
       }
 
-      const release = await acquireLockWithTimeout(gameMutex, 5000);
+      const release = await acquireLockWithTimeout(gameMutex, 3000);
       if (!release) {
         logger.error(`Failed to acquire lock. for shop: ${shopId} gameNumber: ${gameNumber}`)
         return res.status(500).json({ message: "Failed to acquire lock." });
