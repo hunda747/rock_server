@@ -248,9 +248,9 @@ const GameController = {
 
         // Retrieve current game
         const currentGame = await Game.query()
-          // .findOne({ id: gameNumber, gameType: 'keno', shopId, status: 'playing' })
-          .findOne({ gameType: 'keno', shopId, status: 'playing' })
-          .orderBy("id", "desc")
+          .findOne({ id: gameNumber, gameType: 'keno', shopId, status: 'playing' })
+          // .findOne({ gameType: 'keno', shopId, status: 'playing' })
+          // .orderBy("id", "desc")
           .forUpdate();
 
         if (!currentGame) {
@@ -286,11 +286,11 @@ const GameController = {
           });
 
           const newGameNumber = currentGame.gameNumber + 1;
-          await trx.raw(`
-            CREATE TABLE IF NOT EXISTS game_lock (
-              game_number VARCHAR(255) PRIMARY KEY
-            );
-          `);
+          // await trx.raw(`
+          //   CREATE TABLE IF NOT EXISTS game_lock (
+          //     game_number VARCHAR(255) PRIMARY KEY
+          //   );
+          // `);
 
           const lockAcquired = await trx.raw(`
             INSERT INTO game_lock (game_number) VALUES ('${getTodayDate() + '_' + currentGame.gameType + '_' + shopId.toString() + '_' + (newGameNumber).toString()}');
