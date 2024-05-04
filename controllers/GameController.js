@@ -233,10 +233,9 @@ const GameController = {
       const release = await acquireLockWithTimeout(gameMutex, 4000);
       if (!release) {
         logger.error(`Failed to acquire lock. for shop: ${shopId} gameNumber: ${gameNumber}`)
-        return res.status(500).json({ message: "Failed to acquire lock." });
+        return res.status(500).json({ message: "Failed to acquire first time lock." });
       }
       try {
-
         // Start transaction
         await transaction(Game.knex(), async (trx) => {
           // Check shop existence
@@ -370,6 +369,9 @@ const GameController = {
           return res.status(200).json(response);
         });
       } catch (error) {
+        if (release) {
+          release();
+        }
         logger.error(`Error getting current game result: ${error}`);
         return res.status(500).json({ message: "Internal server error." });
       } finally {
@@ -1081,24 +1083,21 @@ const formatSpinFinalResult = async (currentGame, results) => {
 // };
 
 const acquireLockWithTimeout = async (mutex, timeout) => {
-  let release;
-  try {
-    release = await Promise.race([
-      mutex.acquire(),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Timeout while acquiring lock')), timeout)
-      )
-    ]);
-  } catch (error) {
-    // Handle error during lock acquisition
-    if (release) {
-      release();
-    }
-    throw error;
-  }
-  return release;
-};
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      mutex.release();
+      reject(new Error('Timeout while acquiring lock'));
+    }, timeout);
 
+    mutex.acquire().then((release) => {
+      clearTimeout(timer);
+      resolve(release);
+    }).catch((error) => {
+      clearTimeout(timer);
+      reject(error);
+    });
+  });
+};
 
 const getTodayDate = () => {
   var currentDate = new Date();
