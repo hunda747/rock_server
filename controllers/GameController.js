@@ -229,7 +229,7 @@ const GameController = {
       }
 
       // Acquire lock
-      const release = await acquireLockWithTimeout(gameMutex, 4000);
+      const release = await acquireLockWithTimeout(gameMutex, 7000);
       if (!release) {
         logger.error(`Failed to acquire lock. for shop: ${shopId} gameNumber: ${gameNumber}`)
         return res.status(500).json({ message: "Failed to acquire first time lock." });
@@ -731,7 +731,7 @@ const GameController = {
         return res.status(404).json({ message: "No agent username." });
       }
 
-      const release = await acquireLockWithTimeout(gameMutex, 3000);
+      const release = await acquireLockWithTimeout(gameMutex, 6000);
       if (!release) {
         logger.error(`Failed to acquire lock. for shop: ${shopId} gameNumber: ${gameNumber}`)
         return res.status(500).json({ message: "Failed to acquire lock." });
