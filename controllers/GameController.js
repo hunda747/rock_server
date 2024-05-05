@@ -228,7 +228,6 @@ const GameController = {
         return res.status(400).json({ message: "Invalid input data." });
       }
 
-
       // Acquire lock
       const release = await acquireLockWithTimeout(gameMutex, 4000);
       if (!release) {
@@ -286,14 +285,14 @@ const GameController = {
             });
 
             const newGameNumber = currentGame.gameNumber + 1;
-            await trx.raw(`
-              CREATE TABLE IF NOT EXISTS game_lock (
-                game_number VARCHAR(255) PRIMARY KEY
-              );
-            `);
+            // await trx.raw(`
+            //   CREATE TABLE IF NOT EXISTS game_lock_keno (
+            //     game_number VARCHAR(255) PRIMARY KEY
+            //   );
+            // `);
 
             const lockAcquired = await trx.raw(`
-              INSERT INTO game_lock (game_number) VALUES ('${getTodayDate() + '_' + currentGame.gameType + '_' + shopId.toString() + '_' + (newGameNumber).toString()}');
+              INSERT INTO game_lock_keno (game_number) VALUES ('${getTodayDate() + '_' + currentGame.gameType + '_' + shopId.toString() + '_' + (newGameNumber).toString()}');
             `);
 
             if (lockAcquired.length === 0) {
@@ -344,15 +343,18 @@ const GameController = {
             if (lastGame && lastGame?.status === "playing") {
               openGame = lastGame;
             } else {
-              const gn = lastGame?.gameNumber || findShop?.kenoStartNumber || 8100;
-              checkRepeatNumber(res, lastGame, shopId, (gn + 1))
-              openGame = await Game.query()
-                .insert({
-                  gameType: "keno",
-                  gameNumber: gn + 1,
-                  shopId: shopId
-                })
-                .returning("*");
+              // const gn = lastGame?.gameNumber || findShop?.kenoStartNumber || 8100;
+              // checkRepeatNumber(res, lastGame, shopId, (gn + 1))
+              // openGame = await Game.query()
+              //   .insert({
+              //     gameType: "keno",
+              //     gameNumber: gn + 1,
+              //     shopId: shopId
+              //   })
+              //   .returning("*");
+              release();
+              logger.error(`Old Game with no picked number on game id: ${gameNumber}, shop id: ${findShop.username}`)
+              return res.status(404).json({ message: "Game not found." });
             }
 
             response = {
@@ -774,13 +776,13 @@ const GameController = {
           });
 
           const newGameNumber = currentGame.gameNumber + 1;
-          // await trx.raw(`
-          //   CREATE TABLE IF NOT EXISTS game_lock (
-          //     game_number VARCHAR(255) PRIMARY KEY
-          //   );
-          // `);
+          await trx.raw(`
+            CREATE TABLE IF NOT EXISTS game_lock_spin (
+              game_number VARCHAR(255) PRIMARY KEY
+            );
+          `);
           const lockAcquired = await trx.raw(`
-            INSERT INTO game_lock (game_number) VALUES ('${getTodayDate() + '_' + currentGame.gameType + '_' + shopId.toString() + '_' + (newGameNumber).toString()}');
+            INSERT INTO game_lock_spin (game_number) VALUES ('${getTodayDate() + '_' + currentGame.gameType + '_' + shopId.toString() + '_' + (newGameNumber).toString()}');
           `);
 
           if (lockAcquired.length === 0) {
@@ -1035,7 +1037,7 @@ function getStartAndEndOfDay(timezoneOffset = 0) {
 
 const checkRepeatNumber = async (res, currentGame, shopId, newGameNumber) => {
   const lockAcquired = await trx.raw(`
-    INSERT INTO game_lock (game_number) VALUES ('${getTodayDate() + '_' + currentGame.gameType + '_' + shopId.toString() + '_' + (newGameNumber).toString()}');
+    INSERT INTO game_lock_keno (game_number) VALUES ('${getTodayDate() + '_' + currentGame.gameType + '_' + shopId.toString() + '_' + (newGameNumber).toString()}');
   `);
 
   if (lockAcquired.length === 0) {
