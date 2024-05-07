@@ -18,6 +18,9 @@ const logger = require("../logger");
 const { getCurrentDate } = require("./DailyReportController");
 const { stringify } = require("uuid");
 
+const KENOLOCK = 'game_lock_keno'
+const SPINLOCK = 'game_lock_spin'
+
 const GameController = {
   constructor: () => {
     this.generateRandomNumbers = this.generateRandomNumbers.bind(this);
@@ -136,14 +139,15 @@ const GameController = {
 
   // Controller
   getLastPlayedGame: async (req, res) => {
-    const timezoneOffset = 0;
-    const reportDate = new Date().toISOString().substr(0, 10);
-    const startOfDay = new Date(`${reportDate}T00:00:00.000Z`);
-    startOfDay.setMinutes(startOfDay.getMinutes() - timezoneOffset);
-    const endOfDay = new Date(`${reportDate}T23:59:59.999Z`);
-    endOfDay.setMinutes(endOfDay.getMinutes() - timezoneOffset);
+    const { startOfDay, endOfDay } = getStartAndEndOfDay(0);
 
     let { shopId } = req.body;
+    // Acquire lock
+    const release = await acquireLockWithTimeout(gameMutex, 8000);
+    if (!release) {
+      logger.error(`Failed to acquire lock KENO OPEN. for shop: ${shopId} gameNumber: ${gameNumber}`)
+      return res.status(500).json({ message: "Failed to acquire first time OPEN lock." });
+    }
     try {
       if (!shopId) {
         return res.status(404).json({ message: "No active games currently." });
@@ -165,10 +169,6 @@ const GameController = {
         .limit(1)
         .first();
 
-      // if (!lastPlayedGame) {
-      //   return res.status(404).json({ message: "No games played yet." });
-      // }
-
       // Update the current game with the drawn number
       const currentGame = await Game.query()
         // .where("status", "playing")
@@ -185,19 +185,21 @@ const GameController = {
       if (currentGame && currentGame?.status === "playing") {
         openGame = currentGame;
       } else {
-        const gn = currentGame?.gameNumber || findshop?.kenoStartNumber || 8100;
-        openGame = await Game.query()
-          .insert({
-            gameType: "keno",
-            gameNumber: gn + 1,
-            shopId: shopId
-          })
-          .returning("*");
+        // Call this function to start a transaction
+        await transaction(Game.knex(), async (trx) => {
+          const gn = currentGame?.gameNumber || findshop?.kenoStartNumber || 8100;
+          if (currentGame)
+            await checkRepeatNumber(trx, 'keno', shopId, (gn + 1), KENOLOCK);
+          openGame = await Game.query()
+            .insert({
+              gameType: "keno",
+              gameNumber: gn + 1,
+              shopId: shopId
+            })
+            .returning("*");
+        })
       }
-      // Retrieve the open game (next game)
-      // console.log("json", lastPlayedGame.pickedNumbers);
-      // console.log("json", lastPlayedGame.pickedNumbers.selection);
-      // Construct the response in the specified format
+      release();
       const response = {
         openGame: openGame
           ? { id: openGame.id, gameNumber: openGame.gameNumber }
@@ -214,6 +216,9 @@ const GameController = {
 
       return res.status(200).json(response);
     } catch (error) {
+      if (release) {
+        release();
+      }
       logger.error("Error retrieving last played keno game:", error);
       return res.status(500).json({ message: "Internal server error." });
     }
@@ -229,7 +234,7 @@ const GameController = {
       }
 
       // Acquire lock
-      const release = await acquireLockWithTimeout(gameMutex, 8000);
+      const release = await acquireLockWithTimeout(gameMutex, 5000);
       if (!release) {
         logger.error(`Failed to acquire lock KENO. for shop: ${shopId} gameNumber: ${gameNumber}`)
         return res.status(500).json({ message: "Failed to acquire first time lock." });
@@ -295,7 +300,7 @@ const GameController = {
               INSERT INTO game_lock_keno (game_number) VALUES ('${getTodayDate() + '_' + currentGame.gameType + '_' + shopId.toString() + '_' + (newGameNumber).toString()}');
             `).catch(error => {
               return []; // Return an empty array to indicate failure
-            });;
+            });
 
             if (lockAcquired.length === 0) {
               // Lock could not be acquired (handle conflict)
@@ -386,7 +391,7 @@ const GameController = {
       }
     } catch (error) {
       logger.error(`Error getting current game result: ${error}`);
-      return res.status(500).json({ message: "Internal server error." });
+      return res.status(500).json({ message: error?.message || "Internal server error." });
     }
   },
 
@@ -648,13 +653,13 @@ const GameController = {
   // Controller
   getLastPlayedGameSpin: async (req, res) => {
     let { shopId } = req.body;
+    const { startOfDay, endOfDay } = getStartAndEndOfDay(0);
 
-    const timezoneOffset = 0;
-    const reportDate = new Date().toISOString().substr(0, 10);
-    const startOfDay = new Date(`${reportDate}T00:00:00.000Z`);
-    startOfDay.setMinutes(startOfDay.getMinutes() - timezoneOffset);
-    const endOfDay = new Date(`${reportDate}T23:59:59.999Z`);
-    endOfDay.setMinutes(endOfDay.getMinutes() - timezoneOffset);
+    const release = await acquireLockWithTimeout(gameMutex, 4000);
+    if (!release) {
+      logger.error(`Failed to acquire lock KENO OPEN. for shop: ${shopId} gameNumber: ${gameNumber}`)
+      return res.status(500).json({ message: "Failed to acquire first time OPEN lock." });
+    }
     try {
       if (!shopId) {
         return res.status(404).json({ message: "No active games currently." });
@@ -665,21 +670,6 @@ const GameController = {
         return res.status(404).json({ message: "No active games currently." });
       }
       shopId = findshop.id;
-
-      // Retrieve the last played game
-      // const lastPlayedGame = await Game.query()
-      //   .where("status", "done")
-      //   .andWhere("gameType", "spin")
-      //   .andWhere("shopId", shopId)
-      //   .andWhere("created_at", ">=", startOfDay)
-      //   .andWhere("created_at", "<=", endOfDay)
-      //   .orderBy("id", "desc")
-      //   .first().limit(1);
-
-      // if (!lastPlayedGame) {
-      //   return res.status(404).json({ message: "No games played yet." });
-      // }
-
       // Update the current game with the drawn number
       const currentGame = await Game.query()
         // .where("status", "playing")
@@ -696,15 +686,20 @@ const GameController = {
       if (currentGame && currentGame?.status === "playing") {
         openGame = currentGame;
       } else {
-        const gm = currentGame?.gameNumber || findshop?.spinStartNumber || 25000;
-        openGame = await Game.query()
-          .insert({
-            gameType: "spin",
-            gameNumber: gm + 1,
-            shopId: shopId
-          })
-          .returning("*");
+        await transaction(Game.knex(), async (trx) => {
+          const gm = currentGame?.gameNumber || findshop?.spinStartNumber || 25000;
+          if (currentGame)
+            await checkRepeatNumber(trx, 'spin', shopId, (gm + 1), SPINLOCK);
+          openGame = await Game.query()
+            .insert({
+              gameType: "spin",
+              gameNumber: gm + 1,
+              shopId: shopId
+            })
+            .returning("*");
+        })
       }
+      release();
       // Retrieve the open game (next game)
       // console.log("json", lastPlayedGame.pickedNumbers);
       // console.log("json", lastPlayedGame.pickedNumbers.selection);
@@ -719,6 +714,9 @@ const GameController = {
 
       return res.status(200).json(response);
     } catch (error) {
+      if (release) {
+        release();
+      }
       logger.error("Error retrieving last played spin game:", error);
       return res.status(500).json({ message: "Internal server error." });
     }
@@ -1073,18 +1071,20 @@ function getStartAndEndOfDay(timezoneOffset = 0) {
   };
 }
 
-const checkRepeatNumber = async (res, currentGame, shopId, newGameNumber) => {
+const checkRepeatNumber = async (trx, gameType, shopId, newGameNumber, dblock) => {
+  await trx.raw(`CREATE TABLE IF NOT EXISTS ${dblock} (game_number VARCHAR(255) PRIMARY KEY); `);
   const lockAcquired = await trx.raw(`
-    INSERT INTO game_lock_keno (game_number) VALUES ('${getTodayDate() + '_' + currentGame.gameType + '_' + shopId.toString() + '_' + (newGameNumber).toString()}');
-  `);
+    INSERT INTO ${dblock} (game_number) VALUES ('${getTodayDate() + '_' + gameType + '_' + shopId.toString() + '_' + (newGameNumber).toString()}');
+  `).catch(error => {
+    console.log(error);
+    return []; // Return an empty array to indicate failure
+  });
 
   if (lockAcquired.length === 0) {
-    // Lock could not be acquired (handle conflict)
-    release();
-    logger.error(`Failed to acquire lock for game: ${newGameNumber} in SHop: ${shopId}`);
-    return res.status(409).json({ message: "Conflict detected. Please try again." }); // Or retry logic
+    logger.error(`${dblock} Failed to acquire lock for game: ${newGameNumber} in SHop: ${shopId}`);
+    throw new Error("Conflict detected. Please try again."); // Throw an error to stop execution
   } else {
-    return false;
+    return true;
   }
 }
 
