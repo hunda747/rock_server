@@ -225,7 +225,7 @@ const GameController = {
       }
 
       // Acquire lock
-      const release = await acquireLockWithTimeout(gameMutex, 5000);
+      const release = await acquireLockWithTimeout(gameMutex, 8000);
       if (!release) {
         logger.error(`Failed to acquire lock KENO. for shop: ${shopId} gameNumber: ${gameNumber}`)
         return res.status(500).json({ message: "Failed to acquire first time lock." });
