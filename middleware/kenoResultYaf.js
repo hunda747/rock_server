@@ -146,7 +146,7 @@ function numbersWithPerc(users, expectedPercentage) {
       calculatedNumbers = numbers
       return calculatedNumbers
     }
-    if (counter >= 100000) {// check if 100k loops have passed and increase thresold
+    if (counter >= 80000) {// check if 100k loops have passed and increase thresold
       if ((threshold + 1) <= 100) {
         threshold = threshold + 1
       } else {

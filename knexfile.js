@@ -21,6 +21,12 @@ module.exports = {
   seeds: {
     directory: './seeds',
   },
+  // pool: {
+  //   min: 10,
+  //   max: 50,
+  //   acquireTimeoutMillis: 10000,  // 30 seconds to acquire a connection
+  //   idleTimeoutMillis: 10000  // 30 seconds before an idle connection is closed
+  // }
 };
 
 // module.exports = {
