@@ -95,72 +95,109 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId) => {
 
 function numbersWithPerc(users, expectedPercentage) {
   if (users.length < 1) {
-    console.log("users length can't be less than 1")
-    return
+    console.log("users length can't be less than 1");
+    return;
   }
-  let counter = 1
-  let totalLoop = 0
-  let found = false
-  let calculatedNumbers = []
-  const totalPool = calculateTotalPoints(users)
-  let percentage = expectedPercentage
-  let threshold = 5
 
-  while (!found) {
-    counter++
-    const numbers = generateRandomNumbers()
-    let totalPoints = 0
+  const totalPool = calculateTotalPoints(users);
+  let counter = 0;
+  let totalLoop = 0;
+  let threshold = 5;
+  let percentage = expectedPercentage;
+  const memo = {};
+
+  let winTicketThreshold = Math.floor(users.length * 0.2);
+  while (totalLoop <= 500000) {
+    counter++;
+    const numbers = generateRandomNumbers();
+    const numbersKey = numbers.join(',');
+
+    if (memo[numbersKey]) {
+      totalLoop++;
+      continue;
+    }
+
+    let totalPoints = 0;
+    let winningTickets = 0;
+
     users.forEach(user => {
       if (typeof user?.selectedNumbers[0] === "string") {
-        let winner = findwinner(numbers);
-        // console.log(winner);
+        const winner = findwinner(numbers);
         if (winner === "evens" && user?.selectedNumbers[0] === winner) {
+          winningTickets++;
           totalPoints += user.coinsPlaced * 4;
         } else if (user?.selectedNumbers[0] === winner) {
+          winningTickets++;
           totalPoints += user.coinsPlaced * 2;
         }
       } else {
-        const matchNumbers = countMatchingNumbers(user, numbers)
-        if (matchNumbers == 0) {
-          return
+        const matchNumbers = countMatchingNumbers(user, numbers);
+        if (matchNumbers > 0) {
+          const oddObj = oddsTable[user.oddType];
+          const odd = oddObj[user.selectedNumbers.length][matchNumbers - 1][matchNumbers];
+          totalPoints += odd * user.coinsPlaced;
+          if (odd && odd > 0) {
+            winningTickets++;
+          }
         }
-        // console.log(user);
-        let oddObj = (oddsTable[user.oddType]);
-        // console.log(user,kiron[user.selectedNumbers.length],matchNumbers)
-        const odd = oddObj[user.selectedNumbers.length][matchNumbers - 1][matchNumbers]
-        const totalUserPoints = odd * user.coinsPlaced
-        totalPoints += totalUserPoints
       }
-    })
-    const isRange = isProfitWithinRange(totalPool, totalPoints, percentage, threshold)
+    });
 
-    if (isRange) {
-      // console.log("count is", counter)
-      // console.log("---------------------------------------------------------");
-      // console.log("Total deposit:", totalPool);
-      // console.log("Total profit", totalPool - totalPoints);
-      // console.log("expected profit", percentage, "%")
-      logger.info("actual profit", ((totalPool - totalPoints) / totalPool) * 100, "%")
-      console.log("actual profit", ((totalPool - totalPoints) / totalPool) * 100, "%")
-      // console.log(numbers)
-      calculatedNumbers = numbers
-      return calculatedNumbers
+    const isRange = isProfitWithinRange(totalPool, totalPoints, percentage, threshold);
+
+    if (counter <= 100000) {
+      if (isRange && checkWinTicketThreshold(counter)) {
+        console.log('winning', winningTickets);
+        console.log('winning', counter);
+        console.log("actual profit", ((totalPool - totalPoints) / totalPool) * 100, "%");
+        calculatedNumbers = numbers;
+        return calculatedNumbers;
+      }
+    } else {
+      if (isRange) {
+        console.log('winning', winningTickets);
+        console.log('winning', counter);
+        console.log("actual profit", ((totalPool - totalPoints) / totalPool) * 100, "%");
+        calculatedNumbers = numbers;
+        return calculatedNumbers;
+      }
     }
-    if (counter >= 80000) {// check if 100k loops have passed and increase thresold
-      if ((threshold + 1) <= 100) {
-        threshold = threshold + 1
+
+    function checkWinTicketThreshold(counter) {
+      if (counter <= 50000) {
+        winTicketThreshold = Math.floor(users.length * 0.2);
+      } else if (counter <= 60000) {
+        winTicketThreshold = Math.floor(users.length * 0.3);
+      } else if (counter <= 70000) {
+        winTicketThreshold = Math.floor(users.length * 0.4);
+      } else if (counter <= 80000) {
+        winTicketThreshold = Math.floor(users.length * 0.5);
       } else {
-        percentage = 0
-        // threshold = 0
+        return false;
+      }
+      return winningTickets <= winTicketThreshold;
+    }
+
+    // if (isRange) {
+    //   console.log("actual profit", ((totalPool - totalPoints) / totalPool) * 100, "%");
+    //   return numbers;
+    // }
+
+    memo[numbersKey] = totalPoints;
+
+    if (counter >= 100000) {
+      if (threshold < 100) {
+        threshold++;
+      } else {
+        percentage = 0;
       }
     }
-    totalLoop++
-    if (totalLoop > 800000) {
-      break
-    }
+    totalLoop++;
   }
-}
 
+  logger.error("Loop exited without finding a result");
+  return null; // Add a return statement to indicate no result found
+}
 function generateRandomNumbers() {
   let numbers = [];
   while (numbers.length < 20) {
