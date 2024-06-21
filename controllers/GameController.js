@@ -15,7 +15,7 @@ const { generateRandomNumbersKeno } = require("../middleware/kenoResultYaf");
 // const { generateRandomNumbersKeno } = require("../middleware/kenoResult");
 const Shop = require("../models/shop");
 const logger = require("../logger");
-const { getCurrentDate } = require("./DailyReportController");
+const { getCurrentDate, generateDailyReport } = require("./DailyReportController");
 const { stringify } = require("uuid");
 const { addReportJob } = require("../util/queue");
 
@@ -850,7 +850,7 @@ const GameController = {
         });
         // console.log('keno', currentGame);
 
-        calculateWiningNumbers(currentGame.id, numbers, winner);
+        calculateWiningNumbers(currentGame.id, numbers, winner, shop.id);
       } else {
         console.log('No game');
       }
@@ -1222,8 +1222,7 @@ const calculateWiningNumbers = async (gameNumber, winningNumbers, winner, shopId
     console.log("total win:", ticketWin);
   }
 
-  await addReportJob(shopId, getCurrentDate());
-
+  addReportJob(shopId, getCurrentDate());
   // calculateCashierWinnings(gameNumber, tickets);
 };
 
