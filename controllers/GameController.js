@@ -15,9 +15,10 @@ const { generateRandomNumbersKeno } = require("../middleware/kenoResultYaf");
 // const { generateRandomNumbersKeno } = require("../middleware/kenoResult");
 const Shop = require("../models/shop");
 const logger = require("../logger");
-const { getCurrentDate } = require("./DailyReportController");
+const { getCurrentDate, generateDailyReport } = require("./DailyReportController");
 const { stringify } = require("uuid");
 const { acquireLockWithTimeoutRedis, releaseLock } = require("../util/common");
+const { addReportJob } = require("../util/queue");
 
 const KENOLOCK = 'game_lock_keno'
 const SPINLOCK = 'game_lock_spin'
@@ -310,7 +311,7 @@ const GameController = {
               lastGame: currentGame.gameNumber,
               recent: last10Result
             };
-            calculateWiningNumbers(gameNumber, numbers, winner);
+            calculateWiningNumbers(gameNumber, numbers, winner, shopId);
           } else {
             let drawnNumber = JSON.parse(currentGame?.pickedNumbers)?.selection;
 
@@ -594,7 +595,7 @@ const GameController = {
         });
         // console.log('keno', currentGame);
 
-        calculateWiningNumbers(currentGame.id, numbers, winner);
+        calculateWiningNumbers(currentGame.id, numbers, winner, shop.id);
       } else {
         console.log('No game');
       }
@@ -891,7 +892,7 @@ const calculateCashierWinnings = async (gameNumber, tickets) => {
   }
 };
 
-const calculateWiningNumbers = async (gameNumber, winningNumbers, winner) => {
+const calculateWiningNumbers = async (gameNumber, winningNumbers, winner, shopId) => {
   // const { gameNumber } = req.params;
   // let winningNumbers = [25, 62, 47, 8, 27, 36, 35, 10, 20, 30];
   // console.log(winner);
@@ -945,6 +946,7 @@ const calculateWiningNumbers = async (gameNumber, winningNumbers, winner) => {
     console.log("total win:", ticketWin);
   }
 
+  addReportJob(shopId, getCurrentDate());
   // calculateCashierWinnings(gameNumber, tickets);
 };
 
