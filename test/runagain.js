@@ -1,11 +1,11 @@
-const { acquireLockWithTimeout } = require("../middleware/lockaccuire");
+const { acquireLockWithTimeout } = require("../utils/lockaccuire");
 const Game = require("../models/game");
 const Ticket = require("../models/slip");
 const Shop = require("../models/shop");
 const { Mutex } = require('async-mutex');
 const gameMutex = new Mutex();
 const { transaction } = require('objection');
-const { calculateWiningNumbers } = require("../middleware/ticketWinnings");
+const { calculateWiningNumbers } = require("../utils/resultFunction");
 const { generateRandomNumbersKeno } = require("../middleware/kenoResultYaf");
 const { generateDailyReport, generateDailyReportForShopTest } = require("../controllers/DailyReportController");
 const { log } = require("winston");
@@ -56,13 +56,6 @@ const checkLotteryResults = async (req, res) => {
                 try {
                   // console.log('------------------saved state---------------------');
                   // console.log(saveState);
-                  if (saveState) {
-                    const newGame = await Game.query().findById(game.id).patch({
-                      roundCount: saveState.roundCount,
-                      minusCommissionRound: saveState.minusCommissionRound,
-                      carryOverAdjustment: saveState.carryOverAdjustment,
-                    });
-                  }
                   const tickets = await Ticket.query()
                     .where("gameId", game.id);
                   // console.log('game', game.id);
@@ -70,25 +63,10 @@ const checkLotteryResults = async (req, res) => {
                     continue;
                   }
                   const findShop = await Shop.query().findById(shopId);
-                  const state = {
-                    cycleLength: CYCLELENGTH,
-                    initialCommissionRate: INITIALCOMMISSIONRATE / 100,
-                    minimumCommission: MINIMUMCOMMISSION / 100,
-                    totalBets: 0,
-                    totalCommissions: 0,
-                    roundCount: saveState?.roundCount || game.roundCount,
-                    minusCommissionRound: saveState?.minimumCommission || game.minusCommissionRound,
-                    carryOverAdjustment: saveState?.carryOverAdjustment || game.carryOverAdjustment,
-                    isCycleExtended: game.isCycleExtended || false,
-                    originalCycleLength: game.originalCycleLength || CYCLELENGTH,
-                    expectedRtp: 0.2
-                    // expectedRtp: findShop.rtp / 100 || 0.2
-                  };
                   console.log('------------------------------------------');
                   console.log('tuc', game.gameNumber, tickets.length);
-                  const { numbers, updatedState } = await generateRandomNumbersKeno(game.id, 15, game.shopId, state, reportDate);
+                  const { numbers, updatedState } = await generateRandomNumbersKeno(game.id, 15, game.shopId);
 
-                  saveState = updatedState;
                   // console.log(numbers);
                   let headsCount = 0;
                   let tailsCount = 0;
