@@ -54,15 +54,15 @@ const checkLotteryResults = async (req, res) => {
               let saveState;
               for (const game of activeGames) {
                 try {
-                  // console.log('------------------saved state---------------------');
+                  console.log('------------------saved state---------------------');
                   // console.log(saveState);
                   const tickets = await Ticket.query()
                     .where("gameId", game.id);
-                  // console.log('game', game.id);
+                  console.log('game', game.id, tickets.length);
                   if (!tickets.length) {
                     continue;
                   }
-                  const findShop = await Shop.query().findById(shopId);
+                  // const findShop = await Shop.query().findById(shopId);
                   console.log('------------------------------------------');
                   console.log('tuc', game.gameNumber, tickets.length);
                   const { numbers, updatedState } = await generateRandomNumbersKeno(game.id, 15, game.shopId);
@@ -105,7 +105,9 @@ const checkLotteryResults = async (req, res) => {
             await run();
 
             release();
+            console.log("bofore");
             const report = await generateDailyReportForShopTest(reportDate, shopId);
+            console.log("after");
             console.log(report);
             report.count = i + 1;
             report.date = reportDate;

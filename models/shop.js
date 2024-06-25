@@ -5,10 +5,11 @@ class Shop extends Model {
   static get tableName() {
     return 'shops';
   }
-  
+
   static get relationMappings() {
     const Cashier = require('./cashier');
     const ShopOwner = require('./ShopOwner');
+    const Slip = require('./slip');
     return {
       cashiers: {
         modelClass: Cashier,
@@ -24,6 +25,14 @@ class Shop extends Model {
         join: {
           from: 'shops.shopOwnerId',
           to: 'shop_owners.id',
+        },
+      },
+      slips: {
+        modelClass: Slip,
+        relation: Model.BelongsToOneRelation,
+        join: {
+          from: 'shops.shopOwnerId',
+          to: 'slips.id',
         },
       },
     };
