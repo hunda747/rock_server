@@ -1,84 +1,4 @@
-const { getTodayShopReport } = require("../controllers/DailyReportController");
-const Ticket = require("../models/slip");
-const crypto = require("crypto");
-const logger = require('../logger');
-const { log } = require("winston");
 const oddsTable = require("../odd/kiron");
-
-const generateRandomNumbersKeno = async (gameNumber, rtp, shopId) => {
-  const tickets = await Ticket.query()
-    .where("gameId", gameNumber)
-    .whereNot("status", "canceled");
-
-  // console.log(tickets)
-  if (!tickets.length) {
-    const drawnnumber = [];
-
-    while (drawnnumber.length < 20) {
-      const randomNum = Math.floor(Math.random() * 80) + 1;
-
-      // Ensure the number is not already in the array
-      if (!drawnnumber.includes(randomNum)) {
-        drawnnumber.push(randomNum);
-      }
-    }
-    return drawnnumber;
-  }
-
-  const picks = [];
-  // Iterate through each ticket
-  for (const ticket of tickets) {
-    const ticketPicks = JSON.parse(ticket.numberPick);
-
-    for (const pick of ticketPicks) {
-      let newpick = {};
-      newpick.coinsPlaced = parseInt(pick.stake);
-      newpick.selectedNumbers = pick.selection;
-      newpick.oddType = ticket.oddType;
-      picks.push(newpick);
-    }
-  }
-
-  // console.log('currenration', currentRatio);
-  // console.log('rtp', rtp);
-  // console.log("picks", picks);
-  if (!picks.length) {
-    const drawnnumber = [];
-
-    while (drawnnumber.length < 20) {
-      const randomNum = Math.floor(Math.random() * 80) + 1;
-
-      // Ensure the number is not already in the array
-      if (!drawnnumber.includes(randomNum)) {
-        drawnnumber.push(randomNum);
-      }
-    }
-    return drawnnumber;
-  }
-
-  const scalingFactor = rtp / 100;
-
-  const startTime = performance.now();
-  let main = numbersWithPerc(picks, rtp);
-
-  const endTime = performance.now();
-  const elapsedTime = endTime - startTime;
-  // logger.info(`*************************************************`)
-  logger.info(`Total time elapsed: ${elapsedTime} milliseconds`);
-  // console.log(main);
-  // const drawnnumber = [];
-
-  // while (drawnnumber.length < 20) {
-  //   const randomNum = Math.floor(Math.random() * 80) + 1;
-
-  //   // Ensure the number is not already in the array
-  //   if (!drawnnumber.includes(randomNum)) {
-  //     drawnnumber.push(randomNum);
-  //   }
-  // }
-  // console.log('send result!');
-  return main;
-};
 
 function numbersWithPerc(users, expectedPercentage) {
   if (users.length < 1) {
@@ -247,4 +167,45 @@ const findwinner = (numbers) => {
   return headsCount > tailsCount ? "heads" : tailsCount > headsCount ? "tails" : "evens";
 }
 
-module.exports = { generateRandomNumbersKeno };
+const users = [
+  {
+    selectedNumbers: [3, 15],
+    coinsPlaced: 10,
+    oddType: 'kiron'
+  },
+  {
+    selectedNumbers: [7, 22, 35, 27],
+    coinsPlaced: 5,
+    oddType: 'kiron'
+  },
+  {
+    selectedNumbers: [7],
+    coinsPlaced: 5,
+    oddType: 'kiron'
+  },
+  {
+    selectedNumbers: [10, 11],
+    coinsPlaced: 5,
+    oddType: 'kiron'
+  },
+  {
+    selectedNumbers: [30, 40, 50, 60],
+    coinsPlaced: 5,
+    oddType: 'kiron'
+  },
+  {
+    selectedNumbers: ['evens'],
+    coinsPlaced: 20,
+    oddType: 'kiron'
+  },
+  {
+    selectedNumbers: [8, 19, 29],
+    coinsPlaced: 15,
+    oddType: 'kiron'
+  }
+];
+
+for (let x = 0; x <= 100; x = x + 10) {
+  // for (let x = 0; x >= -100; x = x - 10) {
+  numbersWithPerc(users, x);
+}
