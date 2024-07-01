@@ -12,3 +12,6 @@ error.log
 *.sql
 .log
 *.log
+
+*.key
+*.crt
