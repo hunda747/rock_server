@@ -28,11 +28,11 @@ class Shop extends Model {
         },
       },
       slips: {
+        relation: Model.HasManyRelation,
         modelClass: Slip,
-        relation: Model.BelongsToOneRelation,
         join: {
-          from: 'shops.shopOwnerId',
-          to: 'slips.id',
+          from: 'shops.id',
+          to: 'slips.shopId',
         },
       },
     };

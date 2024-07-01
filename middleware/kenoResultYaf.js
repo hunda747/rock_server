@@ -1,11 +1,13 @@
-const { getTodayShopReport } = require("../controllers/DailyReportController");
+const { getTodayShopReport, getCurrentDate } = require("../controllers/DailyReportController");
 const Ticket = require("../models/slip");
 const crypto = require("crypto");
 const logger = require('../logger');
 const { log } = require("winston");
 const oddsTable = require("../odd/kiron");
+const fs = require('fs');
+const path = require('path');
 
-const generateRandomNumbersKeno = async (gameNumber, rtp, shopId) => {
+const generateRandomNumbersKeno = async (gameNumber, rtp, shopId, date) => {
   const tickets = await Ticket.query()
     .where("gameId", gameNumber)
     .whereNot("status", "canceled");
@@ -39,9 +41,6 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId) => {
     }
   }
 
-  // console.log('currenration', currentRatio);
-  // console.log('rtp', rtp);
-  // console.log("picks", picks);
   if (!picks.length) {
     const drawnnumber = [];
 
@@ -56,10 +55,17 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId) => {
     return drawnnumber;
   }
 
+  const currentData = await getTodayShopReport(date || getCurrentDate(), shopId, 'keno');
+  // const currentRatio = parseInt(currentData.stake) ? ((parseInt(currentData.ggr) / parseInt(currentData.stake)) * 100).toFixed(2) : 0
+  console.log("currentData", currentData);
+  const totalPool = calculateTotalPoints(picks);
+  console.log("RTP", rtp);
   const scalingFactor = rtp / 100;
+  const refactoredCommision = calculateCommission(currentData.stake, currentData.ggr, scalingFactor, totalPool);
+  console.log("curr refactoredCommision", refactoredCommision);
 
   const startTime = performance.now();
-  let main = numbersWithPerc(picks, rtp);
+  let main = numbersWithPerc(picks, (refactoredCommision * 100) || rtp, totalPool);
 
   const endTime = performance.now();
   const elapsedTime = endTime - startTime;
@@ -80,13 +86,21 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId) => {
   return main;
 };
 
-function numbersWithPerc(users, expectedPercentage) {
+
+function calculateCommission(totalBet, totalCommission, desiredCommissionRate, active) {
+  let desireCommission = (totalBet + active) * desiredCommissionRate;
+  let commisionDiffrent = desireCommission - totalCommission;
+
+  let commision = (commisionDiffrent / active).toFixed(2);
+  return Math.min(commision, 1)
+}
+
+function numbersWithPerc(users, expectedPercentage, totalPool) {
   if (users.length < 1) {
     console.log("users length can't be less than 1");
     return;
   }
 
-  const totalPool = calculateTotalPoints(users);
   let counter = 0;
   let totalLoop = 0;
   let threshold = 5;
@@ -140,6 +154,9 @@ function numbersWithPerc(users, expectedPercentage) {
       console.log("actual profit", ((totalPool - totalPoints) / totalPool) * 100, "%");
       console.log("---------------------------------------------------");
       calculatedNumbers = numbers;
+      // Call the function to append to CSV
+      appendToCSV(winningTickets, counter, threshold, percentage, totalPool, totalPoints, expectedPercentage);
+
       return calculatedNumbers;
     }
 
@@ -167,11 +184,11 @@ function numbersWithPerc(users, expectedPercentage) {
         //   percentage = Math.max(-100, percentage - 1);
       } else if (threshold >= 100) {
         if (expectedPercentage < 0) {
-          // percentage = 0;
-          percentage = Math.max(expectedPercentage, percentage - 1);
+          percentage = 0;
+          // percentage = Math.max(expectedPercentage, percentage - 1);
         } else {
-          // percentage = 100;
-          percentage = Math.max(0, percentage - 1);
+          percentage = 100;
+          // percentage = Math.max(0, percentage - 1);
         }
       }
       // }
@@ -183,6 +200,29 @@ function numbersWithPerc(users, expectedPercentage) {
 
   console.error("Loop exited without finding a result");
   return null; // Add a return statement to indicate no result found
+}
+
+// Function to append results to CSV file
+function appendToCSV(winningTickets, counter, threshold, percentage, totalPool, totalPoints, expectedPercentage) {
+  // Define the CSV file path
+  const filePath = path.join(__dirname, 'results4.csv');
+
+  // Calculate the actual profit percentage
+  const actualProfit = ((totalPool - totalPoints) / totalPool) * 100;
+
+  // Prepare the data line
+  const dataLine = `${totalPool},${winningTickets},${counter},${threshold},${percentage},${actualProfit},${expectedPercentage}\n`;
+
+  // Check if file exists to add header only once
+  if (!fs.existsSync(filePath)) {
+    // Define the header line
+    const header = 'totalPool,winningTickets,counter,threshold,percentage,actualProfit,expectedPercentage\n';
+    // Write header and data line to the CSV file
+    fs.writeFileSync(filePath, header + dataLine, { flag: 'a' });
+  } else {
+    // Append the data line to the CSV file
+    fs.writeFileSync(filePath, dataLine, { flag: 'a' });
+  }
 }
 
 function generateRandomNumbers() {

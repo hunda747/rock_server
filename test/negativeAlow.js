@@ -87,11 +87,11 @@ function numbersWithPerc(users, expectedPercentage) {
         //   percentage = Math.max(-100, percentage - 1);
       } else if (threshold >= 100) {
         if (expectedPercentage < 0) {
-          // percentage = 0;
-          percentage = Math.max(expectedPercentage, percentage - 1);
+          percentage = 0;
+          // percentage = Math.max(expectedPercentage, percentage - 1);
         } else {
-          // percentage = 100;
-          percentage = Math.max(0, percentage - 1);
+          percentage = 100;
+          // percentage = Math.max(0, percentage - 1);
         }
       }
       // }
@@ -101,6 +101,10 @@ function numbersWithPerc(users, expectedPercentage) {
     totalLoop++;
   }
 
+  console.log('threshold', threshold);
+  console.log('totalLoop', totalLoop);
+  console.log('percentage', percentage);
+  console.log("---------------------------------------------------");
   console.error("Loop exited without finding a result");
   return null; // Add a return statement to indicate no result found
 }
@@ -169,43 +173,44 @@ const findwinner = (numbers) => {
 
 const users = [
   {
-    selectedNumbers: [3, 15],
-    coinsPlaced: 10,
-    oddType: 'kiron'
-  },
-  {
-    selectedNumbers: [7, 22, 35, 27],
-    coinsPlaced: 5,
-    oddType: 'kiron'
-  },
-  {
-    selectedNumbers: [7],
-    coinsPlaced: 5,
-    oddType: 'kiron'
-  },
-  {
-    selectedNumbers: [10, 11],
-    coinsPlaced: 5,
-    oddType: 'kiron'
-  },
-  {
-    selectedNumbers: [30, 40, 50, 60],
-    coinsPlaced: 5,
-    oddType: 'kiron'
-  },
-  {
-    selectedNumbers: ['evens'],
+    selectedNumbers: [54],
     coinsPlaced: 20,
     oddType: 'kiron'
   },
   {
-    selectedNumbers: [8, 19, 29],
-    coinsPlaced: 15,
+    selectedNumbers: [64],
+    coinsPlaced: 20,
     oddType: 'kiron'
-  }
+  },
+  // {
+  //   selectedNumbers: [7],
+  //   coinsPlaced: 5,
+  //   oddType: 'kiron'
+  // },
+  // {
+  //   selectedNumbers: [10, 11],
+  //   coinsPlaced: 5,
+  //   oddType: 'kiron'
+  // },
+  // {
+  //   selectedNumbers: [30, 40, 50, 60],
+  //   coinsPlaced: 5,
+  //   oddType: 'kiron'
+  // },
+  // {
+  //   selectedNumbers: ['evens'],
+  //   coinsPlaced: 20,
+  //   oddType: 'kiron'
+  // },
+  // {
+  //   selectedNumbers: [8, 19, 29],
+  //   coinsPlaced: 15,
+  //   oddType: 'kiron'
+  // }
 ];
 
-for (let x = 0; x <= 100; x = x + 10) {
-  // for (let x = 0; x >= -100; x = x - 10) {
-  numbersWithPerc(users, x);
-}
+// for (let x = 0; x <= 100; x = x + 10) {
+//   // for (let x = 0; x >= -100; x = x - 10) {
+//   numbersWithPerc(users, x);
+// }
+numbersWithPerc(users, -7);
