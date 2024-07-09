@@ -78,19 +78,19 @@ app.use(errorHandler)
 
 
 // Create HTTPS server
-const PORT = process.env.PORT || 8800;
-app.listen(PORT, () => {
-  console.log(`Server is running at http://localhost:${PORT}`);
-});
-
-// const PORT = process.env.PORT || 443;
-// const options = {
-//   key: fs.readFileSync('/root/a74fb_701b5_5736dbd729c291724b6a1d08f0995c64.key'),
-//   cert: fs.readFileSync('/root/logic_rookmatetech_com_a74fb_701b5_1718755199_80fab4015b234552a7ff7bc8f8acb967.crt')
-// };
-
-// const server = https.createServer(options, app);
-// server.listen(PORT, () => {
-//   console.log(`Server is running on port ${PORT}`);
-//   logger.info(`Server is running on port http://localhost:${PORT}`);
+// const PORT = process.env.PORT || 8800;
+// app.listen(PORT, () => {
+//   console.log(`Server is running at http://localhost:${PORT}`);
 // });
+
+const PORT = process.env.PORT || 443;
+const options = {
+  key: fs.readFileSync('9ed2b_a89dd_282bc574495f8c6d40d10ea0f3360f0d.key'),
+  cert: fs.readFileSync('www_logic_rookmatetech_com_9ed2b_a89dd_1726566409_d192f168b8e74e1b8d4dd6b71abba7c2.crt')
+};
+
+const server = https.createServer(options, app);
+server.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+  logger.info(`Server is running on port http://localhost:${PORT}`);
+});

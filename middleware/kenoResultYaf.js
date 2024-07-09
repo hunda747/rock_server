@@ -155,7 +155,7 @@ function numbersWithPerc(users, expectedPercentage, totalPool) {
       console.log("---------------------------------------------------");
       calculatedNumbers = numbers;
       // Call the function to append to CSV
-      appendToCSV(winningTickets, counter, threshold, percentage, totalPool, totalPoints, expectedPercentage);
+      // appendToCSV(winningTickets, counter, threshold, percentage, totalPool, totalPoints, expectedPercentage);
 
       return calculatedNumbers;
     }
@@ -184,7 +184,7 @@ function numbersWithPerc(users, expectedPercentage, totalPool) {
         //   percentage = Math.max(-100, percentage - 1);
       } else if (threshold >= 100) {
         if (expectedPercentage < 0) {
-          percentage = 0;
+          percentage = 100;
           // percentage = Math.max(expectedPercentage, percentage - 1);
         } else {
           percentage = 100;
