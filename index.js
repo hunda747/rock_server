@@ -76,14 +76,13 @@ app.use('/dailyReport', dailyReportRoutes);
 
 app.use(errorHandler)
 
-
-// Create HTTPS server
-// const PORT = process.env.PORT || 8800;
-// app.listen(PORT, () => {
+// const PORT = process.env.PORT || 8443;
+// const HOST = '0.0.0.0'; // This line ensures it listens on all interfaces
+// app.listen(PORT, HOST, () => {
 //   console.log(`Server is running at http://localhost:${PORT}`);
 // });
 
-const PORT = process.env.PORT || 443;
+const PORT = process.env.PORT || 8444;
 const options = {
   key: fs.readFileSync('9ed2b_a89dd_282bc574495f8c6d40d10ea0f3360f0d.key'),
   cert: fs.readFileSync('www_logic_rookmatetech_com_9ed2b_a89dd_1726566409_d192f168b8e74e1b8d4dd6b71abba7c2.crt')
