@@ -13,3 +13,5 @@ error.log
 .log
 *.log
 *.csv
+*.crt
+*.key
