@@ -61,7 +61,14 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId, date) => {
   const totalPool = calculateTotalPoints(picks);
   console.log("RTP", rtp);
   const scalingFactor = rtp / 100;
-  const refactoredCommision = calculateCommission(currentData.stake, currentData.ggr, scalingFactor, totalPool);
+
+  let refactoredCommision;
+  if (totalPool < 80 && generate()) {
+    refactoredCommision = 90;
+  } else {
+    refactoredCommision = calculateCommission(currentData.stake, currentData.ggr, scalingFactor, totalPool);
+  }
+  // const refactoredCommision = calculateCommission(currentData.stake, currentData.ggr, scalingFactor, totalPool);
   console.log("curr refactoredCommision", refactoredCommision);
 
   const startTime = performance.now();
@@ -86,6 +93,17 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId, date) => {
   return main;
 };
 
+const generate = () => {
+  const oddsA = 2;
+  const oddsB = 1;
+
+  const randomNumber = Math.floor(Math.random() * (oddsA + oddsB));
+
+  if (randomNumber < oddsA) {
+    return true
+  }
+  return false
+}
 
 function calculateCommission(totalBet, totalCommission, desiredCommissionRate, active) {
   let desireCommission = (totalBet + active) * desiredCommissionRate;
@@ -205,7 +223,7 @@ function numbersWithPerc(users, expectedPercentage, totalPool) {
 // Function to append results to CSV file
 function appendToCSV(winningTickets, counter, threshold, percentage, totalPool, totalPoints, expectedPercentage) {
   // Define the CSV file path
-  const filePath = path.join(__dirname, 'results4.csv');
+  const filePath = path.join(__dirname, 'results5.csv');
 
   // Calculate the actual profit percentage
   const actualProfit = ((totalPool - totalPoints) / totalPool) * 100;
