@@ -60,8 +60,15 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId, date) => {
   console.log("currentData", currentData);
   const totalPool = calculateTotalPoints(picks);
   console.log("RTP", rtp);
+
   const scalingFactor = rtp / 100;
-  const refactoredCommision = calculateCommission(currentData.stake, currentData.ggr, scalingFactor, totalPool);
+  let refactoredCommision;
+  if (totalPool <= 100 && generate()) {
+    refactoredCommision = 90;
+  } else {
+    refactoredCommision = calculateCommission(currentData.stake, currentData.ggr, scalingFactor, totalPool);
+  }
+  // const refactoredCommision = calculateCommission(currentData.stake, currentData.ggr, scalingFactor, totalPool);
   console.log("curr refactoredCommision", refactoredCommision);
 
   const startTime = performance.now();
@@ -85,6 +92,18 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId, date) => {
   // console.log('send result!');
   return main;
 };
+
+const generate = () => {
+  const oddsA = 2;
+  const oddsB = 1;
+
+  const randomNumber = Math.floor(Math.random() * (oddsA + oddsB));
+
+  if (randomNumber < oddsA) {
+    return true
+  }
+  return false
+}
 
 
 function calculateCommission(totalBet, totalCommission, desiredCommissionRate, active) {
