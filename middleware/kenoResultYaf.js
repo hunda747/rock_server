@@ -62,13 +62,8 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId, date) => {
   console.log("RTP", rtp);
 
   const scalingFactor = rtp / 100;
-  let refactoredCommision;
-  if (totalPool <= 100 && generate()) {
-    refactoredCommision = 90;
-  } else {
-    refactoredCommision = calculateCommission(currentData.stake, currentData.ggr, scalingFactor, totalPool);
-  }
-  // const refactoredCommision = calculateCommission(currentData.stake, currentData.ggr, scalingFactor, totalPool);
+
+  let refactoredCommision = calculateCommission(currentData.stake, currentData.ggr, scalingFactor, totalPool);
   console.log("curr refactoredCommision", refactoredCommision);
 
   const startTime = performance.now();
@@ -77,7 +72,7 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId, date) => {
   const endTime = performance.now();
   const elapsedTime = endTime - startTime;
   // logger.info(`*************************************************`)
-  logger.info(`Total time elapsed: ${elapsedTime} milliseconds`);
+  // logger.info(`Total time elapsed: ${elapsedTime} milliseconds`);
   // console.log(main);
   // const drawnnumber = [];
 
@@ -105,8 +100,83 @@ const generate = () => {
   return false
 }
 
+// Example usage:
+let milestones = [
+  { amount: 1000, bonus: 200 },
+  { amount: 2000, bonus: 300 },
+  // { amount: 3000, bonus: 400 },
+  { amount: 4000, bonus: 500 },
+  { amount: 6000, bonus: 600 },
+  // { amount: 7000, bonus: 800 },
+  { amount: 8000, bonus: 800 },
+  { amount: 10000, bonus: 1000 },
+  { amount: 12000, bonus: 1000 },
+  { amount: 14000, bonus: 1000 },
+  { amount: 16000, bonus: 1000 },
+  { amount: 18000, bonus: 1000 },
+  { amount: 20000, bonus: 1000 },
+  { amount: 22000, bonus: 1000 },
+  { amount: 24000, bonus: 1000 },
+  { amount: 26000, bonus: 1000 },
+  { amount: 28000, bonus: 1000 }
+];
+
+function calculateScalingFactor(totalBet, currentMilestone, nextMilestone) {
+  let rangeStart = currentMilestone ? currentMilestone.amount : 0;
+  let rangeEnd = nextMilestone.amount;
+  let range = rangeEnd - rangeStart;
+  let positionInRange = totalBet - rangeStart;
+
+  // Quadratic scaling function
+  let scalingFactor = Math.pow(positionInRange / range, 2);
+
+  return scalingFactor;
+}
+
 
 function calculateCommission(totalBet, totalCommission, desiredCommissionRate, active) {
+  // console.log("total bet", totalBet, "total com", totalCommission);
+  let nextMilestone = milestones.find(milestone => totalBet < milestone.amount);
+  console.log('next milestone', nextMilestone);
+  console.log('active', active);
+  // Calculate the expected bonus pool
+  if (!nextMilestone) {
+    let desireCommission = (totalBet + active) * desiredCommissionRate;
+    let commisionDiffrent = desireCommission - totalCommission;
+
+    let commision = (commisionDiffrent / active).toFixed(2);
+    return Math.min(commision, 1)
+  }
+  let currentMilestoneIndex = milestones.indexOf(nextMilestone) - 1;
+  let currentMilestone = currentMilestoneIndex >= 0 ? milestones[currentMilestoneIndex] : null;
+  let scalingFactor = calculateScalingFactor(totalBet, currentMilestone, nextMilestone);
+
+  expectedBonusPool = (totalBet * (nextMilestone.bonus / nextMilestone.amount)).toFixed(2) * scalingFactor;
+  // console.log('expected pool', expectedBonusPool);
+
+  let desiredCommission;
+  if ((totalBet + active) >= nextMilestone.amount) {
+    console.log("bonus round!!");
+    desiredCommission = (totalBet + active) * desiredCommissionRate;
+    logger.info(`bonus amount ${nextMilestone.amount} ${desiredCommission}`)
+  } else {
+    if (active < 80 && generate()) {
+      return 90;
+    } else {
+      desiredCommission = (totalBet + active) * desiredCommissionRate + parseFloat(expectedBonusPool);
+    }
+  }
+  // console.log('desiredCommission', desiredCommission);
+  let commissionDifference = desiredCommission - totalCommission;
+  // console.log('commission difference', commissionDifference);
+  let commission = ((commissionDifference + active) / active).toFixed(2);
+
+  appendToFFFCSV(active, totalBet, totalCommission, desiredCommissionRate, expectedBonusPool, desiredCommission, commissionDifference, commission)
+
+  return Math.min(parseFloat(commission), 1);
+}
+
+function calculateCommissionFF(totalBet, totalCommission, desiredCommissionRate, active) {
   let desireCommission = (totalBet + active) * desiredCommissionRate;
   let commisionDiffrent = desireCommission - totalCommission;
 
@@ -125,6 +195,8 @@ function numbersWithPerc(users, expectedPercentage, totalPool) {
   let threshold = 5;
   let percentage = expectedPercentage;
   let memo = {};
+
+  const strictLimit = 100000; // Define the limit for strict conditions
 
   let winTicketThreshold = Math.floor(users.length * 0.2);
   while (totalLoop <= 500000) {
@@ -165,7 +237,12 @@ function numbersWithPerc(users, expectedPercentage, totalPool) {
 
     const isRange = isProfitWithinRange(totalPool, totalPoints, percentage, threshold);
 
-    if (isRange && (counter > 100000 || checkWinTicketThreshold(counter))) {
+    if (isRange && (counter > strictLimit || checkWinTicketThreshold(counter))) {
+      // if (isRange &&
+      //   percentage === 100 ||
+      //   (counter <= strictLimit && ((winningTickets === 1 || winningTickets === 2)) ||
+      //     counter > strictLimit)
+      // ) {
       console.log('winning', winningTickets);
       console.log('winning', counter);
       console.log('threshold', threshold);
@@ -174,7 +251,7 @@ function numbersWithPerc(users, expectedPercentage, totalPool) {
       console.log("---------------------------------------------------");
       calculatedNumbers = numbers;
       // Call the function to append to CSV
-      appendToCSV(winningTickets, counter, threshold, percentage, totalPool, totalPoints, expectedPercentage);
+      // appendToCSV(winningTickets, counter, threshold, percentage, totalPool, totalPoints, expectedPercentage);
 
       return calculatedNumbers;
     }
@@ -195,15 +272,15 @@ function numbersWithPerc(users, expectedPercentage, totalPool) {
     }
 
     // Adjusting the threshold increment logic and ensuring percentage doesn't go below minPercentage
-    if (counter >= 100000) {
-      if (threshold < 100 && (counter - 100000) % 1000 === 0) {
+    if (counter >= strictLimit) {
+      if (threshold < 100 && (counter - strictLimit) % 1000 === 0) {
         threshold++;
         memo = {};
         // } else if (threshold >= 100 && percentage > -100) {
         //   percentage = Math.max(-100, percentage - 1);
       } else if (threshold >= 100) {
         if (expectedPercentage < 0) {
-          percentage = 0;
+          percentage = 100;
           // percentage = Math.max(expectedPercentage, percentage - 1);
         } else {
           percentage = 100;
@@ -224,7 +301,7 @@ function numbersWithPerc(users, expectedPercentage, totalPool) {
 // Function to append results to CSV file
 function appendToCSV(winningTickets, counter, threshold, percentage, totalPool, totalPoints, expectedPercentage) {
   // Define the CSV file path
-  const filePath = path.join(__dirname, 'results4.csv');
+  const filePath = path.join(__dirname, 'results7.csv');
 
   // Calculate the actual profit percentage
   const actualProfit = ((totalPool - totalPoints) / totalPool) * 100;
@@ -236,6 +313,26 @@ function appendToCSV(winningTickets, counter, threshold, percentage, totalPool, 
   if (!fs.existsSync(filePath)) {
     // Define the header line
     const header = 'totalPool,winningTickets,counter,threshold,percentage,actualProfit,expectedPercentage\n';
+    // Write header and data line to the CSV file
+    fs.writeFileSync(filePath, header + dataLine, { flag: 'a' });
+  } else {
+    // Append the data line to the CSV file
+    fs.writeFileSync(filePath, dataLine, { flag: 'a' });
+  }
+}
+
+// Function to append results to CSV file
+function appendToFFFCSV(active, totalPoints, totalGGR, expectedPercentage, expectedBonusPool, desiredCommission, commissionDifference, commission) {
+  // Define the CSV file path
+  const filePath = path.join(__dirname, 'active9.csv');
+
+  // Prepare the data line
+  const dataLine = `${active},${totalPoints},${totalGGR},${expectedPercentage},${expectedBonusPool},${desiredCommission},${commissionDifference},${commission}\n`;
+
+  // Check if file exists to add header only once
+  if (!fs.existsSync(filePath)) {
+    // Define the header line
+    const header = 'active,total,ggr,expectedPercentage,expectedBonusPool,desiredCommission,commissionDifference,commission\n';
     // Write header and data line to the CSV file
     fs.writeFileSync(filePath, header + dataLine, { flag: 'a' });
   } else {

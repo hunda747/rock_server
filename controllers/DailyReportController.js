@@ -114,57 +114,41 @@ const generateDailyReport = async (reportDate, res) => {
         } = cashierReport.slips[0] || {}; // Assuming there is always one slip entry
         payoutCount = redem.number;
         payout = redem.amount;
-        if (existingReport) {
-          const updateDailyReport = await DailyReport.query().patchAndFetchById(
-            existingReport.id,
-            {
-              reportDate,
-              cashierId: cashier.id,
-              shopId: cashier.shopId,
-              shopOwnerId: cashier.shop.shopOwnerId,
-              totalTickets: parseInt(tickets) - parseInt(revokedCount),
-              active: parseInt(tickets) > 0,
-              totalStake: parseInt(stake) - parseInt(revoked),
-              totalPayout: payout,
-              totalPayoutCount: payoutCount,
-              totalUnclaimed: unclaimed,
-              totalUnclaimedCount: unclaimedCount,
-              totalRevoked: revoked,
-              totalRevokedCount: revokedCount,
-              totalGGR: parseInt(stake) - parseInt(payout) + parseInt(unclaimed) - parseInt(revoked),
-              totalNetBalance:
-                parseInt(stake) -
-                parseInt(payout) -
-                parseInt(revoked),
-            }
-          );
+        const parsedData = {
+          totalTickets: parseInt(tickets) - parseInt(revokedCount),
+          active: parseInt(tickets) > 0,
+          totalStake: parseInt(stake) - parseInt(revoked),
+          // totalGGR: parseInt(stake) - parseInt(payout) - parseInt(unclaimed) - parseInt(revoked),
+          // totalNetBalance: parseInt(stake) - parseInt(payout) - parseInt(revoked) - parseInt(unclaimed)
+          totalGGR: parseInt(stake) - parseInt(payout) + parseInt(unclaimed) - parseInt(revoked),
+          totalNetBalance: parseInt(stake) - parseInt(payout) - parseInt(revoked)
+        };
 
-          return updateDailyReport;
-          // return res.status(400).json({ error: "The report for this date is already generated! " })
+        const reportPayload = {
+          reportDate: reportDate,
+          cashierId: cashier.id,
+          shopId: cashier.shopId,
+          shopOwnerId: cashier.shop.shopOwnerId,
+          totalTickets: parsedData.totalTickets,
+          active: parsedData.active,
+          totalStake: parsedData.totalStake,
+          totalPayout: payout,
+          totalPayoutCount: payoutCount,
+          totalUnclaimed: unclaimed,
+          totalUnclaimedCount: unclaimedCount,
+          totalRevoked: revoked,
+          totalRevokedCount: revokedCount,
+          totalGGR: parsedData.totalGGR,
+          totalNetBalance: parsedData.totalNetBalance
+        };
+
+        if (existingReport) {
+          return await DailyReport.query().patchAndFetchById(existingReport.id, reportPayload);
         } else {
-          // Create an entry in the 'daily_reports' table
-          const newDailyReport = await DailyReport.query().insert({
-            reportDate,
-            cashierId: cashier.id,
-            shopId: cashier.shopId,
-            shopOwnerId: cashier.shop.shopOwnerId,
-            totalTickets: parseInt(tickets) - parseInt(revokedCount),
-            active: parseInt(tickets) > 0,
-            totalStake: parseInt(stake) - parseInt(revoked),
-            totalPayout: payout,
-            totalPayoutCount: payoutCount,
-            totalUnclaimed: unclaimed,
-            totalUnclaimedCount: unclaimedCount,
-            totalRevoked: revoked,
-            totalRevokedCount: revokedCount,
-            totalGGR: parseInt(stake) - parseInt(payout) + parseInt(unclaimed) - parseInt(revoked),
-            totalNetBalance:
-              parseInt(stake) -
-              parseInt(payout) -
-              parseInt(revoked),
-          });
-          return newDailyReport;
+          return await DailyReport.query().insert(reportPayload);
         }
+        // return newDailyReport;
+        // }
       })
     );
 
