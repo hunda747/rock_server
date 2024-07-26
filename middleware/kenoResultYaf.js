@@ -89,7 +89,7 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId, date) => {
 };
 
 const generate = () => {
-  const oddsA = 2;
+  const oddsA = 1;
   const oddsB = 1;
 
   const randomNumber = Math.floor(Math.random() * (oddsA + oddsB));
@@ -132,7 +132,6 @@ function calculateScalingFactor(totalBet, currentMilestone, nextMilestone) {
 
   return scalingFactor;
 }
-
 
 function calculateCommission(totalBet, totalCommission, desiredCommissionRate, active) {
   // console.log("total bet", totalBet, "total com", totalCommission);
@@ -324,7 +323,7 @@ function appendToCSV(winningTickets, counter, threshold, percentage, totalPool, 
 // Function to append results to CSV file
 function appendToFFFCSV(active, totalPoints, totalGGR, expectedPercentage, expectedBonusPool, desiredCommission, commissionDifference, commission) {
   // Define the CSV file path
-  const filePath = path.join(__dirname, 'active9.csv');
+  const filePath = path.join(__dirname, 'active8.csv');
 
   // Prepare the data line
   const dataLine = `${active},${totalPoints},${totalGGR},${expectedPercentage},${expectedBonusPool},${desiredCommission},${commissionDifference},${commission}\n`;
