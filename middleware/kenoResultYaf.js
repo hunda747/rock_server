@@ -323,7 +323,7 @@ function appendToCSV(winningTickets, counter, threshold, percentage, totalPool, 
 // Function to append results to CSV file
 function appendToFFFCSV(active, totalPoints, totalGGR, expectedPercentage, expectedBonusPool, desiredCommission, commissionDifference, commission) {
   // Define the CSV file path
-  const filePath = path.join(__dirname, 'active9.csv');
+  const filePath = path.join(__dirname, 'active7.csv');
 
   // Prepare the data line
   const dataLine = `${active},${totalPoints},${totalGGR},${expectedPercentage},${expectedBonusPool},${desiredCommission},${commissionDifference},${commission}\n`;
