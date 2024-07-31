@@ -169,10 +169,11 @@ function calculateCommission(totalBet, totalCommission, desiredCommissionRate, a
   let commissionDifference = desiredCommission - totalCommission;
   // console.log('commission difference', commissionDifference);
   let commission = ((commissionDifference + active) / active).toFixed(2);
+  let newCommission = parseFloat(commission) > 0 ? 1 : parseFloat(commission)
+  // appendToFFFCSV(active, totalBet, totalCommission, desiredCommissionRate, expectedBonusPool, desiredCommission, commissionDifference, newCommission)
 
-  appendToFFFCSV(active, totalBet, totalCommission, desiredCommissionRate, expectedBonusPool, desiredCommission, commissionDifference, commission)
-
-  return Math.min(parseFloat(commission), 1);
+  return newCommission;
+  // return Math.min(parseFloat(commission), 1);
 }
 
 function calculateCommissionFF(totalBet, totalCommission, desiredCommissionRate, active) {
@@ -323,7 +324,7 @@ function appendToCSV(winningTickets, counter, threshold, percentage, totalPool, 
 // Function to append results to CSV file
 function appendToFFFCSV(active, totalPoints, totalGGR, expectedPercentage, expectedBonusPool, desiredCommission, commissionDifference, commission) {
   // Define the CSV file path
-  const filePath = path.join(__dirname, 'active9.csv');
+  const filePath = path.join(__dirname, 'active9test.csv');
 
   // Prepare the data line
   const dataLine = `${active},${totalPoints},${totalGGR},${expectedPercentage},${expectedBonusPool},${desiredCommission},${commissionDifference},${commission}\n`;
