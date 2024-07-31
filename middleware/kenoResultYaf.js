@@ -62,8 +62,8 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId, date) => {
   console.log("RTP", rtp);
   const scalingFactor = rtp / 100;
 
-  let refactoredCommision = calculateCommission(currentData.stake, currentData.ggr, scalingFactor, totalPool);
-  console.log("curr refactoredCommision", refactoredCommision, shopId);
+  let refactoredCommision = calculateCommission(currentData.stake, currentData.ggr, scalingFactor, totalPool, shopId);
+  console.log("curr refactoredCommision", refactoredCommision);
 
   const startTime = performance.now();
   let main = numbersWithPerc(picks, (refactoredCommision * 100) || rtp, totalPool);
@@ -170,7 +170,7 @@ function calculateCommission(totalBet, totalCommission, desiredCommissionRate, a
   // console.log('commission difference', commissionDifference);
   let commission = ((commissionDifference + active) / active).toFixed(2);
 
-  appendToFFFCSV(active, totalBet, totalCommission, desiredCommissionRate, expectedBonusPool, desiredCommission, commissionDifference, commission, shopId)
+  // appendToFFFCSV(active, totalBet, totalCommission, desiredCommissionRate, expectedBonusPool, desiredCommission, commissionDifference, commission, shopId)
 
   return Math.min(parseFloat(commission), 1);
 }
@@ -323,7 +323,7 @@ function appendToCSV(winningTickets, counter, threshold, percentage, totalPool, 
 // Function to append results to CSV file
 function appendToFFFCSV(active, totalPoints, totalGGR, expectedPercentage, expectedBonusPool, desiredCommission, commissionDifference, commission, shopId) {
   // Define the CSV file path
-  const filePath = path.join(__dirname, 'active7.csv');
+  const filePath = path.join(__dirname, 'active4chess.csv');
 
   // Prepare the data line
   const dataLine = `${active},${totalPoints},${totalGGR},${expectedPercentage},${expectedBonusPool},${desiredCommission},${commissionDifference},${commission},${shopId}\n`;
