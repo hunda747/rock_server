@@ -13,3 +13,6 @@ error.log
 .log
 *.log
 *.csv
+
+*.key
+*.crt
