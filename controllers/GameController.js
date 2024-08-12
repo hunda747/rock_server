@@ -265,7 +265,7 @@ const GameController = {
           let response;
           if (!currentGame.pickedNumbers) {
             // Generate random numbers securely
-            const numbers = await generateRandomNumbersKeno(gameNumber, findShop.rtp, shopId, res);
+            const numbers = await generateRandomNumbersKeno(gameNumber, findShop.rtp, shopId);
 
             // Update game with drawn numbers
             let headsCount = 0;
