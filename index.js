@@ -76,20 +76,20 @@ app.use('/dailyReport', dailyReportRoutes);
 
 app.use(errorHandler)
 
-// const PORT = process.env.PORT || 8443;
-// const HOST = '0.0.0.0'; // This line ensures it listens on all interfaces
-// app.listen(PORT, HOST, () => {
-//   console.log(`Server is running at http://localhost:${PORT}`);
-// });
-
-const PORT = process.env.PORT || 8444;
-const options = {
-  key: fs.readFileSync(process.env.CRT_KEY),
-  cert: fs.readFileSync(process.env.CRT_CRT)
-};
-
-const server = https.createServer(options, app);
-server.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-  logger.info(`Server is running on port http://localhost:${PORT}`);
+const PORT = process.env.PORT || 8800;
+const HOST = '0.0.0.0'; // This line ensures it listens on all interfaces
+app.listen(PORT, HOST, () => {
+  console.log(`Server is running at http://localhost:${PORT}`);
 });
+
+// const PORT = process.env.PORT || 8444;
+// const options = {
+//   key: fs.readFileSync(process.env.CRT_KEY),
+//   cert: fs.readFileSync(process.env.CRT_CRT)
+// };
+
+// const server = https.createServer(options, app);
+// server.listen(PORT, () => {
+//   console.log(`Server is running on port ${PORT}`);
+//   logger.info(`Server is running on port http://localhost:${PORT}`);
+// });

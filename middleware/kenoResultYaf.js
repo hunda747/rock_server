@@ -101,14 +101,14 @@ const generate = () => {
 
 // Example usage:
 let milestones = [
-  { amount: 1000, bonus: 200 },
-  { amount: 2000, bonus: 300 },
+  { amount: 1000, bonus: 400 },
+  { amount: 2000, bonus: 500 },
   // { amount: 3000, bonus: 400 },
-  { amount: 4000, bonus: 500 },
-  { amount: 6000, bonus: 600 },
+  { amount: 4000, bonus: 600 },
+  { amount: 6000, bonus: 800 },
   // { amount: 7000, bonus: 800 },
   { amount: 8000, bonus: 800 },
-  { amount: 10000, bonus: 1000 },
+  { amount: 10000, bonus: 1200 },
   { amount: 12000, bonus: 1000 },
   { amount: 14000, bonus: 1000 },
   { amount: 16000, bonus: 1000 },
@@ -119,6 +119,25 @@ let milestones = [
   { amount: 26000, bonus: 1000 },
   { amount: 28000, bonus: 1000 }
 ];
+// let milestones = [
+//   { amount: 1000, bonus: 200 },
+//   { amount: 2000, bonus: 300 },
+//   // { amount: 3000, bonus: 400 },
+//   { amount: 4000, bonus: 500 },
+//   { amount: 6000, bonus: 600 },
+//   // { amount: 7000, bonus: 800 },
+//   { amount: 8000, bonus: 800 },
+//   { amount: 10000, bonus: 1000 },
+//   { amount: 12000, bonus: 1000 },
+//   { amount: 14000, bonus: 1000 },
+//   { amount: 16000, bonus: 1000 },
+//   { amount: 18000, bonus: 1000 },
+//   { amount: 20000, bonus: 1000 },
+//   { amount: 22000, bonus: 1000 },
+//   { amount: 24000, bonus: 1000 },
+//   { amount: 26000, bonus: 1000 },
+//   { amount: 28000, bonus: 1000 }
+// ];
 
 function calculateScalingFactor(totalBet, currentMilestone, nextMilestone) {
   let rangeStart = currentMilestone ? currentMilestone.amount : 0;
@@ -160,7 +179,8 @@ function calculateCommission(totalBet, totalCommission, desiredCommissionRate, a
     logger.info(`bonus amount ${nextMilestone.amount} ${desiredCommission}`)
   } else {
     if (active < 80 && generate()) {
-      return 90;
+      appendToFFFCSV(active, totalBet, totalCommission, 1, expectedBonusPool, desiredCommission, 0, 1, shopId)
+      return 1;
     } else {
       desiredCommission = (totalBet + active) * desiredCommissionRate + parseFloat(expectedBonusPool);
     }
@@ -169,8 +189,8 @@ function calculateCommission(totalBet, totalCommission, desiredCommissionRate, a
   let commissionDifference = desiredCommission - totalCommission;
   // console.log('commission difference', commissionDifference);
   let commission = ((commissionDifference + active) / active).toFixed(2);
-  let newCommission = parseFloat(commission) > 0 ? 1 : parseFloat(commission)
-  // appendToFFFCSV(active, totalBet, totalCommission, desiredCommissionRate, expectedBonusPool, desiredCommission, commissionDifference, newCommission)
+  let newCommission = parseFloat(commission) > 0 ? 1 : Math.min(parseFloat(commission), 1)
+  appendToFFFCSV(active, totalBet, totalCommission, desiredCommissionRate, expectedBonusPool, desiredCommission, commissionDifference, newCommission, shopId)
 
   return newCommission;
   // return Math.min(parseFloat(commission), 1);
@@ -324,7 +344,7 @@ function appendToCSV(winningTickets, counter, threshold, percentage, totalPool, 
 // Function to append results to CSV file
 function appendToFFFCSV(active, totalPoints, totalGGR, expectedPercentage, expectedBonusPool, desiredCommission, commissionDifference, commission, shopId) {
   // Define the CSV file path
-  const filePath = path.join(__dirname, 'active9test.csv');
+  const filePath = path.join(__dirname, 'active977test.csv');
 
   // Prepare the data line
   const dataLine = `${active},${totalPoints},${totalGGR},${expectedPercentage},${expectedBonusPool},${desiredCommission},${commissionDifference},${commission},${shopId}\n`;
