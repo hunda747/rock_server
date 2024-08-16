@@ -7,6 +7,7 @@ const Cashier = require("../models/cashier");
 const { subDays, format, startOfDay, endOfDay } = require("date-fns");
 
 const oddsTable = require("../odd/kiron");
+const { transaction } = require("objection");
 
 const slipController = {
   getAllSlips: async (req, res, next) => {
@@ -94,226 +95,230 @@ const slipController = {
     const param = req.body;
     // console.log("param", param);
 
-    // Update the current game with the drawn number
-    const currentGame = await Game.query()
-      .where("status", "playing")
-      .where("gameType", param.gameType)
-      .andWhere("shopId", param.shop)
-      .orderBy("id", "desc")
-      .first();
+    // Start a transaction to ensure consistent read with the drawing process
+    await transaction(Game.knex(), async (trx) => {
+      // Update the current game with the drawn number
+      const currentGame = await Game.query(trx)
+        .where("status", "playing")
+        .where("gameType", param.gameType)
+        .andWhere("shopId", param.shop)
+        .orderBy("id", "desc")
+        .first();
 
-    if (!currentGame) {
-      return res.status(404).json({ message: "Game Closed." });
-    }
+      if (!currentGame) {
+        return res.status(404).json({ message: "Game Closed." });
+      }
 
-    const cashier = await Cashier.query()
-      .findById(param.cashier)
-      .withGraphFetched("shop");
+      const cashier = await Cashier.query()
+        .findById(param.cashier)
+        .withGraphFetched("shop");
 
-    if (cashier.cashierLimit < cashier.netWinning) {
-      return res.status(200).json({
-        error: "Cashier limit reached. Please contact the admin.",
-        status: "error",
-        err: "true",
-      });
-    }
-
-    if (!cashier.status || cashier.shop?.status === "inactive") {
-      return res
-        .status(200)
-        .json({
-          error: "Account is blocked",
+      if (cashier.cashierLimit < cashier.netWinning) {
+        return res.status(200).json({
+          error: "Cashier limit reached. Please contact the admin.",
           status: "error",
           err: "true",
-          errText: "logout",
         });
-    }
+      }
 
-    // console.log("param:", param.numberPick);
+      if (!cashier.status || cashier.shop?.status === "inactive") {
+        return res
+          .status(200)
+          .json({
+            error: "Account is blocked",
+            status: "error",
+            err: "true",
+            errText: "logout",
+          });
+      }
 
-    try {
-      let totalStake = 0;
-      let minWin = 0;
-      let maxWin = 0;
+      // console.log("param:", param.numberPick);
 
-      if (param.gameType == "keno") {
-        // Iterate through numberPick array
-        for (const pick of param.numberPick) {
-          const numberOfSelections = pick.selection.length;
+      try {
+        let totalStake = 0;
+        let minWin = 0;
+        let maxWin = 0;
 
-          // console.log(pick.selection);
-          // console.log(pick.selection[0]);
-          // console.log(typeof pick.selection[0]);
+        if (param.gameType == "keno") {
+          // Iterate through numberPick array
+          for (const pick of param.numberPick) {
+            const numberOfSelections = pick.selection.length;
 
-          totalStake += pick.stake;
-          if (typeof pick.selection[0] === "string") {
-            let odd;
-            if (
-              pick.selection[0] === "tails" ||
-              pick.selection[0] === "heads"
-            ) {
-              odd = 2;
-            } else {
-              odd = 4;
-            }
-            pick.odd = odd;
-            // Update minWin and maxWin based on the stake
-            minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin; // Assuming the minimum win is the same as the stake
-            maxWin += pick.stake * odd; // Assuming the maximum win is the total stake for the pick
-          } else {
-            // Retrieve the odds table for the specific selection
-            const oddsEntry = oddsTable[param.oddType][numberOfSelections];
+            // console.log(pick.selection);
+            // console.log(pick.selection[0]);
+            // console.log(typeof pick.selection[0]);
 
-            if (oddsEntry) {
-              const modd = oddsEntry[numberOfSelections - 1];
-              // Calculate the stake for the current pick based on the odds table
-              pick.odd = Object.values(modd)[0];
-              pick.selection = pick.selection.sort((a, b) => {
-                return a - b;
-              })
+            totalStake += pick.stake;
+            if (typeof pick.selection[0] === "string") {
+              let odd;
+              if (
+                pick.selection[0] === "tails" ||
+                pick.selection[0] === "heads"
+              ) {
+                odd = 2;
+              } else {
+                odd = 4;
+              }
+              pick.odd = odd;
               // Update minWin and maxWin based on the stake
-              minWin =
-                pick.stake < minWin || minWin === 0 ? pick.stake : minWin; // Assuming the minimum win is the same as the stake
-              maxWin += pick.stake * Object.values(modd)[0]; // Assuming the maximum win is the total stake for the pick
+              minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin; // Assuming the minimum win is the same as the stake
+              maxWin += pick.stake * odd; // Assuming the maximum win is the total stake for the pick
+            } else {
+              // Retrieve the odds table for the specific selection
+              const oddsEntry = oddsTable[param.oddType][numberOfSelections];
+
+              if (oddsEntry) {
+                const modd = oddsEntry[numberOfSelections - 1];
+                // Calculate the stake for the current pick based on the odds table
+                pick.odd = Object.values(modd)[0];
+                pick.selection = pick.selection.sort((a, b) => {
+                  return a - b;
+                })
+                // Update minWin and maxWin based on the stake
+                minWin =
+                  pick.stake < minWin || minWin === 0 ? pick.stake : minWin; // Assuming the minimum win is the same as the stake
+                maxWin += pick.stake * Object.values(modd)[0]; // Assuming the maximum win is the total stake for the pick
+              }
             }
           }
-        }
-      } else if (param.gameType == "spin") {
-        // console.log(param.numberPick);
-        // console.log(param);
-        for (const pick of param.numberPick) {
-          const numberOfSelections = pick.val.length;
-          totalStake += pick.stake;
-          if (pick.market == "Color" || pick.market === "OddEven" || pick.market === "HighLow") {
-            pick.odd = 2;
-            minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin;
-            maxWin += pick.stake * 2;
-          } else if (pick.market == "Column" || pick.market === "Dozens") {
-            pick.odd = 3;
-            minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin;
-            maxWin += pick.stake * 3;
-          } else if (pick.market == "Sectors") {
-            pick.odd = 6;
-            minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin;
-            maxWin += pick.stake * 6;
-          } else if (pick.market == "Neighbors") {
-            pick.odd = 7;
-            minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin;
-            maxWin += pick.stake * 7;
-          } else if (pick.market == "Corner") {
-            pick.odd = 9;
-            minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin;
-            maxWin += pick.stake * 9;
-          } else if (!isNaN(pick?.val[0])) {
-            pick.odd = 36 / numberOfSelections;
-            // Update minWin and maxWin based on the stake
-            minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin; // Assuming the minimum win is the same as the stake
-            maxWin += pick.stake * pick.odd;
+        } else if (param.gameType == "spin") {
+          // console.log(param.numberPick);
+          // console.log(param);
+          for (const pick of param.numberPick) {
+            const numberOfSelections = pick.val.length;
+            totalStake += pick.stake;
+            if (pick.market == "Color" || pick.market === "OddEven" || pick.market === "HighLow") {
+              pick.odd = 2;
+              minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin;
+              maxWin += pick.stake * 2;
+            } else if (pick.market == "Column" || pick.market === "Dozens") {
+              pick.odd = 3;
+              minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin;
+              maxWin += pick.stake * 3;
+            } else if (pick.market == "Sectors") {
+              pick.odd = 6;
+              minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin;
+              maxWin += pick.stake * 6;
+            } else if (pick.market == "Neighbors") {
+              pick.odd = 7;
+              minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin;
+              maxWin += pick.stake * 7;
+            } else if (pick.market == "Corner") {
+              pick.odd = 9;
+              minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin;
+              maxWin += pick.stake * 9;
+            } else if (!isNaN(pick?.val[0])) {
+              pick.odd = 36 / numberOfSelections;
+              // Update minWin and maxWin based on the stake
+              minWin = pick.stake < minWin || minWin === 0 ? pick.stake : minWin; // Assuming the minimum win is the same as the stake
+              maxWin += pick.stake * pick.odd;
+            }
+            pick.val = pick.val.sort((a, b) => {
+              return a - b;
+            })
           }
-          pick.val = pick.val.sort((a, b) => {
-            return a - b;
-          })
+          // return res.status(400).json({err: "true"});
+        } else {
+          return res
+            .status(404)
+            .json({ message: "Game Type not found.", err: "true" });
         }
-        // return res.status(400).json({err: "true"});
-      } else {
-        return res
-          .status(404)
-          .json({ message: "Game Type not found.", err: "true" });
+
+        if (cashier.shop?.minStake > totalStake) {
+          return res
+            .status(200)
+            .json({
+              error: `Minimus stake is ${cashier.shop?.minStake}.`,
+              status: "error",
+              err: "true",
+            });
+        }
+        if (cashier.shop?.maxStake < totalStake) {
+          return res
+            .status(200)
+            .json({
+              error: `Maximus stake is ${cashier.shop?.maxStake}.`,
+              status: "error",
+              err: "true",
+            });
+        }
+        if (50000 < maxWin) {
+          return res
+            .status(200)
+            .json({
+              error: `Maximus win allowed is ${50000}.`,
+              status: "error",
+              err: "true",
+            });
+        }
+
+        const slip = await Slip.query().insert({
+          gameId: currentGame.id,
+          gameType: param.gameType,
+          totalStake: totalStake,
+          toWinMax: maxWin,
+          toWinMin: minWin,
+          oddType: param.oddType,
+          numberPick: JSON.stringify(param.numberPick),
+          shopOwnerId: param.shopOwner,
+          shopId: param.shop,
+          cashierId: param.cashier,
+        });
+
+        function convertDateFormat(inputDate) {
+          const date = new Date(inputDate);
+          return date.toISOString().slice(0, 16).replace("T", " ");
+        }
+        function convertDateFormats(inputDate) {
+          return new Date(inputDate).toISOString().slice(0, 10);
+        }
+
+        // const game = Game.query().findById(currentGame.id)
+        // param.numberPick.forEach(async (picks) => {
+        //   const slip = await Slip.query().insert({
+        //     gameId: currentGame.id,
+        //     gameType: param.gameType,
+        //     netStake: param.picks.stake,
+        //     grossStake: picks.stake,
+        //     numberPick: JSON.stringify(picks.selection),
+        //     shopOwnerId: param.shopOwner,
+        //     shopId: param.shop,
+        //     cashierId: param.cashier,
+        //   });
+        //   console.log(slip);
+        // });
+
+        // const fullData = Slip.query().findById(slip.id).withGraphFetched('shop')
+        res.status(201).json({
+          err: "false",
+          errText: "okay",
+          id: slip.gameId,
+          on: convertDateFormats(currentGame.time),
+          gameType: slip.gameType,
+          gameStartsOn:
+            param.gameType +
+            " " +
+            convertDateFormat(currentGame.time) +
+            " #" +
+            currentGame.gameNumber,
+          toWinMax: maxWin.toFixed(2),
+          toWinMin: minWin.toFixed(2),
+          company: "chessbet",
+          code: slip.id,
+          totalStake: slip.totalStake,
+          user: JSON.parse(slip.numberPick),
+          showOwnerId: slipController.showOwner,
+          ...(cashier.cashierLimit - 500 < cashier.netWinning && {
+            limitwarning: "Almost reach cashier limit!",
+          }),
+          agent: "agent",
+          by: "cashier",
+        });
+      } catch (error) {
+        next(error);
       }
 
-      if (cashier.shop?.minStake > totalStake) {
-        return res
-          .status(200)
-          .json({
-            error: `Minimus stake is ${cashier.shop?.minStake}.`,
-            status: "error",
-            err: "true",
-          });
-      }
-      if (cashier.shop?.maxStake < totalStake) {
-        return res
-          .status(200)
-          .json({
-            error: `Maximus stake is ${cashier.shop?.maxStake}.`,
-            status: "error",
-            err: "true",
-          });
-      }
-      if (50000 < maxWin) {
-        return res
-          .status(200)
-          .json({
-            error: `Maximus win allowed is ${50000}.`,
-            status: "error",
-            err: "true",
-          });
-      }
-
-      const slip = await Slip.query().insert({
-        gameId: currentGame.id,
-        gameType: param.gameType,
-        totalStake: totalStake,
-        toWinMax: maxWin,
-        toWinMin: minWin,
-        oddType: param.oddType,
-        numberPick: JSON.stringify(param.numberPick),
-        shopOwnerId: param.shopOwner,
-        shopId: param.shop,
-        cashierId: param.cashier,
-      });
-
-      function convertDateFormat(inputDate) {
-        const date = new Date(inputDate);
-        return date.toISOString().slice(0, 16).replace("T", " ");
-      }
-      function convertDateFormats(inputDate) {
-        return new Date(inputDate).toISOString().slice(0, 10);
-      }
-
-      // const game = Game.query().findById(currentGame.id)
-      // param.numberPick.forEach(async (picks) => {
-      //   const slip = await Slip.query().insert({
-      //     gameId: currentGame.id,
-      //     gameType: param.gameType,
-      //     netStake: param.picks.stake,
-      //     grossStake: picks.stake,
-      //     numberPick: JSON.stringify(picks.selection),
-      //     shopOwnerId: param.shopOwner,
-      //     shopId: param.shop,
-      //     cashierId: param.cashier,
-      //   });
-      //   console.log(slip);
-      // });
-
-      // const fullData = Slip.query().findById(slip.id).withGraphFetched('shop')
-      res.status(201).json({
-        err: "false",
-        errText: "okay",
-        id: slip.gameId,
-        on: convertDateFormats(currentGame.time),
-        gameType: slip.gameType,
-        gameStartsOn:
-          param.gameType +
-          " " +
-          convertDateFormat(currentGame.time) +
-          " #" +
-          currentGame.gameNumber,
-        toWinMax: maxWin.toFixed(2),
-        toWinMin: minWin.toFixed(2),
-        company: "chessbet",
-        code: slip.id,
-        totalStake: slip.totalStake,
-        user: JSON.parse(slip.numberPick),
-        showOwnerId: slipController.showOwner,
-        ...(cashier.cashierLimit - 500 < cashier.netWinning && {
-          limitwarning: "Almost reach cashier limit!",
-        }),
-        agent: "agent",
-        by: "cashier",
-      });
-    } catch (error) {
-      next(error);
-    }
+    });
   },
 
   updateSlip: async (req, res, next) => {

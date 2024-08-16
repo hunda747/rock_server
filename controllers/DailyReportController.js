@@ -29,7 +29,7 @@ const createDailyReport = async (req, res) => {
 };
 
 const processCashierReport = async (cashier, reportDate, startOfDay, endOfDay) => {
-  console.log("process ", cashier?.id);
+  // console.log("process ", cashier?.id);
   const existingReport = await DailyReport.query()
     .where({
       reportDate,

@@ -2,6 +2,8 @@
 
 const express = require('express');
 const app = express();
+const cluster = require('cluster');
+const os = require('os');
 // const port = 5500;
 
 const bet = require('./routes/bet');
@@ -25,13 +27,14 @@ const errorHandler = require('./middleware/errorHandlerMiddleware');
 
 // Use this
 const logger = require('./logger');
-
+const argv = process.argv.slice(2);
 const https = require('https');
 const fs = require('fs');
 
 var schedule = require('node-schedule');
 const { generateDailyReport, getCurrentDate } = require('./controllers/DailyReportController');
 const { resetGameNumber } = require('./controllers/GameController');
+const { scheduleGameResults, processJobFromQueue } = require('./util/resultQueue');
 // const { sendRequest, runTesting } = require('./loadTest');
 
 
@@ -56,6 +59,10 @@ schedule.scheduleJob({ hour: 23, minute: 44, second: 0, tz: 'Africa/Nairobi' }, 
   const resetAll = await CashierController.resetCashierLimit()
 });
 
+// if (cluster.isMaster) {
+//   scheduleGameResults()
+// }
+
 app.get('/', async (req, res) => {
   res.json('welcome');
 });
@@ -73,14 +80,50 @@ app.use('/slip', slipRoutes);
 // app.get('/test', runTesting);
 app.use('/dailyReport', dailyReportRoutes);
 
-
 app.use(errorHandler)
 
-const PORT = process.env.PORT || 8443;
-const HOST = '0.0.0.0'; // This line ensures it listens on all interfaces
-app.listen(PORT, HOST, () => {
-  console.log(`Server is running at http://localhost:${PORT}`);
-});
+
+// const PORT = process.env.PORT || 8443;
+// const HOST = '0.0.0.0'; // This line ensures it listens on all interfaces
+// app.listen(PORT, HOST, () => {
+//   console.log(`Server is running at http://localhost:${PORT}`);
+// });
+
+if (cluster.isMaster) {
+  // Run as master
+  scheduleGameResults()
+
+  // Create multiple worker instances
+  // const numCPUs = os.cpus().length;
+  const numCPUs = process.env.NUMCPU || 4;
+  for (let i = 0; i < numCPUs; i++) {
+    cluster.fork();
+  }
+
+  cluster.on('exit', (worker, code, signal) => {
+    console.log(`worker ${worker.process.pid} died`);
+  });
+
+  const PORT = process.env.PORT || 8443;
+  const HOST = '0.0.0.0'; // This line ensures it listens on all interfaces
+  app.listen(PORT, HOST, () => {
+    console.log(`Server is running at http://localhost:${PORT}`);
+  });
+  // const options = {
+  //   key: fs.readFileSync(process.env.CRT_KEY),
+  //   cert: fs.readFileSync(process.env.CRT_CRT)
+  // };
+
+  // const server = https.createServer(options, app);
+  // server.listen(PORT, () => {
+  //   console.log(`Server is running on port ${PORT}`);
+  //   logger.info(`Server is running on port http://localhost:${PORT}`);
+  // });
+} else {
+  console.log('worker up and down!!!!!!!!!!!!!!!! ', process.pid);
+  // Run as worker
+  processJobFromQueue()
+}
 
 // const PORT = process.env.PORT || 8444;
 // const options = {
