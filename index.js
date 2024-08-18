@@ -57,7 +57,7 @@ schedule.scheduleJob({ hour: 23, minute: 44, second: 0, tz: 'Africa/Nairobi' }, 
 });
 
 app.get('/', async (req, res) => {
-  res.json('welcome');
+  res.json('timbetactive');
 });
 // app.use('/bet', bet);
 // app.use('/bettest', bettest);
@@ -76,16 +76,17 @@ app.use('/dailyReport', dailyReportRoutes);
 
 app.use(errorHandler)
 
-// const PORT = process.env.PORT || 8443;
+// const PORT = process.env.PORT;
 // const HOST = '0.0.0.0'; // This line ensures it listens on all interfaces
 // app.listen(PORT, HOST, () => {
 //   console.log(`Server is running at http://localhost:${PORT}`);
 // });
+console.log('crt', process.env.PORT);
 
-const PORT = process.env.PORT || 8444;
+const PORT = process.env.PORT;
 const options = {
-  key: fs.readFileSync('9ed2b_a89dd_282bc574495f8c6d40d10ea0f3360f0d.key'),
-  cert: fs.readFileSync('www_logic_rookmatetech_com_9ed2b_a89dd_1726566409_d192f168b8e74e1b8d4dd6b71abba7c2.crt')
+  key: fs.readFileSync(process.env.CRT_KEY),
+  cert: fs.readFileSync(process.env.CRT_CRT)
 };
 
 const server = https.createServer(options, app);
