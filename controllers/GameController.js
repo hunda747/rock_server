@@ -925,49 +925,50 @@ const calculateWiningNumbers = async (gameNumber, winningNumbers, winner) => {
   }
   // Iterate through each ticket
   for (const ticket of tickets) {
-    const ticketPicks = JSON.parse(ticket.numberPick);
-
-    // Initialize variables for each ticket
-    let ticketWin = 0;
-
-    for (const pick of ticketPicks) {
-      const numberOfSelections = pick.selection.length;
-      // console.log("nums:", pick.selection);
-      // console.log("nums:", pick.selection[0]);
-      // Retrieve the odds table for the specific selection
-      if (typeof pick?.selection[0] === "string") {
-        if (winner === "evens" && pick?.selection[0] === winner) {
-          ticketWin += pick.stake * 4;
-        } else if (pick?.selection[0] === winner) {
-          ticketWin += pick.stake * 2;
-        }
-      } else {
-        const oddsEntry = oddsTable[ticket.oddType][numberOfSelections];
-
-        const actualWinnings = countCorrectGuesses(
-          pick.selection,
-          winningNumbers
-        );
-        // console.log("wins:", actualWinnings);
-        if (oddsEntry && actualWinnings) {
-          const modd = oddsEntry[actualWinnings - 1];
-          // console.log("mod", modd);
-          // Calculate the stake for the current pick based on the odds table
-          // console.log("amount", pick.stake * Object.values(modd)[0]);
-          ticketWin += pick.stake * Object.values(modd)[0];
-        }
-      }
-    }
-    const updatedTicket = await Ticket.query().patchAndFetchById(ticket.id, {
-      netWinning: ticketWin,
-      status: "redeem",
-    });
-
-    console.log("total win:", ticketWin);
+    await calculateSingleKenoTicketWinning(ticket, winningNumbers, winner);
   }
-
   // calculateCashierWinnings(gameNumber, tickets);
 };
+const calculateSingleKenoTicketWinning = async (ticket, winningNumbers, winner) => {
+  const ticketPicks = JSON.parse(ticket.numberPick);
+  // Initialize variables for each ticket
+  let ticketWin = 0;
+
+  for (const pick of ticketPicks) {
+    const numberOfSelections = pick.selection.length;
+    // console.log("nums:", pick.selection);
+    // console.log("nums:", pick.selection[0]);
+    // Retrieve the odds table for the specific selection
+    if (typeof pick?.selection[0] === "string") {
+      if (winner === "evens" && pick?.selection[0] === winner) {
+        ticketWin += pick.stake * 4;
+      } else if (pick?.selection[0] === winner) {
+        ticketWin += pick.stake * 2;
+      }
+    } else {
+      const oddsEntry = oddsTable[ticket.oddType][numberOfSelections];
+
+      const actualWinnings = countCorrectGuesses(
+        pick.selection,
+        winningNumbers
+      );
+      // console.log("wins:", actualWinnings);
+      if (oddsEntry && actualWinnings) {
+        const modd = oddsEntry[actualWinnings - 1];
+        // console.log("mod", modd);
+        // Calculate the stake for the current pick based on the odds table
+        // console.log("amount", pick.stake * Object.values(modd)[0]);
+        ticketWin += pick.stake * Object.values(modd)[0];
+      }
+    }
+  }
+  const updatedTicket = await Ticket.query().patchAndFetchById(ticket.id, {
+    netWinning: ticketWin,
+    status: "redeem",
+  });
+
+  console.log("total win:", ticketWin);
+}
 
 const calculateSlipWiningNumbers = async (
   gameNumber,
@@ -986,49 +987,42 @@ const calculateSlipWiningNumbers = async (
   }
   // Iterate through each ticket
   for (const ticket of tickets) {
-    const ticketPicks = JSON.parse(ticket.numberPick);
+    await calculateSingleSpinTicketWinning(ticket, winningNumbers, winner);
+  }
+};
+const calculateSingleSpinTicketWinning = async (ticket, winningNumbers, winner) => {
+  const ticketPicks = JSON.parse(ticket.numberPick);
 
-    // Initialize variables for each ticket
-    let ticketWin = 0;
-    let ticketMinWin = 0;
-    let ticketMaxWin = 0;
+  // Initialize variables for each ticket
+  let ticketWin = 0;
+  let ticketMinWin = 0;
+  let ticketMaxWin = 0;
 
-    for (const pick of ticketPicks) {
-      // Retrieve the odds table for the specific selection
-      if (pick.market === "OddEven") {
-        if (pick?.val[0] == winner?.oddEven) {
-          ticketWin += pick.stake * pick.odd;
-        }
-      } else if (pick.market === "Color") {
-        if (pick.val[0] == winner?.color) {
-          ticketWin += pick.stake * pick.odd;
-        }
-      } else {
-        // console.log("numbers", winningNumbers);
-        // if(pick.val.includes(winningNumbers)){
-        if (pick?.val.map(Number).includes(winningNumbers)) {
-          ticketWin += pick.stake * pick.odd;
-        }
+  for (const pick of ticketPicks) {
+    // Retrieve the odds table for the specific selection
+    if (pick.market === "OddEven") {
+      if (pick?.val[0] == winner?.oddEven) {
+        ticketWin += pick.stake * pick.odd;
+      }
+    } else if (pick.market === "Color") {
+      if (pick.val[0] == winner?.color) {
+        ticketWin += pick.stake * pick.odd;
+      }
+    } else {
+      // console.log("numbers", winningNumbers);
+      // if(pick.val.includes(winningNumbers)){
+      if (pick?.val.map(Number).includes(winningNumbers)) {
+        ticketWin += pick.stake * pick.odd;
       }
     }
-    const updatedTicket = await Ticket.query().patchAndFetchById(ticket.id, {
-      netWinning: ticketWin,
-      status: "redeem",
-    });
-
-    console.log("total win:", ticketWin);
   }
-  // Iterate through the picks in the ticket
+  const updatedTicket = await Ticket.query().patchAndFetchById(ticket.id, {
+    netWinning: ticketWin,
+    status: "redeem",
+  });
 
-  // Now, compare the ticket's picks with the winning numbers to determine the actual winnings
-
-  // Assuming actualWinnings is the amount won by matching the user's picks with the winning numbers
-  // Update the Slip (ticket) record with the actual winnings
-
-  // You can also do additional processing or logging here if needed
-  // res.send(true);
-  // await Ticket.query().findById(ticket.id).patch({ actualWinnings });
-};
+  console.log("total win:", ticketWin);
+}
 
 function countCorrectGuesses(userSelection, winningNumbers) {
   // Implement logic to count the number of correct guesses between userSelection and winningNumbers
@@ -1167,6 +1161,6 @@ const numberToColorMap = {
   36: ["RED", "pink"],
 };
 
-module.exports = GameController;
+module.exports = { GameController, calculateSingleSpinTicketWinning, calculateSingleKenoTicketWinning };
 
 // ticket, stake, payout, unclamed, revoked, ggr, net balance
