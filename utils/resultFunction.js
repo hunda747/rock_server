@@ -1,8 +1,10 @@
 const Ticket = require('../models/slip')
 const Cashier = require('../models/cashier')
 const oddsTable = require("../odd/kiron");
+const { getCurrentDate } = require('../controllers/DailyReportController');
+const addReportJob = require('../util/queue');
 
-const calculateWiningNumbers = async (gameNumber, winningNumbers, winner) => {
+const calculateWiningNumbers = async (gameNumber, winningNumbers, winner, shopId) => {
   // const { gameNumber } = req.params;
   // let winningNumbers = [25, 62, 47, 8, 27, 36, 35, 10, 20, 30];
   // console.log(nums);
@@ -61,7 +63,8 @@ const calculateWiningNumbers = async (gameNumber, winningNumbers, winner) => {
       console.log("total win:", ticketWin);
     }
 
-    calculateCashierWinnings(gameNumber, tickets);
+    addReportJob(shopId, getCurrentDate());
+    // calculateCashierWinnings(gameNumber, tickets);
   } catch (err) {
     console.log(err);
   }
