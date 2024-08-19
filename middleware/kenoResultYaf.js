@@ -63,7 +63,7 @@ const generateRandomNumbersKeno = async (gameNumber, rtp, shopId, date) => {
 
   const scalingFactor = rtp / 100;
 
-  let refactoredCommision = calculateCommission(currentData.stake, currentData.ggr, scalingFactor, totalPool);
+  let refactoredCommision = calculateCommission(currentData.stake, currentData.ggr, scalingFactor, totalPool, shopId);
   console.log("curr refactoredCommision", refactoredCommision);
 
   const startTime = performance.now();
@@ -133,7 +133,8 @@ function calculateScalingFactor(totalBet, currentMilestone, nextMilestone) {
   return scalingFactor;
 }
 
-function calculateCommission(totalBet, totalCommission, desiredCommissionRate, active) {
+
+function calculateCommission(totalBet, totalCommission, desiredCommissionRate, active, shopId) {
   // console.log("total bet", totalBet, "total com", totalCommission);
   let nextMilestone = milestones.find(milestone => totalBet < milestone.amount);
   console.log('next milestone', nextMilestone);
@@ -170,7 +171,7 @@ function calculateCommission(totalBet, totalCommission, desiredCommissionRate, a
   // console.log('commission difference', commissionDifference);
   let commission = ((commissionDifference + active) / active).toFixed(2);
 
-  appendToFFFCSV(active, totalBet, totalCommission, desiredCommissionRate, expectedBonusPool, desiredCommission, commissionDifference, commission)
+  // appendToFFFCSV(active, totalBet, totalCommission, desiredCommissionRate, expectedBonusPool, desiredCommission, commissionDifference, commission, shopId)
 
   return Math.min(parseFloat(commission), 1);
 }
@@ -321,17 +322,17 @@ function appendToCSV(winningTickets, counter, threshold, percentage, totalPool, 
 }
 
 // Function to append results to CSV file
-function appendToFFFCSV(active, totalPoints, totalGGR, expectedPercentage, expectedBonusPool, desiredCommission, commissionDifference, commission) {
+function appendToFFFCSV(active, totalPoints, totalGGR, expectedPercentage, expectedBonusPool, desiredCommission, commissionDifference, commission, shopId) {
   // Define the CSV file path
-  const filePath = path.join(__dirname, 'active8.csv');
+  const filePath = path.join(__dirname, 'active4chess.csv');
 
   // Prepare the data line
-  const dataLine = `${active},${totalPoints},${totalGGR},${expectedPercentage},${expectedBonusPool},${desiredCommission},${commissionDifference},${commission}\n`;
+  const dataLine = `${active},${totalPoints},${totalGGR},${expectedPercentage},${expectedBonusPool},${desiredCommission},${commissionDifference},${commission},${shopId}\n`;
 
   // Check if file exists to add header only once
   if (!fs.existsSync(filePath)) {
     // Define the header line
-    const header = 'active,total,ggr,expectedPercentage,expectedBonusPool,desiredCommission,commissionDifference,commission\n';
+    const header = 'active,total,ggr,expectedPercentage,expectedBonusPool,desiredCommission,commissionDifference,commission,shopId\n';
     // Write header and data line to the CSV file
     fs.writeFileSync(filePath, header + dataLine, { flag: 'a' });
   } else {

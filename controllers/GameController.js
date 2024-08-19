@@ -15,8 +15,11 @@ const { generateRandomNumbersKeno } = require("../middleware/kenoResultYaf");
 // const { generateRandomNumbersKeno } = require("../middleware/kenoResult");
 const Shop = require("../models/shop");
 const logger = require("../logger");
-const { getCurrentDate } = require("./DailyReportController");
+const { getCurrentDate, generateDailyReport } = require("./DailyReportController");
 const { stringify } = require("uuid");
+const { acquireLockWithTimeoutRedis, releaseLock } = require("../util/common");
+const { addReportJob } = require("../util/queue");
+const { checkIfGameInQueue } = require("../util/resultQueue");
 
 const KENOLOCK = 'game_lock_keno'
 const SPINLOCK = 'game_lock_spin'
@@ -217,6 +220,115 @@ const GameController = {
 
   getCurrentGameResult: async (req, res) => {
     let { gameNumber, shopId } = req.body;
+
+    try {
+      if (!gameNumber || !shopId) {
+        return res.status(400).json({ message: "Invalid input data." });
+      }
+      console.log("request from shop id ", shopId);
+      // Check shop existence
+      const findShop = await Shop.query().findOne({ username: shopId });
+      if (!findShop) {
+        // releaseLock(release);
+        return res.status(404).json({ message: "Shop not found." });
+      }
+      shopId = findShop.id;
+
+      let currentGame = await Game.query().findOne({ id: gameNumber, gameType: 'keno', shopId });
+
+      if (!currentGame) {
+        console.log("game not founc in ", findShop.username);
+        return res.status(404).json({ message: "Game not found." });
+      }
+
+      // if (!currentGame.pickedNumbers) {
+      //   console.log("Result is still being processed shop id ", findShop.username);
+      //   return res.status(404).json({ message: "Result is still being processed." });
+      // }
+
+      // Check if result is ready
+      if (!currentGame.pickedNumbers) {
+        // Queue monitoring and retry mechanism
+        const maxRetries = 2;
+        const retryDelay = 1000; // milliseconds
+        let retries = 0;
+        let foundResult = false;
+
+        while (retries < maxRetries) {
+          // Check if the game is being processed in the queue
+          const isProcessing = await checkIfGameInQueue(gameNumber, shopId); // Implement this function
+          console.log("shop id try no ", retries, shopId);
+          if (!isProcessing) {
+            break; // Exit if the game is no longer in the queue
+          }
+
+          // Wait before retrying
+          await delay(retryDelay);
+          retries++;
+
+          // Re-fetch the game to check if the result is now ready
+          const updatedGame = await Game.query()
+            .findOne({ id: gameNumber, gameType: 'keno', shopId });
+
+          if (updatedGame.pickedNumbers) {
+            console.log("shop id after delay n# ", retries, shopId);
+            // Result is now ready, return it
+            foundResult = true;
+            currentGame = updatedGame;
+            break;
+          }
+        }
+
+        // If we exit the loop without a result, respond with a delay message
+        if (!foundResult) {
+          console.log("no luck try again! ");
+          return res.status(404).json({ message: "Result is still being processed. Please try again shortly." });
+        }
+      }
+
+      const drawnNumber = JSON.parse(currentGame?.pickedNumbers)?.selection;
+      const last10Result = await getLast10Games(shopId);
+
+      // Update the current game with the drawn number
+      const latestGame = await getLastGamePlayed('keno', shopId)
+
+      let openGame;
+
+      if (latestGame && latestGame?.status === "playing") {
+        openGame = latestGame;
+      } else {
+        // Call this function to start a transaction
+        await transaction(Game.knex(), async (trx) => {
+          const gn = latestGame?.gameNumber || findShop?.kenoStartNumber || 8100;
+          await checkRepeatNumber(trx, 'keno', shopId, (gn + 1), KENOLOCK);
+          openGame = await Game.query()
+            .insert({
+              gameType: "keno",
+              gameNumber: gn + 1,
+              shopId: shopId
+            })
+            .returning("*");
+        })
+      }
+
+      console.log("request compelete shop id ", findShop.username);
+      return res.status(200).json({
+        openGame: { id: openGame.id, gameNumber: openGame.gameNumber },
+        game: { gameNumber: currentGame.gameNumber },
+        result: drawnNumber.map((item) => ({ value: item })),
+        lastGame: currentGame.gameNumber,
+        recent: last10Result
+      });
+    } catch (error) {
+      console.log(error);
+      logger.error(`Error getting current game result: ${error}`);
+      return res.status(500).json({ message: "Internal server error." });
+    }
+  },
+
+
+  getCurrentGameResultfff: async (req, res) => {
+    let { gameNumber, shopId } = req.body;
     // console.log('game', gameNumber);
     try {
       // Validate input
@@ -225,7 +337,13 @@ const GameController = {
       }
 
       // Acquire lock
-      const release = await acquireLockWithTimeout(gameMutex, 8000);
+      // const resource = `locks:gameResult:${gameNumber}:${shopId}`;
+      const resource = `locks:gameResult:${gameNumber}`;
+      const ttl = 5000; // Lock time-to-live in milliseconds
+      const timeout = 10000; // Maximum time to wait for acquiring the lock
+
+      // Acquire lock
+      const release = await acquireLockWithTimeoutRedis(resource, ttl, timeout);
       if (!release) {
         logger.error(`Failed to acquire lock KENO. for shop: ${shopId} gameNumber: ${gameNumber}`)
         return res.status(500).json({ message: "Failed to acquire first time lock." });
@@ -237,7 +355,7 @@ const GameController = {
           // Check shop existence
           const findShop = await Shop.query().findOne({ username: shopId });
           if (!findShop) {
-            release();
+            // releaseLock(release);
             return res.status(404).json({ message: "Shop not found." });
           }
           shopId = findShop.id;
@@ -250,7 +368,7 @@ const GameController = {
 
           if (!currentGame) {
             logger.error(`current game not found keno for shop: ${findShop?.username}`);
-            release();
+            // releaseLock(release);
             return res.status(404).json({ message: "Game not found." });
           }
 
@@ -303,7 +421,7 @@ const GameController = {
               lastGame: currentGame.gameNumber,
               recent: last10Result
             };
-            calculateWiningNumbers(gameNumber, numbers, winner);
+            calculateWiningNumbers(gameNumber, numbers, winner, shopId);
           } else {
             let drawnNumber = JSON.parse(currentGame?.pickedNumbers)?.selection;
 
@@ -321,9 +439,6 @@ const GameController = {
                   gameNumber: gn + 1,
                   shopId: shopId
                 }).returning("*");
-              // release();
-              // logger.error(`Old Game with no picked number on game id: ${gameNumber}, shop id: ${findShop.username}`)
-              // return res.status(404).json({ message: "Game not found." });
             }
 
             // let finalgameobject = await finalResult(currentGame, numbers)
@@ -340,20 +455,16 @@ const GameController = {
           }
 
           // Release lock and respond with data
-          release();
+          // releaseLock(release);
           return res.status(200).json(response);
         } catch (error) {
           await trx.rollback();
-          if (release) {
-            await release();
-          }
+          // releaseLock(release);
           logger.error(`Error getting current game result KENO: ${error}`);
           return res.status(500).json({ message: "Internal server error." });
         } finally {
           // Always attempt to release the lock
-          if (release) {
-            await release();
-          }
+          releaseLock(release);
         }
       });
     } catch (error) {
@@ -594,7 +705,7 @@ const GameController = {
         });
         // console.log('keno', currentGame);
 
-        calculateWiningNumbers(currentGame.id, numbers, winner);
+        calculateWiningNumbers(currentGame.id, numbers, winner, shop.id);
       } else {
         console.log('No game');
       }
@@ -748,6 +859,11 @@ const GameController = {
   },
 };
 
+// Utility function to delay execution
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 function getStartAndEndOfDay(timezoneOffset = 0) {
   const reportDate = new Date().toISOString().substr(0, 10);
   const startOfDay = new Date(`${reportDate}T00:00:00.000Z`);
@@ -801,28 +917,7 @@ const finalResult = async (currentGame, numbers) => {
 const formatSpinFinalResult = async (currentGame, results) => {
   return { id: currentGame.id, gameNumber: currentGame.gameNumber, status: 'done', gameResult: results };
 }
-// const gameLocks = {}; // Object to store locks for each game
 
-// // Function to acquire per-game lock
-// const acquireLockWithTimeout = async (gameNumber) => {
-//   return new Promise((resolve, reject) => {
-//     if (!gameLocks[gameNumber]) {
-//       gameLocks[gameNumber] = new Mutex();
-//     }
-
-//     const timer = setTimeout(() => {
-//       reject(new Error('Timeout while acquiring lock'));
-//     }, 5000); // Timeout value can be adjusted
-
-//     gameLocks[gameNumber].acquire().then((release) => {
-//       clearTimeout(timer);
-//       resolve(release);
-//     }).catch((error) => {
-//       clearTimeout(timer);
-//       reject(error);
-//     });
-//   });
-// };
 
 const acquireLockWithTimeout = async (mutex, timeout) => {
   return new Promise((resolve, reject) => {
@@ -912,7 +1007,7 @@ const calculateCashierWinnings = async (gameNumber, tickets) => {
   }
 };
 
-const calculateWiningNumbers = async (gameNumber, winningNumbers, winner) => {
+const calculateWiningNumbers = async (gameNumber, winningNumbers, winner, shopId) => {
   // const { gameNumber } = req.params;
   // let winningNumbers = [25, 62, 47, 8, 27, 36, 35, 10, 20, 30];
   // console.log(winner);
@@ -965,7 +1060,8 @@ const calculateWiningNumbers = async (gameNumber, winningNumbers, winner) => {
 
     console.log("total win:", ticketWin);
   }
-
+  console.log("add job report");
+  addReportJob(shopId, getCurrentDate());
   // calculateCashierWinnings(gameNumber, tickets);
 };
 
