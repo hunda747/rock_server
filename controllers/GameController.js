@@ -326,7 +326,6 @@ const GameController = {
     }
   },
 
-
   getCurrentGameResultfff: async (req, res) => {
     let { gameNumber, shopId } = req.body;
     // console.log('game', gameNumber);

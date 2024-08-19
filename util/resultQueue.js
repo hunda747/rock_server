@@ -13,7 +13,8 @@ const { checkRepeatNumber, getStartAndEndOfDay } = require('../utils/commonFunct
 const KENOLOCK = 'game_lock_keno'
 
 const Queue = require('bull');
-const resultQueue = new Queue('resultQueuecompany', {
+const resultQueue = new Queue(process.env.RESULT_QUEUE, {
+  // const resultQueue = new Queue('resultQueueTest', {
   concurrency: 1,
   redis: {
     host: '127.0.0.1',

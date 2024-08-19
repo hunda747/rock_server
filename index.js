@@ -90,20 +90,20 @@ if (cluster.isMaster) {
   });
 
   const PORT = process.env.PORT;
-  // const HOST = '0.0.0.0'; // This line ensures it listens on all interfaces
-  // app.listen(PORT, HOST, () => {
-  //   console.log(`Server is running at http://localhost:${PORT}`);
-  // });
-  const options = {
-    key: fs.readFileSync(process.env.CRT_KEY),
-    cert: fs.readFileSync(process.env.CRT_CRT)
-  };
-
-  const server = https.createServer(options, app);
-  server.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-    logger.info(`Server is running on port http://localhost:${PORT}`);
+  const HOST = '0.0.0.0'; // This line ensures it listens on all interfaces
+  app.listen(PORT, HOST, () => {
+    console.log(`Server is running at http://localhost:${PORT}`);
   });
+  // const options = {
+  //   key: fs.readFileSync(process.env.CRT_KEY),
+  //   cert: fs.readFileSync(process.env.CRT_CRT)
+  // };
+
+  // const server = https.createServer(options, app);
+  // server.listen(PORT, () => {
+  //   console.log(`Server is running on port ${PORT}`);
+  //   logger.info(`Server is running on port http://localhost:${PORT}`);
+  // });
 
   schedule.scheduleJob({ hour: 23, minute: 44, second: 0, tz: 'Africa/Nairobi' }, async function () {
     // schedule.scheduleJob({ hour: 22, minute: 52, second: 0, tz: 'Africa/Nairobi' }, async function () {

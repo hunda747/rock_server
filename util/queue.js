@@ -1,7 +1,7 @@
 const Queue = require('bull');
 const { generateDailyReport } = require('../controllers/DailyReportController');
 
-const reportQueue = new Queue('reportQueue', 'redis://127.0.0.1:6379');
+const reportQueue = new Queue(process.env.REPORT_QUEUE, 'redis://127.0.0.1:6379');
 
 // Function to add a job to the queue
 const addReportJob = async (shopId, reportDate) => {
