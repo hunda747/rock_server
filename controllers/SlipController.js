@@ -8,6 +8,7 @@ const { subDays, format, startOfDay, endOfDay } = require("date-fns");
 
 const oddsTable = require("../odd/kiron");
 const { transaction } = require("objection");
+const { calculateSingleSpinTicketWinning, calculateSingleKenoTicketWinning } = require("../utils/resultFunction");
 
 const slipController = {
   getAllSlips: async (req, res, next) => {
@@ -82,9 +83,27 @@ const slipController = {
         .withGraphFetched("game")
         .withGraphFetched("shop");
       if (slip) {
-        res.json(slip);
+        if (slip.status === 'active' && slip.game.status === 'done') {
+          console.log("game is done");
+          const winner = slip.game.winner;
+          const winningNumbers = JSON.parse(slip.game.pickedNumbers).selection;
+          if (slip.gameType === "spin") {
+            await calculateSingleSpinTicketWinning(slip, winningNumbers, winner);
+          } else if (slip.gameType === "keno") {
+            await calculateSingleKenoTicketWinning(slip, winningNumbers, winner);
+          } else {
+            res.status(404).json({ err: "false", error: "Invalid game type!" });
+          }
+          const updatedslip = await Slip.query()
+            .where("id", code)
+            .first()
+            .withGraphFetched("game")
+            .withGraphFetched("shop");
+          return res.json(updatedslip);
+        }
+        return res.json(slip);
       } else {
-        res.status(404).json({ error: "Slip not found yet" });
+        return res.status(404).json({ error: "Slip not found yet" });
       }
     } catch (error) {
       next(error);
@@ -351,7 +370,7 @@ const slipController = {
       //   return res.status(404).json({ message: "Game not found." });
       // }
 
-      const updatedSlip = await Slip.query().findById(id).where('shopId', shop);
+      const updatedSlip = await Slip.query().findById(id).where('shopId', shop).withGraphFetched("game");
       // console.log("slip", updatedSlip);
       // if (updatedSlip) {
       if (updatedSlip.status == "active") {
@@ -364,59 +383,12 @@ const slipController = {
           redeemCashierId: cashId,
           redeemDate: new Date()
         });
-        const game = await Game.query().findById(updatedSlip.gameId);
+        // const game = await Game.query().findById(updatedSlip.gameId);
+        const game = updatedSlip.game;
         const ticketPicks = JSON.parse(updateSlip.numberPick);
         // Initialize variables for each ticket
         let ticketWin = 0;
-        let winnerPick = [];
-        if (updateSlip.gameType === "spin") {
-          const winningNumbers = JSON.parse(game.pickedNumbers).selection;
-          const winner = determineAllWinners(winningNumbers)
-          for (const pick of ticketPicks) {
-            if (pick.market === "OddEven") {
-              if (pick?.val[0] === winner?.oddEven) {
-                winnerPick.push(pick);
-              }
-            } else if (pick.market === "Color") {
-              if (pick?.val[0] === winner?.color) {
-                winnerPick.push(pick);
-              }
-            } else {
-              // console.log("numbers", winningNumbers);
-              if (pick.val.map(Number).includes(winningNumbers)) {
-                winnerPick.push(pick);
-              }
-            }
-          }
-        } else {
-          for (const pick of ticketPicks) {
-            const winningNumbers = JSON.parse(game.pickedNumbers).selection;
-            const numberOfSelections = pick.selection.length;
-
-            if (typeof pick?.selection[0] === "string") {
-              if (game.winner === "evens" && pick?.selection[0] === game.winner) {
-                winnerPick.push(pick);
-              } else if (pick?.selection[0] === game.winner) {
-                winnerPick.push(pick);
-              }
-            } else {
-              const oddsEntry = oddsTable[updateSlip.oddType][numberOfSelections];
-
-              const actualWinnings = countCorrectGuesses(
-                pick.selection,
-                winningNumbers
-              );
-
-              if (oddsEntry && actualWinnings) {
-
-                const modd = oddsEntry[actualWinnings - 1];
-                if (pick.stake * Object.values(modd)[0]) {
-                  winnerPick.push(pick);
-                }
-              }
-            }
-          }
-        }
+        let winnerPick = findWinnerPick(updateSlip, game, ticketPicks);
 
         res.status(200).json({ err: "false", data: winnerPick });
       } else {
@@ -668,6 +640,58 @@ const slipController = {
   },
 };
 
+function findWinnerPick(updateSlip, game, ticketPicks) {
+  let winnerPick = [];
+  if (updateSlip.gameType === "spin") {
+    const winningNumbers = JSON.parse(game.pickedNumbers).selection;
+    const winner = determineAllWinners(winningNumbers)
+    for (const pick of ticketPicks) {
+      if (pick.market === "OddEven") {
+        if (pick?.val[0] === winner?.oddEven) {
+          winnerPick.push(pick);
+        }
+      } else if (pick.market === "Color") {
+        if (pick?.val[0] === winner?.color) {
+          winnerPick.push(pick);
+        }
+      } else {
+        // console.log("numbers", winningNumbers);
+        if (pick.val.map(Number).includes(winningNumbers)) {
+          winnerPick.push(pick);
+        }
+      }
+    }
+  } else {
+    for (const pick of ticketPicks) {
+      const winningNumbers = JSON.parse(game.pickedNumbers).selection;
+      const numberOfSelections = pick.selection.length;
+
+      if (typeof pick?.selection[0] === "string") {
+        if (game.winner === "evens" && pick?.selection[0] === game.winner) {
+          winnerPick.push(pick);
+        } else if (pick?.selection[0] === game.winner) {
+          winnerPick.push(pick);
+        }
+      } else {
+        const oddsEntry = oddsTable[updateSlip.oddType][numberOfSelections];
+
+        const actualWinnings = countCorrectGuesses(
+          pick.selection,
+          winningNumbers
+        );
+
+        if (oddsEntry && actualWinnings) {
+
+          const modd = oddsEntry[actualWinnings - 1];
+          if (pick.stake * Object.values(modd)[0]) {
+            winnerPick.push(pick);
+          }
+        }
+      }
+    }
+  }
+  return winnerPick;
+}
 
 function countCorrectGuesses(userSelection, winningNumbers) {
   // Implement logic to count the number of correct guesses between userSelection and winningNumbers
