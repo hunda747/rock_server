@@ -73,17 +73,19 @@ app.use('/dailyReport', dailyReportRoutes);
 
 app.use(errorHandler)
 
+console.log('Company Name:', process.env.COMPANY_NAME);
 
-if (cluster.isMaster) {
+// if (cluster.isMaster) {
+if (process.argv.includes('--master')) {
   // Run as master
   scheduleGameResults()
   // Create multiple worker instances
   // const numCPUs = os.cpus().length;
-  const numCPUs = process.env.NUMCPU || 4;
+  // const numCPUs = process.env.NUMCPU || 4;
 
-  for (let i = 0; i < numCPUs; i++) {
-    cluster.fork();
-  }
+  // for (let i = 0; i < numCPUs; i++) {
+  //   cluster.fork();
+  // }
 
   cluster.on('exit', (worker, code, signal) => {
     console.log(`worker ${worker.process.pid} died`);
