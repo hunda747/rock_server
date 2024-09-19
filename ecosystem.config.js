@@ -1,27 +1,29 @@
+const company = process.env.COMPANY_NAME;
+
 module.exports = {
   apps: [
     {
-      name: process.env.COMPANY_NAME,
+      name: 'Chess',
       script: './index.js',
       instances: 1,
       exec_mode: 'fork',
-      args: ['--master'],
+      args: '--master',
       env: {
         NODE_ENV: 'production',
-        COMPANY_NAME: process.env.COMPANY_NAME,
+        COMPANY_NAME: 'Chess',
         PORT: process.env.PORT,
       },
     },
     {
-      name: `${process.env.COMPANY_NAME}-worker`,
+      name: `chess-worker`,
       script: './index.js',
       instances: 3,
       exec_mode: 'cluster',
-      args: ['--worker'],
+      args: '--worker',
       env: {
         NODE_ENV: 'production',
-        COMPANY_NAME: process.env.COMPANY_NAME,
-        PORT: process.env.PORT,
+        COMPANY_NAME: 'chess',
+        // PORT: process.env.PORT,
       },
     },
   ],
