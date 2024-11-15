@@ -347,6 +347,7 @@ const GameController = {
           if (release) {
             await release();
           }
+          console.log("eror", error)
           logger.error(`Error getting current game result KENO: ${error}`);
           return res.status(500).json({ message: "Internal server error." });
         } finally {
