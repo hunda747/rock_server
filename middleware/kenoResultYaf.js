@@ -215,10 +215,11 @@ function numbersWithPerc(users, expectedPercentage, totalPool) {
   let threshold = 5;
   let percentage = expectedPercentage;
   let memo = {};
+  let fallbackNumbers = null;
 
   const strictLimit = 100000; // Define the limit for strict conditions
-
   let winTicketThreshold = Math.floor(users.length * 0.2);
+
   while (totalLoop <= 500000) {
     counter++;
     const numbers = generateRandomNumbers();
@@ -257,12 +258,7 @@ function numbersWithPerc(users, expectedPercentage, totalPool) {
 
     const isRange = isProfitWithinRange(totalPool, totalPoints, percentage, threshold);
 
-    if (isRange && (counter > strictLimit || checkWinTicketThreshold(counter))) {
-      // if (isRange &&
-      //   percentage === 100 ||
-      //   (counter <= strictLimit && ((winningTickets === 1 || winningTickets === 2)) ||
-      //     counter > strictLimit)
-      // ) {
+    if (isRange) {
       console.log('winning', winningTickets);
       console.log('winning', counter);
       console.log('threshold', threshold);
@@ -270,10 +266,15 @@ function numbersWithPerc(users, expectedPercentage, totalPool) {
       console.log("actual profit", ((totalPool - totalPoints) / totalPool) * 100, "%");
       console.log("---------------------------------------------------");
       calculatedNumbers = numbers;
-      // Call the function to append to CSV
-      // appendToCSV(winningTickets, counter, threshold, percentage, totalPool, totalPoints, expectedPercentage);
-
       return calculatedNumbers;
+    }
+
+    // Fallback: Store numbers with minimal risk if they are in range 0%-100%
+    if (!fallbackNumbers) {
+      const fallbackRangeCheck = isProfitWithinRange(totalPool, totalPoints, 50, 50); // Fallback range 0%-100%
+      if (fallbackRangeCheck) {
+        fallbackNumbers = numbers;
+      }
     }
 
     function checkWinTicketThreshold(counter) {
@@ -291,31 +292,21 @@ function numbersWithPerc(users, expectedPercentage, totalPool) {
       return winningTickets <= winTicketThreshold;
     }
 
-    // Adjusting the threshold increment logic and ensuring percentage doesn't go below minPercentage
     if (counter >= strictLimit) {
       if (threshold < 100 && (counter - strictLimit) % 1000 === 0) {
         threshold++;
         memo = {};
-        // } else if (threshold >= 100 && percentage > -100) {
-        //   percentage = Math.max(-100, percentage - 1);
       } else if (threshold >= 100) {
-        if (expectedPercentage < 0) {
-          percentage = 100;
-          // percentage = Math.max(expectedPercentage, percentage - 1);
-        } else {
-          percentage = 100;
-          // percentage = Math.max(0, percentage - 1);
-        }
+        percentage = expectedPercentage < 0 ? 100 : 0; // Adjust percentage logic for fallback
       }
-      // }
     }
 
     memo[numbersKey] = totalPoints;
     totalLoop++;
   }
 
-  console.error("Loop exited without finding a result");
-  return null; // Add a return statement to indicate no result found
+  console.warn("Fallback triggered: Returning numbers with minimal risk.");
+  return fallbackNumbers || []; // Return fallback numbers or empty array if no result found
 }
 
 // Function to append results to CSV file

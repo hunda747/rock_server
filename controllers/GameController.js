@@ -349,6 +349,7 @@ const GameController = {
           }
           console.log("eror", error)
           logger.error(`Error getting current game result KENO: ${error}`);
+          logger.error(`Game Id: ${gameNumber} , ${shopId}`);
           return res.status(500).json({ message: "Internal server error." });
         } finally {
           // Always attempt to release the lock
